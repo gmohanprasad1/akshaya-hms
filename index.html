@@ -1,0 +1,2600 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Akshaya Comforts — HMS v9</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════ THEME TOKENS ═══════════════════════════ */
+[data-theme="dark"] {
+  --bg: #0d0f14; --bg2: #131720; --bg3: #1a2030; --bg4: #202840;
+  --card: #161c28; --border: #2a3450; --border2: #354060;
+  --text: #e8eaf0; --text2: #a0aabf; --text3: #6070a0;
+  --shadow: 0 4px 24px rgba(0,0,0,.45); --shadow2: 0 2px 12px rgba(0,0,0,.3);
+  --inv-bg:#fff; --inv-text:#222; --inv-border:#ddd; --inv-th:#f5f5f5;
+}
+[data-theme="light"] {
+  --bg: #f0f2f7; --bg2: #ffffff; --bg3: #f5f7fc; --bg4: #eaecf5;
+  --card: #ffffff; --border: #d8dce8; --border2: #bec5d9;
+  --text: #1a1f30; --text2: #4a5270; --text3: #8892b0;
+  --shadow: 0 4px 24px rgba(0,0,0,.1); --shadow2: 0 2px 12px rgba(0,0,0,.07);
+  --inv-bg:#fff; --inv-text:#222; --inv-border:#ddd; --inv-th:#f5f5f5;
+}
+:root {
+  --gold:#c9a84c; --gold2:#e8c96a; --gold-dim:rgba(201,168,76,.15);
+  --green:#2ecc71; --red:#e74c3c; --orange:#f39c12; --purple:#9b59b6;
+  --teal:#1abc9c; --accent:#4a9eff; --pink:#e91e8c;
+  --s-vacant:#6070a0; --s-occupied:#2ecc71; --s-arrival:#3498db;
+  --s-confirmed:#9b59b6; --s-checkout:#e74c3c; --s-noshow:#e67e22;
+  --s-dueout:#f39c12; --s-dirty:#888;
+  --radius:12px; --radius2:8px; --radius3:6px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--text);background:var(--bg);overflow:hidden}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:var(--bg2)}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+
+/* ─── LAYOUT ─── */
+body{display:flex}
+#sidebar{width:210px;min-width:210px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;height:100vh;overflow-y:auto;z-index:200;transition:transform .25s ease,background .2s}
+#sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:190;backdrop-filter:blur(2px)}
+#main{flex:1;display:flex;flex-direction:column;height:100vh;overflow:hidden}
+#topbar{display:flex;align-items:center;gap:10px;padding:0 14px;height:52px;border-bottom:1px solid var(--border);background:var(--bg2);flex-shrink:0}
+#content{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
+.page{display:none;padding:14px 14px}
+.page.active{display:block}
+#menu-btn{display:none;background:none;border:none;color:var(--text);font-size:22px;cursor:pointer;padding:4px 6px;border-radius:6px;line-height:1}
+
+/* ─── MOBILE RESPONSIVE ─── */
+@media(max-width:768px){
+  #menu-btn{display:flex;align-items:center;justify-content:center}
+  #sidebar{position:fixed;left:0;top:0;height:100vh;transform:translateX(-100%);width:230px}
+  #sidebar.open{transform:translateX(0)}
+  #sidebar-overlay.show{display:block}
+  #main{width:100vw}
+  .page{padding:10px 10px 80px}
+  .dash-grid{grid-template-columns:repeat(2,1fr)!important}
+  .dash-grid .stat-card:last-child{grid-column:1/-1}
+  #page-dashboard>div:last-child{grid-template-columns:1fr!important}
+  .grid2{grid-template-columns:1fr!important}
+  .grid3{grid-template-columns:1fr!important}
+  .grid4{grid-template-columns:1fr 1fr!important}
+  .booking-layout{grid-template-columns:1fr!important}
+  .bill-card{position:static!important}
+  .s-grid{grid-template-columns:1fr!important}
+  .dep-summary{grid-template-columns:1fr 1fr!important}
+  .gp-layout{grid-template-columns:1fr!important}
+  .photo-box{flex-direction:row;flex-wrap:wrap;justify-content:flex-start;gap:10px}
+  .rv-grid{grid-template-columns:repeat(2,1fr)!important}
+  .tb-stats{display:none!important}
+  .tb-title{font-size:15px}
+  .tabs{overflow-x:auto;-webkit-overflow-scrolling:touch;flex-wrap:nowrap!important;padding-bottom:2px}
+  .tab{flex-shrink:0}
+  .modal{width:98%!important;max-width:98%!important;margin:4px}
+  .mhdr{padding:14px 14px 12px}
+  .mbody{padding:12px 14px}
+  .mfoot{padding:10px 14px;flex-wrap:wrap}
+  .tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;font-size:11.5px}
+  thead th{font-size:9.5px;padding:7px 8px}
+  td{padding:7px 8px;font-size:11.5px}
+  .room-row-tbl th,.room-row-tbl td{padding:5px 6px;font-size:11px}
+  .room-row-tbl select.inp,.room-row-tbl input.inp{font-size:11px;padding:5px 6px}
+  .sv-wrap{max-height:65vh}
+  .grp-room-grid{grid-template-columns:repeat(4,1fr)!important}
+  /* bottom nav bar on mobile */
+  #mobile-nav{display:flex}
+  #topbar .btn-gold{font-size:11px;padding:5px 10px}
+}
+@media(min-width:769px){
+  #mobile-nav{display:none!important}
+}
+
+/* ─── MOBILE BOTTOM NAV ─── */
+#mobile-nav{
+  display:none;
+  position:fixed;bottom:0;left:0;right:0;
+  background:var(--bg2);border-top:1px solid var(--border);
+  z-index:180;padding:6px 4px 8px;
+  justify-content:space-around;align-items:center;
+  -webkit-overflow-scrolling:touch;
+}
+.mob-nav-btn{
+  display:flex;flex-direction:column;align-items:center;gap:2px;
+  background:none;border:none;color:var(--text3);font-size:9px;cursor:pointer;
+  padding:4px 6px;border-radius:6px;transition:color .15s;min-width:44px;
+}
+.mob-nav-btn.active{color:var(--gold)}
+.mob-nav-btn .mico{font-size:18px}
+.mob-nav-btn span{font-size:9px;font-weight:500}
+
+/* ─── SIDEBAR ─── */
+.sb-brand{padding:18px 16px 14px;border-bottom:1px solid var(--border)}
+.sb-name{font-family:'Playfair Display',serif;font-size:16px;color:var(--gold);line-height:1.25;letter-spacing:.2px}
+.sb-sub{font-size:9.5px;color:var(--text3);letter-spacing:2px;text-transform:uppercase;margin-top:3px;font-family:'DM Mono',monospace}
+.sb-date{font-size:10.5px;color:var(--text3);margin-top:6px;font-family:'DM Mono',monospace}
+.nav-sec{padding:12px 14px 5px;font-size:9.5px;color:var(--text3);letter-spacing:2px;text-transform:uppercase;font-weight:600}
+.nav-item{display:flex;align-items:center;gap:9px;padding:8px 10px;margin:1px 6px;border-radius:var(--radius3);cursor:pointer;color:var(--text2);font-size:12.5px;font-weight:500;transition:all .15s;border:none;background:none;width:calc(100% - 12px);text-align:left}
+.nav-item:hover{background:var(--bg3);color:var(--text)}
+.nav-item.active{background:var(--gold-dim);color:var(--gold)}
+.nav-item .ico{font-size:14px;width:18px;text-align:center}
+.sb-footer{margin-top:auto;padding:12px 14px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+
+/* ─── TOPBAR ─── */
+.tb-title{font-family:'Playfair Display',serif;font-size:18px;font-weight:600;color:var(--text)}
+.tb-stats{display:flex;gap:14px;margin-left:auto}
+.ts-dot{width:7px;height:7px;border-radius:50%}
+.ts-val{font-weight:600;font-family:'DM Mono',monospace;font-size:12px}
+.ts-lbl{color:var(--text3);font-size:11px}
+
+/* ─── BUTTONS ─── */
+.btn{display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border-radius:var(--radius3);border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:12.5px;font-weight:500;transition:all .15s;white-space:nowrap}
+.btn-gold{background:var(--gold);color:#000}.btn-gold:hover{background:var(--gold2)}
+.btn-outline{background:transparent;color:var(--text2);border:1px solid var(--border2)}.btn-outline:hover{background:var(--bg3);color:var(--text)}
+.btn-danger{background:var(--red);color:#fff}.btn-success{background:var(--green);color:#fff}
+.btn-blue{background:var(--accent);color:#fff}
+.btn-sm{padding:5px 10px;font-size:12px}.btn-xs{padding:3px 8px;font-size:11px}
+.ico-btn{padding:5px 7px;border-radius:var(--radius3);background:var(--bg3);border:1px solid var(--border);color:var(--text2);cursor:pointer;display:inline-flex;align-items:center;transition:all .15s;font-size:13px}.ico-btn:hover{background:var(--bg4);color:var(--text)}
+
+/* ─── FORM ─── */
+.inp{background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius3);padding:7px 11px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;transition:border .15s;width:100%}
+.inp:focus{border-color:var(--gold)}
+select.inp option{background:var(--bg3);color:var(--text)}
+textarea.inp{resize:vertical}
+.fg{display:flex;flex-direction:column;gap:4px}
+.fl{font-size:11px;color:var(--text3);font-weight:500;text-transform:uppercase;letter-spacing:.5px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.full{grid-column:1/-1}
+.flex{display:flex}.frow{display:flex;align-items:center;gap:8px}
+.f1{flex:1}.gap4{gap:4px}.gap8{gap:8px}.gap12{gap:12px}
+
+/* ─── CARDS / SECTIONS ─── */
+.section-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px}
+.section-title{font-size:14px;font-weight:600;color:var(--text)}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px}
+.divider{border:none;border-top:1px solid var(--border);margin:12px 0}
+
+/* ─── STAT CARDS ─── */
+.dash-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:18px}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;position:relative;overflow:hidden}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.sc-gold::before{background:var(--gold)}.sc-green::before{background:var(--green)}.sc-blue::before{background:var(--accent)}.sc-orange::before{background:var(--orange)}.sc-purple::before{background:var(--purple)}.sc-red::before{background:var(--red)}.sc-teal::before{background:var(--teal)}
+.stat-lbl{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;font-weight:600}
+.stat-val{font-size:26px;font-weight:700;font-family:'DM Mono',monospace;margin-top:4px;line-height:1}
+.stat-sub{font-size:10.5px;color:var(--text3);margin-top:3px}
+.stat-ico{position:absolute;right:12px;top:12px;font-size:20px;opacity:.2}
+
+/* ─── ROOM CARDS ─── */
+.rv-filters{display:flex;align-items:center;gap:6px;margin-bottom:14px;flex-wrap:wrap}
+.fbtn{padding:4px 12px;border-radius:20px;border:1px solid var(--border2);background:transparent;color:var(--text2);font-size:11.5px;font-weight:500;cursor:pointer;transition:all .15s;font-family:'DM Sans',sans-serif}
+.fbtn:hover{border-color:var(--gold);color:var(--gold)}.fbtn.active{background:var(--gold);color:#000;border-color:var(--gold)}
+.rv-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px}
+.room-card{background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius);padding:12px 12px 10px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;min-height:145px;display:flex;flex-direction:column}
+.room-card:hover{transform:translateY(-2px);box-shadow:var(--shadow);border-color:var(--border2)}
+.room-card.st-occupied{border-color:var(--s-occupied)}.room-card.st-arrival{border-color:var(--s-arrival)}.room-card.st-confirmed{border-color:var(--s-confirmed)}.room-card.st-dueout{border-color:var(--s-dueout)}.room-card.st-checkout{border-color:var(--s-checkout)}.room-card.st-dirty{border-color:var(--s-dirty)}
+.rc-stripe{position:absolute;left:0;top:0;bottom:0;width:4px;border-radius:12px 0 0 12px}
+.rc-num{font-family:'Playfair Display',serif;font-size:28px;font-weight:700;line-height:1;padding-left:7px}
+.rc-cat{font-size:9.5px;text-transform:uppercase;letter-spacing:1.5px;font-weight:600;padding-left:7px;margin-top:1px}
+.cat-exec{color:#6094e8}.cat-ep{color:#4ac9b8}.cat-dlx{color:#b07ef8}
+.rc-badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:9.5px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;margin:6px 0 0 7px;align-self:flex-start}
+.b-vacant{background:rgba(96,112,160,.15);color:var(--text3)}.b-occupied{background:rgba(46,204,113,.12);color:var(--green);border:1px solid var(--green)}.b-arrival{background:rgba(52,152,219,.12);color:var(--s-arrival);border:1px solid var(--s-arrival)}.b-confirmed{background:rgba(155,89,182,.12);color:var(--purple);border:1px solid var(--purple)}.b-dueout{background:rgba(243,156,18,.15);color:var(--orange);border:1px solid var(--orange)}.b-checkout{background:rgba(231,76,60,.12);color:var(--red);border:1px solid var(--red)}.b-dirty{background:rgba(136,136,136,.12);color:#888;border:1px solid #888}.b-noshow{background:rgba(230,126,34,.12);color:var(--orange)}
+.rc-guest{font-size:11.5px;font-weight:600;padding-left:7px;margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rc-dates{font-size:9.5px;color:var(--text3);padding-left:7px;font-family:'DM Mono',monospace;margin-top:1px}
+.rc-bal{font-size:10.5px;font-weight:600;padding-left:7px;margin-top:2px}
+.bal-due{color:var(--red)}.bal-ok{color:var(--green)}
+.rc-book{margin-top:auto;width:100%;padding:6px;background:var(--gold-dim);border:1px solid rgba(201,168,76,.3);border-radius:5px;color:var(--gold);font-size:11.5px;font-weight:600;cursor:pointer;text-align:center;transition:all .15s;font-family:'DM Sans',sans-serif}
+.rc-book:hover{background:var(--gold);color:#000}
+
+/* ─── TABLE ─── */
+.tbl-wrap{overflow-x:auto;border-radius:var(--radius);border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+thead th{background:var(--bg3);padding:9px 11px;text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.8px;color:var(--text3);font-weight:600;white-space:nowrap;border-bottom:1px solid var(--border)}
+tbody tr{border-bottom:1px solid var(--border);transition:background .1s}
+tbody tr:hover{background:var(--bg3)}
+tbody tr:last-child{border-bottom:none}
+td{padding:9px 11px;vertical-align:middle}
+
+/* ─── STATUS PILLS ─── */
+.sp{display:inline-block;padding:2px 9px;border-radius:10px;font-size:10.5px;font-weight:600}
+.sp-occupied{background:rgba(46,204,113,.12);color:var(--green)}
+.sp-arrival{background:rgba(52,152,219,.12);color:var(--s-arrival)}
+.sp-confirmed{background:rgba(155,89,182,.12);color:var(--purple)}
+.sp-checkout,.sp-checked-out{background:rgba(231,76,60,.12);color:var(--red)}
+.sp-cancelled{background:rgba(127,140,141,.12);color:#999}
+.sp-noshow,.sp-no-show{background:rgba(230,126,34,.12);color:var(--orange)}
+.sp-dueout,.sp-due-out{background:rgba(243,156,18,.18);color:var(--orange)}
+.sp-dirty{background:rgba(136,136,136,.12);color:#888}
+
+/* ─── MODAL ─── */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(3px);z-index:200;align-items:center;justify-content:center}
+.overlay.open{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius);max-height:94vh;overflow-y:auto;box-shadow:var(--shadow);position:relative;width:95%}
+.modal-sm{max-width:420px}.modal-md{max-width:680px}.modal-lg{max-width:960px}
+.mhdr{display:flex;align-items:center;justify-content:space-between;padding:18px 22px 14px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--bg2);z-index:5}
+.mtitle{font-family:'Playfair Display',serif;font-size:17px;font-weight:600;color:var(--gold)}
+.mbody{padding:18px 22px}
+.mfoot{padding:14px 22px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;background:var(--bg2);position:sticky;bottom:0}
+.xbtn{background:none;border:none;color:var(--text3);font-size:20px;cursor:pointer;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:all .15s}.xbtn:hover{background:var(--bg3);color:var(--text)}
+
+/* ─── TABS ─── */
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--border);margin-bottom:16px;flex-wrap:wrap}
+.tab{padding:8px 14px;border:none;background:none;color:var(--text3);font-family:'DM Sans',sans-serif;font-size:12.5px;font-weight:500;cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;white-space:nowrap}
+.tab.active{color:var(--gold);border-bottom-color:var(--gold)}.tab:hover{color:var(--text)}
+.tc{display:none}.tc.active{display:block}
+
+/* ─── BILLING PANEL ─── */
+.booking-layout{display:grid;grid-template-columns:1fr 260px;gap:14px;align-items:start}
+.bill-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:16px;position:sticky;top:0}
+.bill-ttl{font-size:11.5px;font-weight:600;color:var(--text2);margin-bottom:12px;text-transform:uppercase;letter-spacing:1px}
+.bill-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;font-size:12.5px}
+.bill-sep{border-top:1px solid var(--border);margin:7px 0}
+.bill-total{font-weight:700;font-size:14px;color:var(--gold)}
+.bill-due{color:var(--red);font-weight:700}
+
+/* ─── STAY VIEW ─── */
+.sv-wrap{overflow:auto;border:1px solid var(--border);border-radius:var(--radius)}
+.sv-tbl{border-collapse:collapse;width:max-content}
+.sv-tbl th,.sv-tbl td{border:1px solid var(--border);padding:0}
+.sv-room-hdr{padding:7px 12px;background:var(--bg3);width:130px;min-width:130px;font-weight:600;font-size:11.5px;position:sticky;left:0;z-index:2;border-right:2px solid var(--border2)}
+.sv-date-hdr{padding:7px 5px;background:var(--bg3);text-align:center;min-width:74px;font-size:10px;font-weight:600;color:var(--text3);position:sticky;top:0;z-index:3}
+.sv-date-hdr.today{color:var(--gold);background:rgba(201,168,76,.08)}
+.sv-cell{min-width:74px;height:34px;position:relative;cursor:pointer;transition:background .1s}.sv-cell:hover{background:var(--bg4)}
+.sv-blk{position:absolute;top:2px;bottom:2px;left:1px;right:1px;border-radius:4px;display:flex;align-items:center;padding:0 5px;font-size:9.5px;font-weight:600;white-space:nowrap;overflow:hidden}
+.sv-occ{background:rgba(46,204,113,.22);border:1px solid var(--green);color:var(--green)}
+.sv-conf{background:rgba(155,89,182,.22);border:1px solid var(--purple);color:var(--purple)}
+.sv-arr{background:rgba(52,152,219,.22);border:1px solid var(--s-arrival);color:var(--s-arrival)}
+.sv-dueout{background:rgba(243,156,18,.22);border:1px solid var(--orange);color:var(--orange)}
+.sv-cat-row td{background:rgba(201,168,76,.05);font-size:10.5px;color:var(--gold);font-weight:600;padding:3px 12px;text-transform:uppercase;letter-spacing:.8px}
+
+/* ─── GUEST PANEL ─── */
+.gp-layout{display:grid;grid-template-columns:130px 1fr;gap:18px;align-items:start}
+.photo-box{display:flex;flex-direction:column;gap:6px;align-items:center}
+.g-photo{width:110px;height:110px;border-radius:10px;background:var(--bg4);border:2px solid var(--border2);display:flex;align-items:center;justify-content:center;overflow:hidden;font-size:36px;color:var(--text3)}
+.id-box{width:110px;height:72px;border-radius:8px;background:var(--bg4);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;overflow:hidden;font-size:22px;color:var(--text3)}
+.g-photo img,.id-box img{width:100%;height:100%;object-fit:cover}
+.pact{display:flex;gap:3px;flex-wrap:wrap;justify-content:center}
+
+/* ─── SETTINGS ─── */
+.s-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.s-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px}
+.s-ttl{font-size:12px;font-weight:600;color:var(--gold);margin-bottom:12px;text-transform:uppercase;letter-spacing:1px;display:flex;align-items:center;gap:7px}
+.toggle-row{display:flex;align-items:center;gap:10px;margin:7px 0}
+.sw{width:36px;height:19px;background:var(--bg4);border-radius:10px;cursor:pointer;position:relative;transition:background .2s;border:1px solid var(--border2);flex-shrink:0}
+.sw.on{background:var(--gold)}.sw-k{position:absolute;top:2px;left:2px;width:13px;height:13px;background:#fff;border-radius:50%;transition:left .2s}.sw.on .sw-k{left:19px}
+.tgl-lbl{font-size:12.5px;color:var(--text2)}
+
+/* ─── REVENUE ANALYTICS ─── */
+.chart-bar{display:flex;align-items:flex-end;gap:5px;height:100px;padding-bottom:4px}
+.bar-col{display:flex;flex-direction:column;align-items:center;gap:3px;flex:1}
+.bar{background:var(--gold-dim);border:1px solid rgba(201,168,76,.4);border-radius:3px 3px 0 0;width:100%;min-height:2px;transition:background .2s;cursor:pointer}
+.bar:hover{background:var(--gold)}
+.bar-lbl{font-size:9px;color:var(--text3);font-family:'DM Mono',monospace}
+.bar-val{font-size:8.5px;color:var(--gold);font-family:'DM Mono',monospace}
+
+/* ─── CALENDAR 90 DAYS ─── */
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;font-size:10.5px}
+.cal-day-hdr{text-align:center;color:var(--text3);font-weight:600;padding:4px;font-size:9.5px;text-transform:uppercase}
+.cal-day{border-radius:5px;text-align:center;padding:4px 2px;cursor:pointer;border:1px solid transparent;transition:all .1s;position:relative;min-height:44px;font-size:11px}
+.cal-day:hover{border-color:var(--gold);background:var(--gold-dim)}
+.cal-day.today{background:var(--gold-dim);border-color:var(--gold);color:var(--gold);font-weight:700}
+.cal-day.has-res{border-color:var(--green)}
+.cd-num{font-weight:600}
+.cd-occ{font-size:8px;color:var(--green);margin-top:1px}
+.cd-rev{font-size:7.5px;color:var(--text3);font-family:'DM Mono',monospace}
+.cal-legend{display:flex;gap:12px;font-size:11px;color:var(--text3);margin-bottom:10px;flex-wrap:wrap}
+
+/* ─── CASHIER REPORT ─── */
+.cashier-total{font-size:24px;font-weight:700;color:var(--gold);font-family:'DM Mono',monospace}
+
+/* ─── INVOICE ─── */
+.inv-wrap{background:var(--inv-bg);color:var(--inv-text);border-radius:var(--radius);padding:28px 32px;font-size:13px}
+.inv-logo{font-family:'Playfair Display',serif;font-size:22px;color:#c9a84c;font-weight:700}
+.inv-tbl{width:100%;border-collapse:collapse;margin-top:14px}
+.inv-tbl th{background:var(--inv-th);padding:7px 9px;text-align:left;font-size:11.5px;font-weight:600;color:#555;border:1px solid var(--inv-border)}
+.inv-tbl td{padding:7px 9px;border:1px solid var(--inv-border);font-size:12.5px}
+.inv-foot td{font-weight:700;border-top:2px solid var(--inv-border)}
+
+/* ─── GROUP BOOKING ─── */
+.grp-room-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:7px;max-height:190px;overflow-y:auto;padding:4px 2px}
+.grp-chip{padding:7px 5px;border-radius:var(--radius3);border:1.5px solid var(--border2);text-align:center;cursor:pointer;transition:all .15s;font-size:13px;font-weight:600;font-family:'DM Mono',monospace}
+.grp-chip:hover{border-color:var(--gold);color:var(--gold)}.grp-chip.sel{background:var(--gold-dim);border-color:var(--gold);color:var(--gold)}.grp-chip.busy{opacity:.3;cursor:not-allowed}
+.grp-chip-cat{font-size:8.5px;color:var(--text3);font-family:'DM Sans',sans-serif;font-weight:400;display:block;margin-top:1px}
+
+/* ─── DEPOSIT TRACKER ─── */
+.dep-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
+
+/* ─── TOAST ─── */
+#toasts{position:fixed;bottom:20px;right:20px;z-index:999;display:flex;flex-direction:column;gap:7px}
+.toast{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius2);padding:10px 16px;font-size:12.5px;box-shadow:var(--shadow);display:flex;align-items:center;gap:9px;max-width:310px;animation:tin .3s ease}
+.toast.ok{border-left:3px solid var(--green)}.toast.err{border-left:3px solid var(--red)}.toast.inf{border-left:3px solid var(--accent)}
+@keyframes tin{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:translateX(0)}}
+
+/* ─── MISC ─── */
+.chip{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10.5px;font-weight:500;background:var(--bg4);color:var(--text2)}
+.mono{font-family:'DM Mono',monospace}.bold{font-weight:700}
+.text-gold{color:var(--gold)}.text-green{color:var(--green)}.text-red{color:var(--red)}.text-dim{color:var(--text3)}.text-sm{font-size:12px}.text-xs{font-size:11px}
+.mt4{margin-top:4px}.mt8{margin-top:8px}.mt12{margin-top:12px}.mt16{margin-top:16px}
+.mb4{margin-bottom:4px}.mb8{margin-bottom:8px}.mb12{margin-bottom:12px}.mb16{margin-bottom:16px}
+.audit-info{background:var(--gold-dim);border:1px solid rgba(201,168,76,.3);border-radius:var(--radius2);padding:9px 13px;font-size:12.5px;color:var(--gold);margin-bottom:12px}
+.search-box{display:flex;align-items:center;gap:7px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius2);padding:6px 11px;flex:1;max-width:280px}
+.search-box input{background:none;border:none;outline:none;color:var(--text);font-family:'DM Sans',sans-serif;font-size:12.5px;width:100%}
+.search-box input::placeholder{color:var(--text3)}
+.bs-item{display:flex;align-items:center;gap:10px;padding:9px 13px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius2);margin-bottom:6px}
+.status-clr-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border)}
+.status-clr-row:last-child{border-bottom:none}
+.room-row-tbl{width:100%;border-collapse:collapse;font-size:12.5px}
+.room-row-tbl th{background:var(--bg3);padding:7px 9px;text-align:left;font-size:10.5px;color:var(--text3);text-transform:uppercase;letter-spacing:.7px;border:1px solid var(--border)}
+.room-row-tbl td{padding:7px 9px;border:1px solid var(--border);background:var(--bg3)}
+[data-theme="light"] .room-row-tbl td,[data-theme="light"] .room-row-tbl th{background:var(--bg2)}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR OVERLAY (mobile) -->
+<div id="sidebar-overlay" onclick="closeSidebar()"></div>
+
+<!-- SIDEBAR -->
+<nav id="sidebar">
+  <div class="sb-brand">
+    <div class="sb-name">Akshaya<br>Comforts</div>
+    <div class="sb-sub">HMS v9 · Prop 381</div>
+    <div class="sb-date" id="sbDate"></div>
+  </div>
+  <div class="nav-sec">Overview</div>
+  <button class="nav-item active" onclick="goPage('dashboard')"><span class="ico">⊞</span>Dashboard</button>
+  <button class="nav-item" onclick="goPage('roomview')"><span class="ico">🏨</span>Room View</button>
+  <button class="nav-item" onclick="goPage('stayview')"><span class="ico">📅</span>Stay View</button>
+  <button class="nav-item" onclick="goPage('calendar90')"><span class="ico">🗓</span>90-Day Calendar</button>
+  <div class="nav-sec">Reservations</div>
+  <button class="nav-item" onclick="goPage('reservations')"><span class="ico">📋</span>Reservations</button>
+  <button class="nav-item" onclick="openModal('bkModal');initBooking()"><span class="ico">＋</span>New Booking</button>
+  <button class="nav-item" onclick="goPage('guestsearch')"><span class="ico">🔍</span>Guest Search</button>
+  <div class="nav-sec">Finance</div>
+  <button class="nav-item" onclick="goPage('cashier')"><span class="ico">💳</span>Cashier Report</button>
+  <button class="nav-item" onclick="goPage('deposit')"><span class="ico">🏦</span>Deposit Tracker</button>
+  <button class="nav-item" onclick="goPage('cityledger')"><span class="ico">📒</span>City Ledger</button>
+  <button class="nav-item" onclick="goPage('revenue')"><span class="ico">📊</span>Revenue Analytics</button>
+  <div class="nav-sec">Operations</div>
+  <button class="nav-item" onclick="goPage('nightaudit')"><span class="ico">🌙</span>Night Audit</button>
+  <button class="nav-item" onclick="goPage('invoice')"><span class="ico">🧾</span>Invoice / Print</button>
+  <div class="nav-sec">Admin</div>
+  <button class="nav-item" onclick="goPage('settings')"><span class="ico">⚙️</span>Settings</button>
+  <button class="nav-item" onclick="goPage('databackup')"><span class="ico">💾</span>Data & Backup</button>
+  <div class="sb-footer">
+    <div style="font-size:10px;color:var(--text3)">v9.0</div>
+    <button class="ico-btn" onclick="toggleTheme()" title="Toggle Light/Dark" id="themeBtn">🌙</button>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<div id="main">
+  <div id="topbar">
+    <button id="menu-btn" onclick="toggleSidebar()">☰</button>
+    <div class="tb-title" id="tbTitle">Dashboard</div>
+    <div class="tb-stats" id="tbStats"></div>
+    <span id="sync-indicator" style="font-size:11px;color:var(--text3);cursor:pointer" onclick="syncNow()" title="Click to sync">☁</span>
+    <button class="btn btn-gold btn-sm" onclick="openModal('bkModal');initBooking()">＋ New Booking</button>
+  </div>
+
+  <div id="content">
+
+<!-- ══════════════════════ DASHBOARD ══════════════════════ -->
+<div class="page active" id="page-dashboard">
+  <div class="dash-grid">
+    <div class="stat-card sc-gold"><div class="stat-ico">🏨</div><div class="stat-lbl">Total Rooms</div><div class="stat-val" id="d-total">8</div><div class="stat-sub" id="d-occ-sub">0% occupied</div></div>
+    <div class="stat-card sc-green"><div class="stat-ico">✅</div><div class="stat-lbl">Occupied</div><div class="stat-val text-green" id="d-occ">0</div><div class="stat-sub">In-house guests</div></div>
+    <div class="stat-card sc-blue"><div class="stat-ico">🛬</div><div class="stat-lbl">Arrivals Today</div><div class="stat-val" style="color:var(--accent)" id="d-arr">0</div><div class="stat-sub">Due to check in</div></div>
+    <div class="stat-card sc-orange"><div class="stat-ico">🛫</div><div class="stat-lbl">Due Out</div><div class="stat-val" style="color:var(--orange)" id="d-dout">0</div><div class="stat-sub">Checkout today</div></div>
+    <div class="stat-card sc-purple"><div class="stat-ico">💰</div><div class="stat-lbl">Revenue Today</div><div class="stat-val" style="color:var(--purple);font-size:18px" id="d-rev">₹0</div><div class="stat-sub">Payments received</div></div>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px">
+    <div class="card"><div class="section-hdr mb8"><div class="section-title text-sm">Category Snapshot</div></div><div id="d-cats"></div></div>
+    <div class="card"><div class="section-hdr mb8"><div class="section-title text-sm">Today's Activity</div></div><div id="d-activity" style="font-size:12.5px"></div></div>
+    <div class="card"><div class="section-hdr mb8"><div class="section-title text-sm">Quick Revenue</div></div><div class="chart-bar" id="d-chart"></div><div id="d-chart-lbls" style="display:flex;gap:5px;margin-top:4px"></div></div>
+  </div>
+</div>
+
+<!-- ══════════════════════ ROOM VIEW ══════════════════════ -->
+<div class="page" id="page-roomview">
+  <div class="rv-filters">
+    <button class="fbtn active" onclick="filterRooms('all',this)">All</button>
+    <button class="fbtn" onclick="filterRooms('vacant',this)">Vacant</button>
+    <button class="fbtn" onclick="filterRooms('occupied',this)">Occupied</button>
+    <button class="fbtn" onclick="filterRooms('arrival',this)">Arrival</button>
+    <button class="fbtn" onclick="filterRooms('confirmed',this)">Confirmed</button>
+    <button class="fbtn" onclick="filterRooms('dueout',this)">Due Out</button>
+    <button class="fbtn" onclick="filterRooms('dirty',this)">Dirty</button>
+    <div style="margin-left:auto;font-size:11.5px;color:var(--text3)" id="rv-cnt"></div>
+  </div>
+  <div class="rv-grid" id="roomGrid"></div>
+</div>
+
+<!-- ══════════════════════ STAY VIEW ══════════════════════ -->
+<div class="page" id="page-stayview">
+  <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px">
+    <button class="btn btn-outline btn-sm" onclick="svNav(-7)">◀◀</button>
+    <button class="btn btn-outline btn-sm" onclick="svNav(-1)">◀</button>
+    <span id="svRange" class="text-sm text-dim"></span>
+    <button class="btn btn-outline btn-sm" onclick="svNav(1)">▶</button>
+    <button class="btn btn-outline btn-sm" onclick="svNav(7)">▶▶</button>
+    <button class="btn btn-gold btn-sm" onclick="svToday()">Today</button>
+    <div style="margin-left:auto;display:flex;gap:10px;font-size:11px">
+      <span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:rgba(46,204,113,.4);margin-right:3px"></span>Occupied</span>
+      <span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:rgba(155,89,182,.4);margin-right:3px"></span>Confirmed</span>
+      <span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:rgba(52,152,219,.4);margin-right:3px"></span>Arrival</span>
+      <span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:rgba(243,156,18,.4);margin-right:3px"></span>Due Out</span>
+    </div>
+  </div>
+  <div class="sv-wrap" id="svWrap"></div>
+</div>
+
+<!-- ══════════════════════ 90-DAY CALENDAR ══════════════════════ -->
+<div class="page" id="page-calendar90">
+  <div class="section-hdr mb12"><div class="section-title">90-Day Occupancy Calendar</div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-outline btn-sm" onclick="cal90Nav(-1)">◀ Prev Month</button>
+      <button class="btn btn-gold btn-sm" onclick="cal90Today()">This Month</button>
+      <button class="btn btn-outline btn-sm" onclick="cal90Nav(1)">Next Month ▶</button>
+    </div>
+  </div>
+  <div class="cal-legend">
+    <span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:var(--green);margin-right:4px"></span>Has bookings</span>
+    <span>Numbers = occupied rooms</span>
+  </div>
+  <div id="cal90Wrap"></div>
+</div>
+
+<!-- ══════════════════════ RESERVATIONS ══════════════════════ -->
+<div class="page" id="page-reservations">
+  <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center">
+    <div class="search-box"><span>🔍</span><input type="text" placeholder="Guest, room, phone, res no..." oninput="filterRes()" id="resQ"></div>
+    <input type="date" class="inp" id="resFrom" style="width:135px" onchange="filterRes()">
+    <input type="date" class="inp" id="resTo" style="width:135px" onchange="filterRes()">
+    <select class="inp" style="width:130px" id="resSt" onchange="filterRes()">
+      <option value="">All Status</option>
+      <option>Occupied</option><option>Arrival</option><option>Confirmed</option>
+      <option>Checked Out</option><option>Due Out</option><option>Cancelled</option><option>No Show</option>
+    </select>
+    <label class="frow gap4 text-sm" style="cursor:pointer"><input type="checkbox" id="backdateChk"> Allow Backdate</label>
+  </div>
+  <div class="tbl-wrap">
+    <table><thead><tr>
+      <th>Res No</th><th>Guest</th><th>Rooms</th><th>Check-in</th><th>Check-out</th>
+      <th>Nights</th><th>Rate Type</th><th>Total</th><th>Paid</th><th>Balance</th>
+      <th>Status</th><th>Inv No</th><th>Actions</th>
+    </tr></thead><tbody id="resTbody"></tbody></table>
+  </div>
+</div>
+
+<!-- ══════════════════════ GUEST SEARCH ══════════════════════ -->
+<div class="page" id="page-guestsearch">
+  <div class="section-hdr mb12"><div class="section-title">Guest Search</div></div>
+  <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
+    <div class="search-box" style="max-width:400px"><span>🔍</span><input type="text" placeholder="Name, mobile, email, ID number..." oninput="guestSearch()" id="gsQ"></div>
+    <select class="inp" style="width:130px" id="gsType" onchange="guestSearch()">
+      <option value="">All</option><option>Aadhar Card</option><option>PAN Card</option><option>Passport</option><option>Driving License</option>
+    </select>
+  </div>
+  <div class="tbl-wrap"><table><thead><tr><th>Guest Name</th><th>Mobile</th><th>Email</th><th>ID Type</th><th>ID Number</th><th>Visits</th><th>Last Stay</th><th>Total Spent</th><th>Action</th></tr></thead><tbody id="gsTbody"></tbody></table></div>
+</div>
+
+<!-- ══════════════════════ CASHIER REPORT ══════════════════════ -->
+<div class="page" id="page-cashier">
+  <div class="section-hdr mb12">
+    <div class="section-title">Cashier Report</div>
+    <div style="display:flex;gap:8px">
+      <input type="date" class="inp" id="crDate" style="width:145px" onchange="renderCashier()">
+      <button class="btn btn-outline btn-sm" onclick="window.print()">🖨 Print</button>
+    </div>
+  </div>
+  <div class="dep-summary" id="cashier-summary"></div>
+  <div class="card mt8">
+    <div class="section-hdr mb8"><div class="section-title text-sm">Payment Breakdown</div></div>
+    <div class="tbl-wrap"><table><thead><tr><th>Time</th><th>Res No</th><th>Guest</th><th>Room</th><th>Mode</th><th>Description</th><th>Amount</th></tr></thead><tbody id="cashierTbody"></tbody></table></div>
+  </div>
+</div>
+
+<!-- ══════════════════════ DEPOSIT TRACKER ══════════════════════ -->
+<div class="page" id="page-deposit">
+  <div class="section-hdr mb12"><div class="section-title">Deposit Tracker</div></div>
+  <div class="dep-summary">
+    <div class="stat-card sc-gold"><div class="stat-lbl">Total Deposits</div><div class="stat-val text-gold" id="dep-total">₹0</div></div>
+    <div class="stat-card sc-green"><div class="stat-lbl">Settled</div><div class="stat-val text-green" id="dep-settled">₹0</div></div>
+    <div class="stat-card sc-red"><div class="stat-lbl">Outstanding</div><div class="stat-val text-red" id="dep-outstanding">₹0</div></div>
+  </div>
+  <div class="tbl-wrap">
+    <table><thead><tr><th>Res No</th><th>Guest</th><th>Room</th><th>Check-in</th><th>Check-out</th><th>Deposit</th><th>Total</th><th>Paid</th><th>Balance</th><th>Status</th></tr></thead>
+    <tbody id="depTbody"></tbody></table>
+  </div>
+</div>
+
+<!-- ══════════════════════ CITY LEDGER ══════════════════════ -->
+<div class="page" id="page-cityledger">
+  <div class="section-hdr mb12">
+    <div class="section-title">City Ledger / Business Sources</div>
+    <button class="btn btn-gold btn-sm" onclick="openModal('bsModal');editBSId=null;clearBSForm()">＋ Add Source</button>
+  </div>
+  <div id="bsList"></div>
+  <div class="section-hdr mt16 mb12"><div class="section-title">City Ledger Transactions</div></div>
+  <div class="tbl-wrap"><table><thead><tr><th>Date</th><th>Res No</th><th>Guest</th><th>Source</th><th>Room</th><th>Amount</th><th>Status</th></tr></thead><tbody id="clTbody"></tbody></table></div>
+</div>
+
+<!-- ══════════════════════ REVENUE ANALYTICS ══════════════════════ -->
+<div class="page" id="page-revenue">
+  <div class="section-hdr mb12">
+    <div class="section-title">Revenue Analytics</div>
+    <select class="inp" style="width:130px" id="revPeriod" onchange="renderRevenue()">
+      <option value="7">Last 7 Days</option><option value="30" selected>Last 30 Days</option><option value="90">Last 90 Days</option>
+    </select>
+  </div>
+  <div class="dep-summary" style="grid-template-columns:repeat(4,1fr)">
+    <div class="stat-card sc-gold"><div class="stat-lbl">Total Revenue</div><div class="stat-val text-gold" id="rv-total">₹0</div></div>
+    <div class="stat-card sc-green"><div class="stat-lbl">Avg. Daily Rate</div><div class="stat-val text-green" id="rv-adr">₹0</div></div>
+    <div class="stat-card sc-blue"><div class="stat-lbl">Avg. Occupancy</div><div class="stat-val" style="color:var(--accent)" id="rv-occ">0%</div></div>
+    <div class="stat-card sc-purple"><div class="stat-lbl">RevPAR</div><div class="stat-val" style="color:var(--purple)" id="rv-revpar">₹0</div></div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px">
+    <div class="card"><div class="section-hdr mb8"><div class="section-title text-sm">Daily Revenue (₹)</div></div><div class="chart-bar" style="height:130px" id="rev-chart"></div><div id="rev-chart-lbls" style="display:flex;gap:4px;margin-top:4px;flex-wrap:wrap"></div></div>
+    <div class="card"><div class="section-hdr mb8"><div class="section-title text-sm">Revenue by Source</div></div><div id="rev-by-source"></div></div>
+  </div>
+  <div class="card mt12"><div class="section-hdr mb8"><div class="section-title text-sm">Revenue by Room Category</div></div><div id="rev-by-cat"></div></div>
+</div>
+
+<!-- ══════════════════════ NIGHT AUDIT ══════════════════════ -->
+<div class="page" id="page-nightaudit">
+  <div class="audit-info">🌙 Running Night Audit auto-posts tonight's room tariff for all in-house guests and advances the date.</div>
+  <div class="section-hdr mb12">
+    <div class="section-title">Night Audit — <span id="naDate"></span></div>
+    <button class="btn btn-gold btn-sm" onclick="runAudit()">▶ Run Night Audit</button>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+    <div class="card"><div class="section-hdr mb8"><div class="section-title text-sm">Audit Summary</div></div><div id="naSum"></div></div>
+    <div class="card"><div class="section-hdr mb8"><div class="section-title text-sm">Auto-Posted Charges</div></div><div id="naPosted" style="font-size:12.5px;color:var(--text3)">Run audit to see posted charges.</div></div>
+  </div>
+  <div class="card mt12"><div class="section-hdr mb8"><div class="section-title text-sm">Audit Log</div></div><div class="tbl-wrap"><table><thead><tr><th>Date</th><th>Rooms</th><th>Total Posted</th><th>Time</th></tr></thead><tbody id="naLogTbody"></tbody></table></div></div>
+</div>
+
+<!-- ══════════════════════ INVOICE / PRINT ══════════════════════ -->
+<div class="page" id="page-invoice">
+  <div class="section-hdr mb12">
+    <div class="section-title">Invoice / Print</div>
+    <div style="display:flex;gap:8px">
+      <div class="search-box"><span>🔍</span><input type="text" placeholder="Res no, guest name..." oninput="filterInvoice()" id="invQ"></div>
+    </div>
+  </div>
+  <div class="tbl-wrap"><table><thead><tr><th>Res No</th><th>Guest</th><th>Rooms</th><th>Check-out</th><th>Total</th><th>Paid</th><th>Balance</th><th>Inv No</th><th>Actions</th></tr></thead><tbody id="invTbody"></tbody></table></div>
+</div>
+
+<!-- ══════════════════════ SETTINGS ══════════════════════ -->
+<div class="page" id="page-settings">
+  <div class="tabs">
+    <button class="tab active" onclick="sTab('st-general',this)">General</button>
+    <button class="tab" onclick="sTab('st-rooms',this)">Rooms</button>
+    <button class="tab" onclick="sTab('st-colors',this)">Status Colors</button>
+    <button class="tab" onclick="sTab('st-numbering',this)">Numbering</button>
+    <button class="tab" onclick="sTab('st-tariffs',this)">Tariffs</button>
+    <button class="tab" onclick="sTab('st-email',this)">Email/SMTP</button>
+    <button class="tab" onclick="sTab('st-sync',this)">Cloud Sync</button>
+  </div>
+  <div class="tc active" id="st-general">
+    <div class="s-grid">
+      <div class="s-card"><div class="s-ttl">🏨 Property</div>
+        <div class="fg mb8"><div class="fl">Property Name</div><input class="inp" id="s-propname" value="Akshaya Comforts"></div>
+        <div class="fg mb8"><div class="fl">Property ID</div><input class="inp" value="381" readonly></div>
+        <div class="fg mb8"><div class="fl">Location</div><input class="inp" id="s-loc" value="Mysore, Karnataka"></div>
+        <div class="fg mb8"><div class="fl">GST Number</div><input class="inp" id="s-gst" placeholder="GST Number"></div>
+        <div class="fg mb8"><div class="fl">Phone</div><input class="inp" id="s-phone" placeholder="Hotel phone"></div>
+        <button class="btn btn-gold btn-sm mt8" onclick="saveGeneral()">Save</button>
+      </div>
+      <div class="s-card"><div class="s-ttl">🎨 Appearance</div>
+        <div class="toggle-row"><div class="sw on" id="themeSwitch" onclick="toggleTheme()"><div class="sw-k"></div></div><div class="tgl-lbl">Dark Mode</div></div>
+        <div class="toggle-row"><div class="sw on" onclick="toggleSW(this,'showBalance')"><div class="sw-k"></div></div><div class="tgl-lbl">Show Balance on Room Card</div></div>
+        <div class="toggle-row"><div class="sw on" onclick="toggleSW(this,'showGST')"><div class="sw-k"></div></div><div class="tgl-lbl">Show GST on Invoice</div></div>
+        <div class="toggle-row"><div class="sw" onclick="toggleSW(this,'inclusiveTax')"><div class="sw-k"></div></div><div class="tgl-lbl">Tariff Inclusive of Tax (Global)</div></div>
+        <div class="divider"></div>
+        <div class="s-ttl mt8">📋 Registration Card Notice</div>
+        <textarea class="inp" id="s-grcnotice" rows="3">NOTICE TO GUESTS: This property is privately owned and management reserves the right to refuse service.</textarea>
+        <div class="s-ttl mt12">🧾 Invoice Notice</div>
+        <textarea class="inp" id="s-invnotice" rows="3">Computer generated invoice. No signature required. Disputes subject to Mysore jurisdiction.</textarea>
+        <button class="btn btn-gold btn-sm mt8" onclick="saveGeneral()">Save</button>
+      </div>
+    </div>
+  </div>
+  <div class="tc" id="st-rooms">
+    <div class="s-card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <div class="s-ttl mb0">🏠 Room Configuration</div>
+        <button class="btn btn-gold btn-sm" onclick="openModal('addRoomModal')">＋ Add Room</button>
+      </div>
+      <div class="tbl-wrap"><table id="roomCfgTable"><thead><tr><th>Room No</th><th>Category</th><th>Floor</th><th>Type</th><th>Status</th><th>Actions</th></tr></thead><tbody id="roomCfgBody"></tbody></table></div>
+    </div>
+  </div>
+  <div class="tc" id="st-colors">
+    <div class="s-card" style="max-width:480px">
+      <div class="s-ttl">🎨 Status Colors</div>
+      <div id="statusColorList"></div>
+      <button class="btn btn-gold btn-sm mt12" onclick="applyColors()">Apply Colors</button>
+    </div>
+  </div>
+  <div class="tc" id="st-numbering">
+    <div class="s-card" style="max-width:420px">
+      <div class="s-ttl">🔢 Reservation Numbering</div>
+      <div class="fg mb10"><div class="fl">Res Prefix</div><input class="inp" id="s-rprefix" placeholder="e.g. R, RES, AC"></div>
+      <div class="fg mb10"><div class="fl">Starting Number</div><input class="inp" id="s-rstart" type="number"></div>
+      <div class="fg mb10"><div class="fl">Invoice Prefix</div><input class="inp" id="s-iprefix"></div>
+      <div class="fg mb10"><div class="fl">Invoice Starting Number</div><input class="inp" id="s-istart" type="number"></div>
+      <div class="fg mb10"><div class="fl">GRC Prefix</div><input class="inp" id="s-grcprefix"></div>
+      <div class="audit-info mt8">⚠ Invoice number is generated only on Checkout.</div>
+      <button class="btn btn-gold btn-sm mt8" onclick="saveNumbering()">Save</button>
+    </div>
+  </div>
+  <div class="tc" id="st-tariffs">
+    <div class="s-card">
+      <div class="s-ttl">💰 Room Tariffs</div>
+      <div class="tbl-wrap">
+        <table><thead><tr><th>Category</th><th>AC (₹)</th><th>Non-AC (₹)</th><th>CP (₹)</th><th>EP (₹)</th><th>Hourly (₹)</th></tr></thead>
+        <tbody id="tariffBody"></tbody></table>
+      </div>
+      <button class="btn btn-gold btn-sm mt12" onclick="saveTariffs()">Save Tariffs</button>
+    </div>
+  </div>
+  <div class="tc" id="st-email">
+    <div class="s-card" style="max-width:480px">
+      <div class="s-ttl">📧 Email / Auto Invoice</div>
+      <div class="toggle-row"><div class="sw on" onclick="toggleSW(this,'autoEmail')"><div class="sw-k"></div></div><div class="tgl-lbl">Auto Email Invoice on Checkout</div></div>
+      <div class="toggle-row"><div class="sw" onclick="toggleSW(this,'emailCheckin')"><div class="sw-k"></div></div><div class="tgl-lbl">Send Confirmation on Check-in</div></div>
+      <div class="fg mt10 mb8"><div class="fl">From Email</div><input class="inp" id="s-email" placeholder="hotel@akshayacomforts.com"></div>
+      <div class="fg mb8"><div class="fl">SMTP / Apps Script Email URL</div><input class="inp" id="s-emailurl" placeholder="https://script.google.com/..."></div>
+      <button class="btn btn-gold btn-sm mt8" onclick="saveGeneral()">Save</button>
+    </div>
+  </div>
+  <div class="tc" id="st-sync">
+    <div class="s-card" style="max-width:500px">
+      <div class="s-ttl">☁ Google Apps Script Sync</div>
+      <p class="text-sm text-dim mb12">Paste your Web App URL below and tap Save URL first before syncing.</p>
+      <div class="fg mb8"><div class="fl">Apps Script Web App URL</div>
+        <input class="inp" id="s-gasurl" placeholder="https://script.google.com/macros/s/.../exec" oninput="DB.settings.gasurl=this.value">
+      </div>
+      <button class="btn btn-gold" onclick="saveGasUrl()" style="width:100%;margin-bottom:12px;font-size:14px;padding:10px">💾 Save URL</button>
+      <div id="urlSavedMsg" style="display:none;color:var(--green);font-size:12px;margin-bottom:10px">✅ URL saved! Now tap Push to Cloud.</div>
+      <div class="toggle-row"><div class="sw" id="sw-autoSync" onclick="toggleSW(this,'autoSync')"><div class="sw-k"></div></div><div class="tgl-lbl">Auto-sync on every booking change</div></div>
+      <div class="toggle-row"><div class="sw" id="sw-nightSync" onclick="toggleSW(this,'nightSync')"><div class="sw-k"></div></div><div class="tgl-lbl">Sync after Night Audit</div></div>
+      <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+        <button class="btn btn-gold btn-sm" onclick="syncNow()">▲ Push to Cloud</button>
+        <button class="btn btn-blue btn-sm" onclick="pullFromCloud()">▼ Pull from Cloud</button>
+        <button class="btn btn-outline btn-sm" onclick="testSync()">🔗 Test Connection</button>
+      </div>
+      <div id="syncStatus" class="mt8 text-xs text-dim"></div>
+      <div class="divider"></div>
+      <div class="s-ttl">📤 Manual Export</div>
+      <p class="text-sm text-dim mb8">Export all data as JSON backup to save manually.</p>
+      <button class="btn btn-outline btn-sm" onclick="exportJSON()">⬇ Export Data as JSON</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════ DATA & BACKUP ══════════════════════ -->
+<div class="page" id="page-databackup">
+  <div class="section-hdr mb12"><div class="section-title">Data & Backup</div></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+    <div class="s-card">
+      <div class="s-ttl">📤 Export</div>
+      <p class="text-sm text-dim mb12">Export all HMS data as a JSON backup file.</p>
+      <button class="btn btn-gold btn-sm mb8" onclick="exportJSON()">⬇ Export All Data (JSON)</button><br>
+      <button class="btn btn-outline btn-sm" onclick="exportCSV()">⬇ Export Reservations (CSV)</button>
+    </div>
+    <div class="s-card">
+      <div class="s-ttl">📥 Import / Restore</div>
+      <p class="text-sm text-dim mb12">Restore from a previously exported JSON backup. This will overwrite current data.</p>
+      <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(this)">
+      <button class="btn btn-outline btn-sm mb8" onclick="document.getElementById('importFile').click()">📂 Import JSON Backup</button>
+    </div>
+    <div class="s-card">
+      <div class="s-ttl">🗑 Data Management</div>
+      <p class="text-sm text-dim mb12">Clear specific data sets.</p>
+      <button class="btn btn-danger btn-sm mb8" onclick="clearData('payments')">Clear All Payments</button><br>
+      <button class="btn btn-danger btn-sm" onclick="clearData('all')">⚠ Factory Reset</button>
+    </div>
+    <div class="s-card">
+      <div class="s-ttl">📊 Storage Info</div>
+      <div id="storageInfo" class="text-sm text-dim"></div>
+    </div>
+  </div>
+</div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<!-- ══════════════════════════════════════════════════════════
+     MODALS
+══════════════════════════════════════════════════════════ -->
+
+<!-- BOOKING MODAL -->
+<div class="overlay" id="bkModal">
+<div class="modal modal-lg">
+  <div class="mhdr">
+    <div class="mtitle" id="bkTitle">New Reservation</div>
+    <button class="xbtn" onclick="closeModal('bkModal')">✕</button>
+  </div>
+  <div class="mbody">
+    <div class="booking-layout">
+      <!-- LEFT -->
+      <div>
+        <!-- DATES -->
+        <div class="grid2 mb12">
+          <div class="fg"><div class="fl">Check-in</div>
+            <div style="display:flex;gap:6px"><input type="date" class="inp" id="b-cin" style="flex:1" onchange="calcNights();refreshAvail()"><input type="time" class="inp" id="b-cinT" value="12:00" style="width:88px"></div>
+          </div>
+          <div class="fg"><div class="fl">Check-out</div>
+            <div style="display:flex;gap:6px"><input type="date" class="inp" id="b-cout" style="flex:1" onchange="calcNights();refreshAvail()"><input type="time" class="inp" id="b-coutT" value="12:00" style="width:88px"></div>
+          </div>
+        </div>
+        <div class="grid3 mb10">
+          <div class="fg"><div class="fl">Res Type</div>
+            <select class="inp" id="b-restype"><option>Direct Check-in</option><option>Confirm Booking</option></select></div>
+          <div class="fg"><div class="fl">Booking Source</div>
+            <select class="inp" id="b-src"><option>Direct</option><option>Walk-in</option><option>Phone</option><option>Agoda</option><option>Booking.com</option><option>MakeMyTrip</option><option>Goibibo</option></select></div>
+          <div class="fg"><div class="fl">Business Source</div>
+            <select class="inp" id="b-bsrc"><option value="">— None —</option></select></div>
+        </div>
+        <!-- GROUP OPTIONS -->
+        <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:center;margin-bottom:10px;padding:8px 10px;background:var(--bg3);border-radius:var(--radius2);border:1px solid var(--border)">
+          <label class="frow gap4 text-sm" style="cursor:pointer"><input type="checkbox" id="b-group" onchange="toggleGrp()"> Quick Group Booking</label>
+          <label class="frow gap4 text-sm" style="cursor:pointer"><input type="checkbox" id="b-bookall" onchange="bookAll()"> Book All Available</label>
+          <label class="frow gap4 text-sm" style="cursor:pointer"><input type="checkbox" id="b-comp" onchange="toggleComp()"> Complimentary (Free)</label>
+        </div>
+        <!-- SINGLE ROOM ROWS -->
+        <div id="singleRoomArea">
+          <div style="overflow-x:auto">
+            <table class="room-row-tbl"><thead><tr><th>Category</th><th>Rate Type</th><th>Room No</th><th>Adults</th><th>Rate (₹)</th><th>Incl.Tax</th><th></th></tr></thead>
+            <tbody id="rrBody"></tbody></table>
+          </div>
+          <button class="btn btn-outline btn-xs mt8" onclick="addRR()">＋ Add Room</button>
+        </div>
+        <!-- GROUP ROOM SELECTOR -->
+        <div id="grpArea" style="display:none">
+          <div class="frow gap8 mb8" style="flex-wrap:wrap">
+            <select class="inp" style="width:155px" id="grp-cat" onchange="refreshGrpRooms()"><option value="">All Categories</option><option>Executive Room</option><option>Executive Plus</option><option>Deluxe Room</option></select>
+            <select class="inp" style="width:120px" id="grp-rate"><option>AC</option><option>Non-AC</option><option>CP</option><option>EP</option><option>Hourly</option></select>
+          </div>
+          <div class="grp-room-grid" id="grpRoomGrid"></div>
+          <div id="grpSummary" class="text-sm text-gold mt8"></div>
+        </div>
+        <div class="divider"></div>
+        <!-- GUEST INFO -->
+        <div style="font-size:11.5px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">Guest Information</div>
+        <div class="grid2 mb10">
+          <div class="fg"><div class="fl">Guest Name</div>
+            <div style="display:flex;gap:5px">
+              <select class="inp" id="b-sal" style="width:75px"><option>Mr.</option><option>Mrs.</option><option>Ms.</option><option>Dr.</option></select>
+              <input class="inp" id="b-name" placeholder="Full name" style="flex:1">
+            </div>
+          </div>
+          <div class="fg"><div class="fl">Mobile</div><input class="inp" id="b-mob" placeholder="Mobile" type="tel"></div>
+          <div class="fg"><div class="fl">Email</div><input class="inp" id="b-email" placeholder="Email" type="email"></div>
+          <div class="fg"><div class="fl">Nationality</div><input class="inp" id="b-nat" placeholder="Indian" value="Indian"></div>
+          <div class="fg"><div class="fl">ID Type</div>
+            <select class="inp" id="b-idtype"><option>Aadhar Card</option><option>PAN Card</option><option>Passport</option><option>Driving License</option><option>Voter ID</option></select></div>
+          <div class="fg"><div class="fl">ID Number</div><input class="inp" id="b-idno" placeholder="ID Number"></div>
+          <div class="fg"><div class="fl">Guest Photo</div>
+            <div style="display:flex;gap:5px;align-items:center">
+              <input type="file" id="b-gphoto" accept="image/*" style="display:none" onchange="prevPhoto('b-gphoto','b-gprev')">
+              <div id="b-gprev" style="width:40px;height:40px;border-radius:6px;background:var(--bg4);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;overflow:hidden;font-size:16px">👤</div>
+              <button class="btn btn-outline btn-xs" onclick="document.getElementById('b-gphoto').click()">📷</button>
+              <button class="btn btn-outline btn-xs" onclick="camCapture('b-gphoto','b-gprev','guestPhoto')">📸 Cam</button>
+            </div>
+          </div>
+          <div class="fg"><div class="fl">ID Photo</div>
+            <div style="display:flex;gap:5px;align-items:center">
+              <input type="file" id="b-idphoto" accept="image/*" style="display:none" onchange="prevPhoto('b-idphoto','b-idprev')">
+              <div id="b-idprev" style="width:40px;height:32px;border-radius:6px;background:var(--bg4);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;overflow:hidden;font-size:14px">🪪</div>
+              <button class="btn btn-outline btn-xs" onclick="document.getElementById('b-idphoto').click()">📷</button>
+              <button class="btn btn-outline btn-xs" onclick="camCapture('b-idphoto','b-idprev','idPhoto')">📸 Cam</button>
+            </div>
+          </div>
+        </div>
+        <div class="fg mb8 full"><div class="fl">Address</div><input class="inp" id="b-addr" placeholder="Address"></div>
+        <div class="grid3 mb8">
+          <div class="fg"><div class="fl">City</div><input class="inp" id="b-city" placeholder="City"></div>
+          <div class="fg"><div class="fl">State</div><input class="inp" id="b-state" placeholder="State"></div>
+          <div class="fg"><div class="fl">Country</div><input class="inp" id="b-country" value="India"></div>
+        </div>
+        <div class="fg"><div class="fl">Remarks</div><textarea class="inp" id="b-remarks" rows="2" placeholder="Special requests..."></textarea></div>
+      </div>
+      <!-- BILLING -->
+      <div class="bill-card">
+        <div class="bill-ttl">Billing Summary</div>
+        <div class="bill-row"><span class="text-dim">Nights</span><span class="mono bold" id="bs-nights">0</span></div>
+        <div class="bill-row"><span class="text-dim">Rooms</span><span class="mono bold" id="bs-rooms">0</span></div>
+        <div class="bill-sep"></div>
+        <div class="bill-row"><span class="text-dim">Room Charges</span><span class="mono" id="bs-charges">₹0</span></div>
+        <div class="bill-row" id="bs-tax-row"><span class="text-dim">GST (5%)</span><span class="mono" id="bs-gst">₹0</span></div>
+        <div class="bill-sep"></div>
+        <div class="bill-row bill-total"><span>Total</span><span class="mono" id="bs-total">₹0</span></div>
+        <div class="bill-sep"></div>
+        <div class="fg mb8 mt8"><div class="fl">Payment Mode</div>
+          <select class="inp" id="b-paymode"><option>Cash</option><option>UPI</option><option>Card</option><option>City Ledger</option><option>Complimentary</option></select></div>
+        <div class="fg mb8"><div class="fl">Advance Paid (₹)</div><input type="number" class="inp" id="b-adv" value="0" oninput="calcBilling()"></div>
+        <div class="bill-sep"></div>
+        <div class="bill-row"><span class="text-dim">Balance</span><span class="mono bill-due" id="bs-bal">₹0</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="mfoot">
+    <button class="btn btn-outline" onclick="closeModal('bkModal')">Cancel</button>
+    <button class="btn btn-outline" onclick="saveBooking(false)">💾 Save Reservation</button>
+    <button class="btn btn-success" onclick="saveBooking(true)">✓ Check In Now</button>
+  </div>
+</div>
+</div>
+
+<!-- ROOM DETAIL MODAL -->
+<div class="overlay" id="rmModal">
+<div class="modal modal-lg">
+  <div class="mhdr">
+    <div><div class="mtitle" id="rm-title">Room</div><div id="rm-sub" class="text-xs text-dim mt4"></div></div>
+    <button class="xbtn" onclick="closeModal('rmModal')">✕</button>
+  </div>
+  <div class="mbody">
+    <div class="tabs">
+      <button class="tab active" onclick="rmTab('rmt-folio',this)">Folio</button>
+      <button class="tab" onclick="rmTab('rmt-guest',this)">Guest</button>
+      <button class="tab" onclick="rmTab('rmt-charges',this)">Charges</button>
+      <button class="tab" onclick="rmTab('rmt-invoice',this)">Invoice</button>
+    </div>
+    <!-- FOLIO -->
+    <div class="tc active" id="rmt-folio">
+      <div style="display:grid;grid-template-columns:1fr 250px;gap:14px">
+        <div>
+          <div class="grid2 mb12" id="rm-info"></div>
+          <div class="section-hdr"><div class="section-title text-sm">Payments</div><button class="btn btn-gold btn-xs" onclick="openPayModal()">＋ Payment</button></div>
+          <div class="tbl-wrap"><table><thead><tr><th>Date</th><th>Description</th><th>Amount</th><th>Mode</th><th></th></tr></thead><tbody id="rm-pays"></tbody></table></div>
+        </div>
+        <div class="bill-card">
+          <div class="bill-ttl">Folio</div>
+          <div id="rm-folio-summary"></div>
+          <div class="bill-sep mt8"></div>
+          <div style="display:flex;flex-direction:column;gap:6px;margin-top:8px">
+            <button class="btn btn-success btn-sm" id="rm-co-btn" onclick="doCheckout()">✓ Check Out</button>
+            <button class="btn btn-gold btn-sm" onclick="rmTab('rmt-invoice',document.querySelectorAll('#rmModal .tab')[3]);buildInvoice()">🧾 Invoice</button>
+            <button class="btn btn-outline btn-sm" onclick="printGRC()">📄 Print GRC</button>
+            <button class="btn btn-outline btn-sm" onclick="editRes()">✏ Edit Booking</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- GUEST -->
+    <div class="tc" id="rmt-guest">
+      <div class="gp-layout">
+        <div class="photo-box">
+          <div class="g-photo" id="rm-gphoto">👤<input type="file" id="rm-gphoto-f" accept="image/*" style="display:none" onchange="loadRmPhoto(this,'rm-gphoto','guestPhoto')"></div>
+          <div class="pact">
+            <button class="ico-btn" onclick="document.getElementById('rm-gphoto-f').click()" title="Upload">📷</button>
+            <button class="ico-btn" onclick="camCapture('rm-gphoto-f','rm-gphoto','guestPhoto')" title="Camera">📸</button>
+            <button class="ico-btn" onclick="dlPhoto('rm-gphoto')" title="Download">⬇</button>
+            <button class="ico-btn" onclick="delPhoto('rm-gphoto','guestPhoto')" title="Delete">🗑</button>
+          </div>
+          <div class="text-xs text-dim" style="text-align:center">Guest Photo</div>
+          <div class="id-box mt8" id="rm-idphoto">🪪<input type="file" id="rm-idphoto-f" accept="image/*" style="display:none" onchange="loadRmPhoto(this,'rm-idphoto','idPhoto')"></div>
+          <div class="pact">
+            <button class="ico-btn" onclick="document.getElementById('rm-idphoto-f').click()" title="Upload">📷</button>
+            <button class="ico-btn" onclick="camCapture('rm-idphoto-f','rm-idphoto','idPhoto')" title="Camera">📸</button>
+            <button class="ico-btn" onclick="dlPhoto('rm-idphoto')" title="Download">⬇</button>
+            <button class="ico-btn" onclick="delPhoto('rm-idphoto','idPhoto')" title="Delete">🗑</button>
+          </div>
+          <div class="text-xs text-dim" style="text-align:center">ID Card</div>
+        </div>
+        <div>
+          <div class="grid2">
+            <div class="fg"><div class="fl">Full Name</div><input class="inp" id="rg-name"></div>
+            <div class="fg"><div class="fl">Mobile</div><input class="inp" id="rg-mob" type="tel"></div>
+            <div class="fg"><div class="fl">Email</div><input class="inp" id="rg-email" type="email"></div>
+            <div class="fg"><div class="fl">Gender</div><select class="inp" id="rg-gender"><option>Male</option><option>Female</option><option>Other</option></select></div>
+            <div class="fg"><div class="fl">ID Type</div><select class="inp" id="rg-idtype"><option>Aadhar Card</option><option>PAN Card</option><option>Passport</option><option>Driving License</option><option>Voter ID</option></select></div>
+            <div class="fg"><div class="fl">ID Number</div><input class="inp" id="rg-idno"></div>
+            <div class="fg full"><div class="fl">Address</div><input class="inp" id="rg-addr"></div>
+            <div class="fg"><div class="fl">City</div><input class="inp" id="rg-city"></div>
+            <div class="fg"><div class="fl">State</div><input class="inp" id="rg-state"></div>
+          </div>
+          <button class="btn btn-gold btn-sm mt12" onclick="saveGuest()">Save Guest Details</button>
+        </div>
+      </div>
+    </div>
+    <!-- CHARGES -->
+    <div class="tc" id="rmt-charges">
+      <div class="section-hdr mb8"><div class="section-title text-sm">Charges</div><button class="btn btn-gold btn-xs" onclick="addCharge()">＋ Charge</button></div>
+      <div class="tbl-wrap"><table><thead><tr><th>Date</th><th>Description</th><th>Amount</th><th></th></tr></thead><tbody id="rm-charges-body"></tbody></table></div>
+    </div>
+    <!-- INVOICE -->
+    <div class="tc" id="rmt-invoice">
+      <div id="rm-invoice-wrap"></div>
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <button class="btn btn-gold btn-sm" onclick="window.print()">🖨 Print</button>
+        <button class="btn btn-outline btn-sm" onclick="emailInvoice()">📧 Email Invoice</button>
+      </div>
+    </div>
+  </div>
+  <div class="mfoot" id="rm-footer">
+    <button class="btn btn-outline" onclick="closeModal('rmModal')">Close</button>
+  </div>
+</div>
+</div>
+
+<!-- ADD PAYMENT MODAL -->
+<div class="overlay" id="payModal">
+<div class="modal modal-sm">
+  <div class="mhdr"><div class="mtitle">Add Payment</div><button class="xbtn" onclick="closeModal('payModal')">✕</button></div>
+  <div class="mbody">
+    <div class="fg mb10"><div class="fl">Date</div><input type="date" class="inp" id="pay-date"></div>
+    <div class="fg mb10"><div class="fl">Amount (₹)</div><input type="number" class="inp" id="pay-amt" placeholder="0"></div>
+    <div class="fg mb10"><div class="fl">Mode</div><select class="inp" id="pay-mode"><option>Cash</option><option>UPI</option><option>Card</option><option>City Ledger</option><option>Complimentary</option></select></div>
+    <div class="fg mb10"><div class="fl">Business Source</div><select class="inp" id="pay-bs"><option value="">— Direct —</option></select></div>
+    <div class="fg"><div class="fl">Remarks</div><input class="inp" id="pay-rem" placeholder="Optional note"></div>
+  </div>
+  <div class="mfoot"><button class="btn btn-outline" onclick="closeModal('payModal')">Cancel</button><button class="btn btn-gold" onclick="savePay()">Save</button></div>
+</div>
+</div>
+
+<!-- BUSINESS SOURCE MODAL -->
+<div class="overlay" id="bsModal">
+<div class="modal modal-sm">
+  <div class="mhdr"><div class="mtitle" id="bsModalTitle">Add Business Source</div><button class="xbtn" onclick="closeModal('bsModal')">✕</button></div>
+  <div class="mbody">
+    <div class="fg mb10"><div class="fl">Name</div><input class="inp" id="bs-name" placeholder="Company / Agent"></div>
+    <div class="fg mb10"><div class="fl">Type</div><select class="inp" id="bs-type"><option>Travel Agent</option><option>OTA</option><option>Corporate</option><option>Walk-in</option><option>Government</option><option>Other</option></select></div>
+    <div class="fg mb10"><div class="fl">Contact Person</div><input class="inp" id="bs-contact"></div>
+    <div class="fg mb10"><div class="fl">Phone</div><input class="inp" id="bs-ph" type="tel"></div>
+    <div class="fg"><div class="fl">Email</div><input class="inp" id="bs-email" type="email"></div>
+  </div>
+  <div class="mfoot"><button class="btn btn-outline" onclick="closeModal('bsModal')">Cancel</button><button class="btn btn-gold" onclick="saveBS()">Save</button></div>
+</div>
+</div>
+
+<!-- ADD ROOM MODAL -->
+<div class="overlay" id="addRoomModal">
+<div class="modal modal-sm">
+  <div class="mhdr"><div class="mtitle">Add Room</div><button class="xbtn" onclick="closeModal('addRoomModal')">✕</button></div>
+  <div class="mbody">
+    <div class="fg mb10"><div class="fl">Room Number</div><input class="inp" id="nr-num" placeholder="e.g. 302"></div>
+    <div class="fg mb10"><div class="fl">Category</div><select class="inp" id="nr-cat"><option>Executive Room</option><option>Executive Plus</option><option>Deluxe Room</option></select></div>
+    <div class="fg mb10"><div class="fl">Floor</div><input class="inp" id="nr-floor" type="number" placeholder="3" value="3"></div>
+    <div class="fg"><div class="fl">AC/Non-AC</div><select class="inp" id="nr-ac"><option>AC</option><option>Non-AC</option></select></div>
+  </div>
+  <div class="mfoot"><button class="btn btn-outline" onclick="closeModal('addRoomModal')">Cancel</button><button class="btn btn-gold" onclick="addRoom()">Add Room</button></div>
+</div>
+</div>
+
+<!-- CAMERA MODAL -->
+<div class="overlay" id="camModal">
+<div class="modal modal-sm" style="max-width:440px">
+  <div class="mhdr"><div class="mtitle">📸 Capture Photo</div><button class="xbtn" onclick="stopCam()">✕</button></div>
+  <div class="mbody" style="text-align:center;padding:14px">
+    <video id="camFeed" autoplay playsinline muted webkit-playsinline
+      style="width:100%;border-radius:10px;background:#000;max-height:300px;display:block"></video>
+    <canvas id="camCanvas" style="display:none"></canvas>
+    <div style="margin-top:12px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+      <button class="btn btn-gold" onclick="snapCam()">📸 Capture</button>
+      <button class="btn btn-outline" onclick="stopCam()">Cancel</button>
+    </div>
+    <div style="margin-top:8px;font-size:11px;color:var(--text3)">
+      📱 On mobile: allow camera permission when prompted
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- MOBILE BOTTOM NAV -->
+<div id="mobile-nav">
+  <button class="mob-nav-btn active" onclick="goPage('dashboard');setMobNav(this)"><span class="mico">⊞</span><span>Dashboard</span></button>
+  <button class="mob-nav-btn" onclick="goPage('roomview');setMobNav(this)"><span class="mico">🏨</span><span>Rooms</span></button>
+  <button class="mob-nav-btn" onclick="openModal('bkModal');initBooking();setMobNav(this)"><span class="mico">➕</span><span>Book</span></button>
+  <button class="mob-nav-btn" onclick="goPage('reservations');setMobNav(this)"><span class="mico">📋</span><span>Res</span></button>
+  <button class="mob-nav-btn" onclick="toggleSidebar()"><span class="mico">☰</span><span>More</span></button>
+</div>
+
+<div id="toasts"></div>
+
+<script>
+// ════════════════════════════════════════════════════════════
+// DATA LAYER — supports old keys hms_v8, hms_db, etc.
+// ════════════════════════════════════════════════════════════
+const DB_KEY = 'hms_v9_full';
+let DB = loadDB();
+
+function loadDB() {
+  // Try current key first, then migrate old data
+  const keys = [DB_KEY, 'hms_v9', 'hms_v8', 'hms_db', 'akshaya_hms'];
+  for (const k of keys) {
+    try {
+      const raw = localStorage.getItem(k);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed.reservations || parsed.rooms) {
+          const db = migrateDB(parsed);
+          if (k !== DB_KEY) { localStorage.setItem(DB_KEY, JSON.stringify(db)); toast('Existing data migrated ✅','ok'); }
+          return db;
+        }
+      }
+    } catch(e) {}
+  }
+  return defaultDB();
+}
+
+function migrateDB(old) {
+  const d = defaultDB();
+  if (old.reservations) d.reservations = old.reservations;
+  if (old.payments) d.payments = old.payments;
+  if (old.businessSources) d.businessSources = old.businessSources;
+  if (old.settings) d.settings = { ...d.settings, ...old.settings };
+  if (old.rooms) d.rooms = old.rooms;
+  if (old.roomFlags) d.roomFlags = old.roomFlags;
+  if (old.guestPhotos) d.guestPhotos = old.guestPhotos;
+  if (old.nightAuditLog) d.nightAuditLog = old.nightAuditLog;
+  return d;
+}
+
+function defaultDB() {
+  return {
+    rooms: [
+      {num:'101',cat:'Executive Room',floor:1,ac:true},
+      {num:'102',cat:'Executive Plus',floor:1,ac:true},
+      {num:'103',cat:'Executive Room',floor:1,ac:true},
+      {num:'201',cat:'Executive Room',floor:2,ac:true},
+      {num:'202',cat:'Deluxe Room',floor:2,ac:true},
+      {num:'203',cat:'Executive Plus',floor:2,ac:true},
+      {num:'204',cat:'Executive Room',floor:2,ac:true},
+      {num:'301',cat:'Executive Room',floor:3,ac:true},
+    ],
+    reservations: [],
+    payments: [],
+    businessSources: [
+      {id:'bs1',name:'Booking.com',type:'OTA',contact:'',phone:'',email:''},
+      {id:'bs2',name:'MakeMyTrip',type:'OTA',contact:'',phone:'',email:''},
+      {id:'bs3',name:'Agoda',type:'OTA',contact:'',phone:'',email:''},
+    ],
+    settings: {
+      propname:'Akshaya Comforts', loc:'Mysore, Karnataka', gst:'', phone:'',
+      rprefix:'R', rstart:1001, iprefix:'INV', istart:1001, grcprefix:'GRC',
+      email:'', emailurl:'', gasurl:'',
+      autoEmail:true, emailCheckin:false, autoSync:false, nightSync:false,
+      showBalance:true, showGST:true, inclusiveTax:false,
+      grcnotice:'NOTICE TO GUESTS: This property is privately owned and management reserves the right to refuse service.',
+      invnotice:'Computer generated invoice. Disputes subject to Mysore jurisdiction.',
+      tariffs: {
+        'Executive Room':  {AC:1500,'Non-AC':1200,CP:1764,EP:1400,Hourly:500},
+        'Executive Plus':  {AC:2000,'Non-AC':1700,CP:2200,EP:2000,Hourly:700},
+        'Deluxe Room':     {AC:2500,'Non-AC':2200,CP:1880,EP:1400,Hourly:900},
+      },
+      statusColors: {
+        Arrival:'#3498db',Occupied:'#2ecc71','Checked Out':'#e74c3c',
+        Confirmed:'#9b59b6',Cancelled:'#7f8c8d','No Show':'#e67e22',
+        'Due Out':'#f39c12',Dirty:'#888888'
+      }
+    },
+    roomFlags: {}, guestPhotos: {}, nightAuditLog: []
+  };
+}
+
+function save() {
+  try { localStorage.setItem(DB_KEY, JSON.stringify(DB)); }
+  catch(e) { toast('Storage near full','err'); }
+}
+
+// ════════════════════ UTILS ════════════════════
+const today = () => new Date().toISOString().split('T')[0];
+const fmtD = d => d ? new Date(d+'T00:00:00').toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}) : '-';
+const fmtM = n => '₹'+(n||0).toLocaleString('en-IN');
+const nights = (a,b) => { if(!a||!b) return 0; return Math.max(0,Math.round((new Date(b)-new Date(a))/86400000)); };
+const $ = id => document.getElementById(id);
+const isDueOut = r => r.checkout === today() && r.status === 'Occupied';
+const getStatus = r => {
+  if (!r) return 'vacant';
+  if (r.status === 'Cancelled') return 'cancelled';
+  if (r.status === 'No Show') return 'noshow';
+  if (r.status === 'Checked Out') return 'checkout';
+  if (isDueOut(r)) return 'dueout';
+  if (r.status === 'Occupied') return 'occupied';
+  if (r.status === 'Arrival' || (r.checkin === today() && r.status !== 'Checked Out')) return 'arrival';
+  if (r.status === 'Confirmed') return 'confirmed';
+  return 'vacant';
+};
+const getLabel = s => ({vacant:'Vacant',occupied:'Occupied',arrival:'Arrival',confirmed:'Confirmed',dueout:'Due Out',checkout:'Checked Out',dirty:'Dirty',cancelled:'Cancelled',noshow:'No Show'}[s]||s);
+const getPaid = r => DB.payments.filter(p=>p.resId===r.resId&&!p.isAuditPost).reduce((s,p)=>s+(p.amount||0),0);
+const getBalance = r => (r.totalAmount||0) - getPaid(r);
+const activeResForRoom = num => DB.reservations.find(r=>r.rooms?.includes(num)&&!['Cancelled','Checked Out','No Show'].includes(r.status));
+
+function nextResNo() {
+  const p = DB.settings.rprefix||'R', s = parseInt(DB.settings.rstart)||1001;
+  const used = DB.reservations.map(r=>parseInt((r.resNo||'').replace(/\D/g,''))||0);
+  return p+(Math.max(s-1,...used)+1);
+}
+function nextInvNo() {
+  const p = DB.settings.iprefix||'INV', s = parseInt(DB.settings.istart)||1001;
+  const used = DB.reservations.filter(r=>r.invNo).map(r=>parseInt(r.invNo.replace(/\D/g,''))||0);
+  return p+(Math.max(s-1,...used)+1);
+}
+
+function toast(msg, type='inf') {
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.innerHTML = `<span>${type==='ok'?'✅':type==='err'?'❌':'ℹ️'}</span><span>${msg}</span>`;
+  $('toasts').appendChild(t);
+  setTimeout(()=>t.remove(),3500);
+}
+
+// ════════════════════ NAVIGATION ════════════════════
+const PAGE_TITLES = {dashboard:'Dashboard',roomview:'Room View',stayview:'Stay View',calendar90:'90-Day Calendar',reservations:'Reservations',guestsearch:'Guest Search',cashier:'Cashier Report',deposit:'Deposit Tracker',cityledger:'City Ledger',revenue:'Revenue Analytics',nightaudit:'Night Audit',invoice:'Invoice / Print',settings:'Settings',databackup:'Data & Backup'};
+
+function goPage(name) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  $('page-'+name)?.classList.add('active');
+  $('tbTitle').textContent = PAGE_TITLES[name]||name;
+  document.querySelectorAll('.nav-item').forEach(n=>{
+    if(n.getAttribute('onclick')?.includes("'"+name+"'")) n.classList.add('active');
+  });
+  if(window.innerWidth<=768) closeSidebar();
+  const renders = {roomview:renderRooms,stayview:renderSV,calendar90:renderCal90,reservations:renderRes,guestsearch:renderGS,cashier:renderCashier,deposit:renderDeposit,cityledger:renderCL,revenue:renderRevenue,nightaudit:renderNA,invoice:renderInvoicePage,settings:renderSettings,dashboard:renderDash,databackup:renderBackup};
+  renders[name]?.();
+  updateTopbar();
+}
+
+function sTab(id, btn) {
+  document.querySelectorAll('#page-settings .tc').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('#page-settings .tab').forEach(b=>b.classList.remove('active'));
+  $(id)?.classList.add('active'); btn?.classList.add('active');
+}
+function rmTab(id, btn) {
+  document.querySelectorAll('#rmModal .tc').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('#rmModal .tab').forEach(b=>b.classList.remove('active'));
+  $(id)?.classList.add('active'); btn?.classList.add('active');
+}
+function openModal(id) { $(id).classList.add('open'); }
+function closeModal(id) { $(id).classList.remove('open'); }
+
+// ════════════════════ THEME ════════════════════
+function toggleTheme() {
+  const html = document.documentElement;
+  const isDark = html.getAttribute('data-theme')==='dark';
+  html.setAttribute('data-theme', isDark?'light':'dark');
+  $('themeBtn').textContent = isDark?'☀️':'🌙';
+  const sw = $('themeSwitch');
+  if(sw) { if(isDark) sw.classList.remove('on'); else sw.classList.add('on'); }
+}
+
+// ════════════════════ TOPBAR ════════════════════
+function updateTopbar() {
+  const t = today();
+  const occ = DB.reservations.filter(r=>r.status==='Occupied').length;
+  const arr = DB.reservations.filter(r=>r.checkin===t&&['Arrival','Confirmed'].includes(r.status)).length;
+  const dout = DB.reservations.filter(r=>isDueOut(r)).length;
+  $('tbStats').innerHTML = `
+    <div class="frow gap4"><div class="ts-dot" style="background:var(--green)"></div><span class="ts-val">${occ}</span><span class="ts-lbl"> Occ</span></div>
+    <div class="frow gap4"><div class="ts-dot" style="background:var(--accent)"></div><span class="ts-val">${arr}</span><span class="ts-lbl"> Arr</span></div>
+    <div class="frow gap4"><div class="ts-dot" style="background:var(--orange)"></div><span class="ts-val">${dout}</span><span class="ts-lbl"> Dep</span></div>`;
+}
+
+// ════════════════════ DASHBOARD ════════════════════
+function renderDash() {
+  const t = today();
+  const occ = DB.reservations.filter(r=>r.status==='Occupied');
+  const arr = DB.reservations.filter(r=>r.checkin===t&&['Arrival','Confirmed'].includes(r.status));
+  const dout = DB.reservations.filter(r=>isDueOut(r));
+  const rev = DB.payments.filter(p=>p.date===t&&!p.isAuditPost).reduce((s,p)=>s+(p.amount||0),0);
+  const total = DB.rooms.length;
+  $('d-total').textContent = total;
+  $('d-occ-sub').textContent = Math.round(occ.length/Math.max(total,1)*100)+'% occupied';
+  $('d-occ').textContent = occ.length;
+  $('d-arr').textContent = arr.length;
+  $('d-dout').textContent = dout.length;
+  $('d-rev').textContent = fmtM(rev);
+  // Category snapshot
+  const cats = ['Executive Room','Executive Plus','Deluxe Room'];
+  $('d-cats').innerHTML = cats.map(c=>{
+    const total2=DB.rooms.filter(r=>r.cat===c).length;
+    const occ2=occ.filter(r=>r.rooms?.some(rn=>DB.rooms.find(rd=>rd.num===rn)?.cat===c)).length;
+    return `<div class="bill-row"><span class="text-dim">${c}</span><span class="mono bold">${occ2}/${total2}</span></div>`;
+  }).join('')+'<div class="bill-sep"></div><div class="bill-row"><span class="text-dim text-xs">Today Revenue</span><span class="mono text-gold">${fmtM(rev)}</span></div>';
+  // Activity
+  const act=[...arr.map(r=>`<div style="padding:4px 0;border-bottom:1px solid var(--border)">🛬 ${r.guestName} → Rm ${r.rooms?.join(',')}</div>`),
+    ...dout.map(r=>`<div style="padding:4px 0;border-bottom:1px solid var(--border)">🛫 ${r.guestName} — Rm ${r.rooms?.join(',')}</div>`)];
+  $('d-activity').innerHTML = act.length?act.join(''):'<div class="text-dim">No activity today</div>';
+  // Mini chart (last 7 days)
+  const days=7; const bars=[];
+  for(let i=days-1;i>=0;i--){
+    const d=new Date(); d.setDate(d.getDate()-i);
+    const ds=d.toISOString().split('T')[0];
+    const v=DB.payments.filter(p=>p.date===ds&&!p.isAuditPost).reduce((s,p)=>s+(p.amount||0),0);
+    bars.push({d:ds,v,lbl:d.toLocaleDateString('en-IN',{day:'2-digit',month:'short'})});
+  }
+  const maxV=Math.max(...bars.map(b=>b.v),1);
+  $('d-chart').innerHTML=bars.map(b=>`<div class="bar-col"><div class="bar" style="height:${Math.max(4,Math.round(b.v/maxV*88))}px" title="${fmtM(b.v)}"></div><div class="bar-val">${b.v?fmtM(b.v):''}</div></div>`).join('');
+  $('d-chart-lbls').innerHTML=bars.map(b=>`<div style="flex:1;text-align:center;font-size:8.5px;color:var(--text3)">${b.lbl.split(' ')[0]}</div>`).join('');
+}
+
+// ════════════════════ ROOM VIEW ════════════════════
+let roomFilter='all';
+function renderRooms() {
+  const grid=$('roomGrid'); const t=today();
+  let html=''; let counts={all:0,vacant:0,occupied:0,arrival:0,confirmed:0,dueout:0,dirty:0};
+  DB.rooms.forEach(room=>{
+    const res=activeResForRoom(room.num);
+    let st = res ? getStatus(res) : 'vacant';
+    const flag=DB.roomFlags[room.num]||{};
+    if(flag.dirty&&!res) st='dirty';
+    counts.all++;
+    if(counts[st]!==undefined) counts[st]++;
+    const show = roomFilter==='all' || roomFilter===st || (roomFilter==='occupied'&&st==='dueout');
+    if(!show) return;
+    const catCls = room.cat==='Executive Room'?'cat-exec':room.cat==='Executive Plus'?'cat-ep':'cat-dlx';
+    let gHtml='';
+    if(res) {
+      const bal=getBalance(res);
+      gHtml=`<div class="rc-guest">${res.guestName||'-'}</div>
+        <div class="rc-dates">${fmtD(res.checkin)} → ${fmtD(res.checkout)}</div>
+        ${DB.settings.showBalance?`<div class="rc-bal ${bal>0?'bal-due':'bal-ok'}">${bal>0?fmtM(bal)+' due':'✓ Settled'}</div>`:''}`;
+    }
+    const bookBtn = !res?`<button class="rc-book" onclick="event.stopPropagation();quickBook('${room.num}')">＋ Book</button>`:'';
+    html+=`<div class="room-card st-${st}" onclick="openRmDetail('${room.num}')">
+      <div class="rc-stripe" style="background:${DB.settings.statusColors?.[getLabel(st)]||'var(--border)'}"></div>
+      <div class="rc-num">${room.num}</div>
+      <div class="rc-cat ${catCls}">${room.cat.toUpperCase()}</div>
+      <div class="rc-badge b-${st}">${getLabel(st)}</div>
+      ${gHtml}${bookBtn}
+    </div>`;
+  });
+  grid.innerHTML = html||'<div class="text-dim text-sm">No rooms match filter</div>';
+  const vac=DB.rooms.length-counts.occupied-counts.arrival-counts.confirmed-counts.dueout;
+  $('rv-cnt').innerHTML=`<span class="mono bold">${counts.all}</span> total · <span class="mono text-green">${counts.occupied+counts.dueout}</span> occ · <span class="mono" style="color:var(--text2)">${Math.max(0,vac)}</span> vacant · <span class="mono" style="color:var(--orange)">${counts.dueout}</span> due out`;
+  updateTopbar();
+}
+function filterRooms(f,btn){roomFilter=f;document.querySelectorAll('#page-roomview .fbtn').forEach(b=>b.classList.remove('active'));btn?.classList.add('active');renderRooms();}
+function quickBook(num){openModal('bkModal');initBooking(num);}
+
+// ════════════════════ STAY VIEW ════════════════════
+let svStart = new Date();
+svStart.setDate(svStart.getDate()-2);
+function svNav(d){svStart.setDate(svStart.getDate()+d);renderSV();}
+function svToday(){svStart=new Date();svStart.setDate(svStart.getDate()-2);renderSV();}
+function renderSV(){
+  const DAYS=21, t=today(), dates=[];
+  for(let i=0;i<DAYS;i++){const d=new Date(svStart);d.setDate(d.getDate()+i);dates.push(d.toISOString().split('T')[0]);}
+  $('svRange').textContent=`${fmtD(dates[0])} — ${fmtD(dates[DAYS-1])}`;
+  const cats=['Deluxe Room','Executive Room','Executive Plus'];
+  let html=`<table class="sv-tbl"><thead><tr><th class="sv-room-hdr">Room</th>`;
+  dates.forEach(d=>{const isT=d===t;html+=`<th class="sv-date-hdr${isT?' today':''}">${new Date(d+'T00:00:00').toLocaleDateString('en-IN',{day:'2-digit',month:'short'})}<br>${new Date(d+'T00:00:00').toLocaleDateString('en-IN',{weekday:'short'})}</th>`;});
+  html+=`</tr></thead><tbody>`;
+  cats.forEach(cat=>{
+    const rooms=DB.rooms.filter(r=>r.cat===cat);
+    if(!rooms.length) return;
+    html+=`<tr class="sv-cat-row"><td colspan="${DAYS+1}">${cat}</td></tr>`;
+    rooms.forEach(room=>{
+      html+=`<tr><td class="sv-room-hdr">${room.num}</td>`;
+      dates.forEach(d=>{
+        const res=DB.reservations.find(r=>r.rooms?.includes(room.num)&&!['Cancelled','No Show'].includes(r.status)&&d>=r.checkin&&d<r.checkout);
+        if(res){
+          const isdo=isDueOut(res)&&d===res.checkout;
+          const cls=res.status==='Occupied'?(isDueOut(res)?'sv-dueout':'sv-occ'):res.status==='Confirmed'?'sv-conf':'sv-arr';
+          html+=`<td class="sv-cell" onclick="openRmDetail('${room.num}')"><div class="${cls} sv-blk">${(res.guestName||'').split(' ')[0]}</div></td>`;
+        }else{html+=`<td class="sv-cell" onclick="quickBook('${room.num}')"></td>`;}
+      });
+      html+=`</tr>`;
+    });
+  });
+  // Availability row
+  html+=`<tr><td class="sv-room-hdr" style="color:var(--gold);font-size:10.5px">Available</td>`;
+  dates.forEach(d=>{
+    const occ=DB.reservations.filter(r=>!['Cancelled','Checked Out','No Show'].includes(r.status)&&d>=r.checkin&&d<r.checkout).flatMap(r=>r.rooms||[]).length;
+    html+=`<td style="text-align:center;font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;vertical-align:middle">${DB.rooms.length-occ}</td>`;
+  });
+  html+=`</tr></tbody></table>`;
+  $('svWrap').innerHTML=html;
+}
+
+// ════════════════════ 90-DAY CALENDAR ════════════════════
+let cal90Date = new Date();
+function cal90Nav(m){cal90Date.setMonth(cal90Date.getMonth()+m);renderCal90();}
+function cal90Today(){cal90Date=new Date();renderCal90();}
+function renderCal90(){
+  const t=today(); const months=[];
+  for(let m=0;m<3;m++){const d=new Date(cal90Date.getFullYear(),cal90Date.getMonth()+m,1);months.push(d);}
+  let html='';
+  months.forEach(mDate=>{
+    const yr=mDate.getFullYear(),mn=mDate.getMonth();
+    const daysInMonth=new Date(yr,mn+1,0).getDate();
+    const firstDay=new Date(yr,mn,1).getDay();
+    html+=`<div style="margin-bottom:20px">
+      <div class="section-title mb8">${mDate.toLocaleDateString('en-IN',{month:'long',year:'numeric'})}</div>
+      <div class="cal-grid">
+        ${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d=>`<div class="cal-day-hdr">${d}</div>`).join('')}
+        ${Array(firstDay).fill('<div></div>').join('')}`;
+    for(let day=1;day<=daysInMonth;day++){
+      const ds=`${yr}-${String(mn+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+      const res=DB.reservations.filter(r=>!['Cancelled','No Show'].includes(r.status)&&ds>=r.checkin&&ds<r.checkout);
+      const occ=res.flatMap(r=>r.rooms||[]).length;
+      const rev=DB.payments.filter(p=>p.date===ds&&!p.isAuditPost).reduce((s,p)=>s+(p.amount||0),0);
+      const isT=ds===t;
+      html+=`<div class="cal-day${isT?' today':''}${occ>0?' has-res':''}" onclick="calDayClick('${ds}')" title="${occ} rooms occupied${rev?', ₹'+rev.toLocaleString('en-IN'):''}">
+        <div class="cd-num">${day}</div>
+        ${occ>0?`<div class="cd-occ">${occ}🏨</div>`:''}
+        ${rev>0?`<div class="cd-rev">₹${Math.round(rev/1000)}k</div>`:''}
+      </div>`;
+    }
+    html+=`</div></div>`;
+  });
+  $('cal90Wrap').innerHTML=html;
+}
+function calDayClick(ds){
+  const res=DB.reservations.filter(r=>!['Cancelled','No Show'].includes(r.status)&&ds>=r.checkin&&ds<r.checkout);
+  if(res.length===0){alert(`${fmtD(ds)}: No bookings`);}
+  else{alert(`${fmtD(ds)}: ${res.length} room(s) occupied\n${res.map(r=>`• ${r.guestName} — Rm ${r.rooms?.join(',')}`).join('\n')}`);}
+}
+
+// ════════════════════ RESERVATIONS ════════════════════
+function renderRes(){
+  const t=today();
+  let data=[...DB.reservations].reverse();
+  const q=$('resQ')?.value?.toLowerCase()||'';
+  const from=$('resFrom')?.value, to=$('resTo')?.value;
+  const st=$('resSt')?.value;
+  if(q) data=data.filter(r=>r.guestName?.toLowerCase().includes(q)||r.rooms?.join().includes(q)||r.mobile?.includes(q)||r.resNo?.toLowerCase().includes(q));
+  if(from) data=data.filter(r=>r.checkin>=from);
+  if(to) data=data.filter(r=>r.checkin<=to);
+  if(st) data=data.filter(r=>{
+    if(st==='Due Out') return isDueOut(r);
+    return r.status===st;
+  });
+  $('resTbody').innerHTML=data.length?data.map(r=>{
+    const paid=getPaid(r); const bal=getBalance(r);
+    const isDO=isDueOut(r); const disp=isDO?'Due Out':r.status;
+    const spCls='sp-'+(isDO?'dueout':r.status?.toLowerCase().replace(/ /g,'-')||'');
+    return `<tr>
+      <td class="mono bold">${r.resNo}</td>
+      <td><div class="bold">${r.guestName}</div><div class="text-xs text-dim">${r.mobile||''}</div></td>
+      <td class="mono bold">${r.rooms?.join(', ')}</td>
+      <td class="mono">${fmtD(r.checkin)}</td>
+      <td class="mono">${fmtD(r.checkout)}</td>
+      <td class="mono">${r.nights}</td>
+      <td><span class="chip">${r.rateType||''}</span></td>
+      <td class="mono">${fmtM(r.totalAmount)}</td>
+      <td class="mono text-green">${fmtM(paid)}</td>
+      <td class="mono ${bal>0?'text-red':'text-green'}">${fmtM(bal)}</td>
+      <td><span class="sp ${spCls}">${disp}</span></td>
+      <td class="mono text-dim">${r.invNo||'-'}</td>
+      <td><button class="ico-btn" onclick="openRmDetail('${r.rooms?.[0]}')" title="Open">👁</button> ${r.status!=='Checked Out'&&r.status!=='Cancelled'?`<button class="ico-btn" onclick="cancelR('${r.resId}')" title="Cancel">✕</button>`:''} <button class="ico-btn" onclick="deleteResById('${r.resId}')" title="Delete" style="color:var(--red)">🗑</button></td>
+    </tr>`;
+  }).join(''):`<tr><td colspan="13" style="text-align:center;color:var(--text3);padding:20px">No reservations found</td></tr>`;
+}
+function filterRes(){renderRes();}
+function cancelR(id){
+  const r=DB.reservations.find(r=>r.resId===id);if(!r) return;
+  const choice=confirm(`Cancel reservation ${r.resNo} for ${r.guestName}?\n\nOK = Cancel (keep record)\nCancel = Do nothing`);
+  if(!choice) return;
+  r.status='Cancelled';
+  save();renderRes();renderRooms();toast(`Reservation ${r.resNo} cancelled`,'inf');
+}
+function deleteResById(id){
+  if(!confirm('Permanently DELETE this reservation and all its payments? This cannot be undone!')) return;
+  DB.payments=DB.payments.filter(p=>p.resId!==id);
+  DB.reservations=DB.reservations.filter(r=>r.resId!==id);
+  save();renderRes();renderRooms();toast('Reservation deleted','inf');
+}
+
+// ════════════════════ GUEST SEARCH ════════════════════
+function renderGS(){guestSearch();}
+function guestSearch(){
+  const q=$('gsQ')?.value?.toLowerCase()||'';
+  const idtype=$('gsType')?.value||'';
+  const guests={};
+  DB.reservations.forEach(r=>{
+    const key=(r.mobile||r.email||r.guestName||'').toLowerCase();
+    if(!key) return;
+    if(q&&!r.guestName?.toLowerCase().includes(q)&&!r.mobile?.includes(q)&&!r.email?.toLowerCase().includes(q)&&!r.idNum?.includes(q)) return;
+    if(idtype&&r.idType!==idtype) return;
+    if(!guests[key]) guests[key]={name:r.guestName,mobile:r.mobile,email:r.email,idType:r.idType,idNum:r.idNum,visits:0,lastStay:'',spent:0,lastResId:r.resId,lastRoom:r.rooms?.[0]};
+    guests[key].visits++;
+    if(!guests[key].lastStay||r.checkin>guests[key].lastStay){guests[key].lastStay=r.checkin;guests[key].lastResId=r.resId;guests[key].lastRoom=r.rooms?.[0];}
+    guests[key].spent+=getPaid(r);
+  });
+  const rows=Object.values(guests);
+  $('gsTbody').innerHTML=rows.length?rows.map(g=>`<tr>
+    <td class="bold">${g.name}</td>
+    <td>${g.mobile||'-'}</td>
+    <td>${g.email||'-'}</td>
+    <td><span class="chip">${g.idType||'-'}</span></td>
+    <td class="mono">${g.idNum||'-'}</td>
+    <td class="mono bold">${g.visits}</td>
+    <td class="mono">${fmtD(g.lastStay)}</td>
+    <td class="mono text-gold">${fmtM(g.spent)}</td>
+    <td style="display:flex;gap:4px">
+      <button class="ico-btn" onclick="openRmDetail('${g.lastRoom}')" title="View Folio">👁</button>
+      <button class="ico-btn" onclick="viewGuestStays('${g.mobile||g.email||g.name}')" title="All Stays">📋</button>
+    </td>
+  </tr>`).join(''):`<tr><td colspan="9" style="text-align:center;color:var(--text3);padding:20px">No guests found</td></tr>`;
+}
+
+function viewGuestStays(key){
+  const stays=DB.reservations.filter(r=>r.mobile===key||r.email===key||r.guestName===key);
+  if(!stays.length){toast('No stays found','inf');return;}
+  const msg=stays.map(r=>`${r.resNo} | Rm ${r.rooms?.join('+')} | ${fmtD(r.checkin)}→${fmtD(r.checkout)} | ${r.status} | ${fmtM(r.totalAmount)}`).join('\n');
+  alert(`Stay History for ${stays[0].guestName}:\n\n${msg}`);
+}
+
+// ════════════════════ CASHIER REPORT ════════════════════
+function renderCashier(){
+  const d=$('crDate')?.value||today();
+  const pays=DB.payments.filter(p=>p.date===d&&!p.isAuditPost);
+  const modes=['Cash','UPI','Card','City Ledger','Complimentary'];
+  const totals={};
+  modes.forEach(m=>totals[m]=pays.filter(p=>p.mode===m).reduce((s,p)=>s+(p.amount||0),0));
+  const grandTotal=pays.reduce((s,p)=>s+(p.amount||0),0);
+  $('cashier-summary').innerHTML=`
+    ${modes.map(m=>`<div class="stat-card sc-gold"><div class="stat-lbl">${m}</div><div class="stat-val text-gold" style="font-size:18px">${fmtM(totals[m])}</div></div>`).join('')}
+    <div class="stat-card sc-green full"><div class="stat-lbl">Grand Total</div><div class="cashier-total">${fmtM(grandTotal)}</div></div>`;
+  $('cashierTbody').innerHTML=pays.length?pays.map(p=>{
+    const r=DB.reservations.find(r=>r.resId===p.resId);
+    return `<tr><td class="mono text-dim">${p.time||'-'}</td><td class="mono">${r?.resNo||'-'}</td><td>${r?.guestName||'-'}</td><td class="mono">${r?.rooms?.join(', ')||'-'}</td><td><span class="chip">${p.mode}</span></td><td>${p.description||'Payment'}</td><td class="mono bold text-green">${fmtM(p.amount)}</td></tr>`;
+  }).join(''):`<tr><td colspan="7" style="text-align:center;color:var(--text3);padding:20px">No payments for ${fmtD(d)}</td></tr>`;
+}
+
+// ════════════════════ DEPOSIT TRACKER ════════════════════
+function renderDeposit(){
+  const all=DB.reservations.filter(r=>r.advance>0||getPaid(r)>0);
+  let totDep=0,totSet=0;
+  const rows=all.map(r=>{
+    const paid=getPaid(r);const bal=getBalance(r);
+    totDep+=r.advance||0;totSet+=paid;
+    return `<tr><td class="mono">${r.resNo}</td><td>${r.guestName}</td><td class="mono">${r.rooms?.join(', ')}</td>
+      <td>${fmtD(r.checkin)}</td><td>${fmtD(r.checkout)}</td>
+      <td class="mono">${fmtM(r.advance||0)}</td><td class="mono">${fmtM(r.totalAmount)}</td>
+      <td class="mono text-green">${fmtM(paid)}</td>
+      <td class="mono ${bal>0?'text-red':'text-green'}">${fmtM(bal)}</td>
+      <td><span class="sp sp-${r.status?.toLowerCase().replace(/ /g,'-')}">${r.status}</span></td>
+    </tr>`;
+  });
+  $('dep-total').textContent=fmtM(totDep);
+  $('dep-settled').textContent=fmtM(totSet);
+  $('dep-outstanding').textContent=fmtM(Math.max(0,DB.reservations.reduce((s,r)=>s+getBalance(r),0)));
+  $('depTbody').innerHTML=rows.join('')||`<tr><td colspan="10" style="text-align:center;color:var(--text3);padding:20px">No deposits</td></tr>`;
+}
+
+// ════════════════════ CITY LEDGER ════════════════════
+let editBSId=null;
+function clearBSForm(){$('bs-name').value='';$('bs-type').value='Travel Agent';$('bs-contact').value='';$('bs-ph').value='';$('bs-email').value='';$('bsModalTitle').textContent='Add Business Source';editBSId=null;}
+function renderCL(){
+  // Business source cards with outstanding balance per ledger
+  $('bsList').innerHTML=DB.businessSources.map(s=>{
+    // All reservations under this source
+    const srcRes=DB.reservations.filter(r=>r.bsource===s.id);
+    // All payments posted to city ledger for this source
+    const clPays=DB.payments.filter(p=>p.bsource===s.id&&p.mode==='City Ledger');
+    const totalBilled=srcRes.reduce((t,r)=>t+(r.totalAmount||0),0);
+    const totalCleared=DB.payments.filter(p=>p.bsource===s.id&&p.mode!=='City Ledger'&&p.description?.includes('Ledger Clear')).reduce((t,p)=>t+(p.amount||0),0);
+    // Outstanding = what's been billed to this ledger minus what's been cleared
+    const clBilled=clPays.reduce((t,p)=>t+(p.amount||0),0);
+    const outstanding=clBilled-totalCleared;
+    return `
+    <div class="bs-item" style="flex-wrap:wrap;gap:8px">
+      <div style="font-size:16px">🏢</div>
+      <div style="flex:1;min-width:150px">
+        <div class="bold">${s.name}</div>
+        <div class="text-xs text-dim">${s.type}${s.contact?' · '+s.contact:''}${s.phone?' · '+s.phone:''}</div>
+        <div style="display:flex;gap:12px;margin-top:4px;font-size:11.5px">
+          <span>Billed: <span class="mono text-gold">${fmtM(clBilled)}</span></span>
+          <span>Outstanding: <span class="mono ${outstanding>0?'text-red':'text-green'}">${fmtM(outstanding)}</span></span>
+        </div>
+      </div>
+      <div style="display:flex;gap:4px;flex-wrap:wrap">
+        ${outstanding>0?`<button class="btn btn-gold btn-xs" onclick="clearLedger('${s.id}','${s.name}',${outstanding})">💰 Clear</button>`:'<span class="text-xs text-green">✓ Settled</span>'}
+        <button class="ico-btn" onclick="editBS('${s.id}')">✏</button>
+        <button class="ico-btn" onclick="removeBS('${s.id}')">🗑</button>
+      </div>
+    </div>`;
+  }).join('')||'<div class="text-dim text-sm">No business sources. Add one above.</div>';
+
+  populateBSDropdowns();
+
+  // All city ledger transactions grouped by source
+  const clPays=DB.payments.filter(p=>p.mode==='City Ledger'||p.description?.includes('Ledger Clear'));
+  $('clTbody').innerHTML=clPays.length?clPays.map(p=>{
+    const r=DB.reservations.find(r=>r.resId===p.resId);
+    const bs=DB.businessSources.find(s=>s.id===(p.bsource||r?.bsource));
+    return `<tr>
+      <td>${fmtD(p.date)}</td>
+      <td class="mono">${r?.resNo||'-'}</td>
+      <td>${r?.guestName||p.description||'-'}</td>
+      <td>${bs?.name||'-'}</td>
+      <td class="mono">${r?.rooms?.join(', ')||'-'}</td>
+      <td class="mono ${p.description?.includes('Ledger Clear')?'text-green':'text-gold'}">${p.description?.includes('Ledger Clear')?'CR ':'DR '}${fmtM(p.amount)}</td>
+      <td><span class="sp sp-${p.description?.includes('Ledger Clear')?'occupied':'confirmed'}">${p.description?.includes('Ledger Clear')?'Cleared':'Posted'}</span></td>
+    </tr>`;
+  }).join(''):`<tr><td colspan="7" style="text-align:center;color:var(--text3);padding:20px">No city ledger transactions</td></tr>`;
+}
+
+function clearLedger(bsId, bsName, outstanding){
+  const amtStr=prompt(`Clear ledger for ${bsName}\nOutstanding: ${fmtM(outstanding)}\n\nEnter amount received:`);
+  const amt=parseFloat(amtStr);
+  if(isNaN(amt)||amt<=0) return;
+  const dateStr=prompt('Payment date (YYYY-MM-DD):',today());
+  DB.payments.push({
+    payId:'cl_'+Date.now(),
+    resId:null,
+    date:dateStr||today(),
+    amount:amt,
+    mode:'Cash',
+    bsource:bsId,
+    description:`Ledger Cleared — ${bsName}`,
+    time:new Date().toLocaleTimeString()
+  });
+  save();renderCL();
+  toast(`✅ Ledger cleared: ${fmtM(amt)} received from ${bsName}`,'ok');
+}
+function editBS(id){
+  const s=DB.businessSources.find(b=>b.id===id);
+  if(!s) return;
+  editBSId=id;
+  $('bs-name').value=s.name;$('bs-type').value=s.type;$('bs-contact').value=s.contact||'';$('bs-ph').value=s.phone||'';$('bs-email').value=s.email||'';
+  $('bsModalTitle').textContent='Edit Business Source';
+  openModal('bsModal');
+}
+function saveBS(){
+  const name=$('bs-name').value.trim();
+  if(!name){toast('Enter name','err');return;}
+  if(editBSId){
+    const s=DB.businessSources.find(b=>b.id===editBSId);
+    if(s){s.name=name;s.type=$('bs-type').value;s.contact=$('bs-contact').value;s.phone=$('bs-ph').value;s.email=$('bs-email').value;}
+  } else {
+    DB.businessSources.push({id:'bs'+Date.now(),name,type:$('bs-type').value,contact:$('bs-contact').value,phone:$('bs-ph').value,email:$('bs-email').value});
+  }
+  save();closeModal('bsModal');renderCL();toast(editBSId?'Source updated':'Source added','ok');editBSId=null;
+}
+function removeBS(id){
+  if(!confirm('Remove this business source?')) return;
+  DB.businessSources=DB.businessSources.filter(s=>s.id!==id);
+  save();renderCL();toast('Removed','inf');
+}
+function populateBSDropdowns(){
+  const opts='<option value="">— None —</option>'+DB.businessSources.map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
+  ['b-bsrc','pay-bs'].forEach(id=>{const el=$(id);if(el)el.innerHTML=opts;});
+}
+
+// ════════════════════ REVENUE ANALYTICS ════════════════════
+function renderRevenue(){
+  const days=parseInt($('revPeriod')?.value||30);
+  const dates=[];
+  for(let i=days-1;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);dates.push(d.toISOString().split('T')[0]);}
+  const dayRevs=dates.map(d=>({d,v:DB.payments.filter(p=>p.date===d&&!p.isAuditPost).reduce((s,p)=>s+(p.amount||0),0)}));
+  const total=dayRevs.reduce((s,d)=>s+d.v,0);
+  const occDays=dates.map(d=>DB.reservations.filter(r=>!['Cancelled','No Show'].includes(r.status)&&d>=r.checkin&&d<r.checkout).flatMap(r=>r.rooms||[]).length);
+  const avgOcc=occDays.reduce((s,v)=>s+v,0)/dates.length/Math.max(DB.rooms.length,1)*100;
+  const occedRevs=dayRevs.filter(d=>d.v>0);
+  const adr=occedRevs.length?occedRevs.reduce((s,d)=>s+d.v,0)/occedRevs.length:0;
+  const revpar=total/dates.length/Math.max(DB.rooms.length,1);
+  $('rv-total').textContent=fmtM(total);
+  $('rv-adr').textContent=fmtM(Math.round(adr));
+  $('rv-occ').textContent=Math.round(avgOcc)+'%';
+  $('rv-revpar').textContent=fmtM(Math.round(revpar));
+  // Chart
+  const maxV=Math.max(...dayRevs.map(d=>d.v),1);
+  const step=Math.max(1,Math.floor(days/14));
+  $('rev-chart').innerHTML=dayRevs.map(d=>`<div class="bar-col"><div class="bar" style="height:${Math.max(2,Math.round(d.v/maxV*120))}px" title="${fmtD(d.d)}: ${fmtM(d.v)}"></div></div>`).join('');
+  $('rev-chart-lbls').innerHTML=dayRevs.filter((_,i)=>i%step===0).map(d=>`<div style="flex:${step};text-align:center;font-size:8px;color:var(--text3)">${new Date(d.d+'T00:00:00').toLocaleDateString('en-IN',{day:'2-digit',month:'short'})}</div>`).join('');
+  // By source
+  const srcData={};
+  DB.reservations.forEach(r=>{const k=r.source||'Direct';if(!srcData[k])srcData[k]=0;srcData[k]+=getPaid(r);});
+  $('rev-by-source').innerHTML=Object.entries(srcData).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<div class="bill-row"><span class="text-dim">${k}</span><span class="mono bold">${fmtM(v)}</span></div>`).join('')||'<div class="text-dim text-sm">No data</div>';
+  // By category
+  const catData={};
+  DB.reservations.forEach(r=>{const k=r.roomType||'Unknown';if(!catData[k])catData[k]=0;catData[k]+=getPaid(r);});
+  $('rev-by-cat').innerHTML=Object.entries(catData).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<div class="bill-row"><span class="text-dim">${k}</span><span class="mono bold">${fmtM(v)}</span></div>`).join('')||'<div class="text-dim text-sm">No data</div>';
+}
+
+// ════════════════════ NIGHT AUDIT ════════════════════
+function renderNA(){
+  const t=today(); $('naDate').textContent=fmtD(t);
+  const inhouse=DB.reservations.filter(r=>r.status==='Occupied');
+  const tariff=inhouse.reduce((s,r)=>s+Math.round((r.charges||0)/Math.max(r.nights||1,1)),0);
+  const tom=new Date(Date.now()+86400000).toISOString().split('T')[0];
+  const arrTom=DB.reservations.filter(r=>r.checkin===tom&&['Confirmed','Arrival'].includes(r.status)).length;
+  const depTom=DB.reservations.filter(r=>r.checkout===tom&&r.status==='Occupied').length;
+  const rev=DB.payments.filter(p=>p.date===t&&!p.isAuditPost).reduce((s,p)=>s+(p.amount||0),0);
+  $('naSum').innerHTML=`
+    <div class="bill-row"><span class="text-dim">In-house Rooms</span><span class="mono bold">${inhouse.length}</span></div>
+    <div class="bill-row"><span class="text-dim">Tonight's Tariff</span><span class="mono">${fmtM(tariff)}</span></div>
+    <div class="bill-row"><span class="text-dim">Arrivals Tomorrow</span><span class="mono">${arrTom}</span></div>
+    <div class="bill-row"><span class="text-dim">Departures Tomorrow</span><span class="mono">${depTom}</span></div>
+    <div class="bill-row"><span class="text-dim">Today's Revenue</span><span class="mono text-gold">${fmtM(rev)}</span></div>`;
+  // Log
+  $('naLogTbody').innerHTML=DB.nightAuditLog.slice().reverse().map(l=>`<tr><td>${fmtD(l.date)}</td><td>${l.rooms}</td><td class="mono">${fmtM(l.tariff||0)}</td><td>${l.time}</td></tr>`).join('')||`<tr><td colspan="4" style="text-align:center;color:var(--text3);padding:12px">No audits yet</td></tr>`;
+}
+function runAudit(){
+  if(!confirm('Run Night Audit? This posts room tariffs for all in-house guests.')) return;
+  const t=today(); const inhouse=DB.reservations.filter(r=>r.status==='Occupied');
+  let posted=[], total=0;
+  inhouse.forEach(r=>{
+    const nightly=Math.round((r.charges||0)/Math.max(r.nights||1,1));
+    total+=nightly;
+    // Change arrival to occupied for tomorrow's arrivals
+    posted.push(`Room ${r.rooms?.join(',')} — ${r.guestName}: ${fmtM(nightly)}`);
+  });
+  // Change Confirmed arriving today → Arrival
+  DB.reservations.filter(r=>r.checkin===t&&r.status==='Confirmed').forEach(r=>r.status='Arrival');
+  DB.nightAuditLog.push({date:t,rooms:inhouse.length,tariff:total,time:new Date().toLocaleTimeString()});
+  save();
+  $('naPosted').innerHTML=posted.length?posted.map(p=>`<div style="padding:4px 0;border-bottom:1px solid var(--border)">✅ ${p}</div>`).join(''):'<div class="text-dim">No in-house rooms.</div>';
+  toast(`Night Audit done — ${inhouse.length} rooms processed`,'ok');
+  renderNA();
+}
+
+// ════════════════════ INVOICE PAGE ════════════════════
+function renderInvoicePage(){
+  const q=$('invQ')?.value?.toLowerCase()||'';
+  let data=[...DB.reservations].filter(r=>r.status==='Checked Out'||r.invNo);
+  if(q) data=data.filter(r=>r.guestName?.toLowerCase().includes(q)||r.resNo?.toLowerCase().includes(q));
+  $('invTbody').innerHTML=data.length?data.map(r=>{
+    const paid=getPaid(r),bal=getBalance(r);
+    return `<tr>
+      <td class="mono">${r.resNo}</td><td>${r.guestName}</td><td class="mono">${r.rooms?.join(', ')}</td>
+      <td>${fmtD(r.checkout)}</td><td class="mono">${fmtM(r.totalAmount)}</td>
+      <td class="mono text-green">${fmtM(paid)}</td><td class="mono ${bal>0?'text-red':'text-green'}">${fmtM(bal)}</td>
+      <td class="mono text-gold">${r.invNo||'—'}</td>
+      <td><button class="ico-btn" onclick="openRmDetail('${r.rooms?.[0]}');setTimeout(()=>{rmTab('rmt-invoice',document.querySelectorAll('#rmModal .tab')[3]);buildInvoice();},300)" title="Invoice">🧾</button></td>
+    </tr>`;
+  }).join(''):`<tr><td colspan="9" style="text-align:center;color:var(--text3);padding:20px">No checked-out reservations</td></tr>`;
+}
+function filterInvoice(){renderInvoicePage();}
+
+// ════════════════════ SETTINGS ════════════════════
+function renderSettings(){
+  const s=DB.settings;
+  if($('s-propname')) $('s-propname').value=s.propname||'';
+  if($('s-loc')) $('s-loc').value=s.loc||'';
+  if($('s-gst')) $('s-gst').value=s.gst||'';
+  if($('s-phone')) $('s-phone').value=s.phone||'';
+  if($('s-rprefix')) $('s-rprefix').value=s.rprefix||'R';
+  if($('s-rstart')) $('s-rstart').value=s.rstart||1001;
+  if($('s-iprefix')) $('s-iprefix').value=s.iprefix||'INV';
+  if($('s-istart')) $('s-istart').value=s.istart||1001;
+  if($('s-grcprefix')) $('s-grcprefix').value=s.grcprefix||'GRC';
+  if($('s-email')) $('s-email').value=s.email||'';
+  if($('s-emailurl')) $('s-emailurl').value=s.emailurl||'';
+  if($('s-gasurl')){
+    $('s-gasurl').value=s.gasurl||'';
+    const msg=$('urlSavedMsg');
+    if(msg) msg.style.display=s.gasurl?'block':'none';
+  }
+  if($('s-grcnotice')) $('s-grcnotice').value=s.grcnotice||'';
+  if($('s-invnotice')) $('s-invnotice').value=s.invnotice||'';
+  // Status colors
+  const cl=$('statusColorList');
+  if(cl) cl.innerHTML=Object.entries(s.statusColors||{}).map(([name,color])=>`
+    <div class="status-clr-row">
+      <div style="width:14px;height:14px;border-radius:50%;background:${color};border:2px solid rgba(255,255,255,.15)" id="cdot-${name.replace(/\s/g,'_')}"></div>
+      <div style="flex:1;font-size:12.5px">${name}</div>
+      <input type="color" value="${color}" id="cpick-${name.replace(/\s/g,'_')}" style="width:34px;height:26px;border-radius:5px;border:1px solid var(--border2);cursor:pointer;padding:2px;background:var(--bg3)" onchange="document.getElementById('cdot-${name.replace(/\s/g,'_')}').style.background=this.value">
+    </div>`).join('');
+  // Tariffs
+  const tbody=$('tariffBody');
+  if(tbody) tbody.innerHTML=Object.entries(s.tariffs||{}).map(([cat,t])=>`<tr>
+    <td class="bold">${cat}</td>
+    <td><input class="inp" id="t-${cat.replace(/ /g,'_')}-AC" value="${t.AC||0}" style="width:80px"></td>
+    <td><input class="inp" id="t-${cat.replace(/ /g,'_')}-NAC" value="${t['Non-AC']||0}" style="width:80px"></td>
+    <td><input class="inp" id="t-${cat.replace(/ /g,'_')}-CP" value="${t.CP||0}" style="width:80px"></td>
+    <td><input class="inp" id="t-${cat.replace(/ /g,'_')}-EP" value="${t.EP||0}" style="width:80px"></td>
+    <td><input class="inp" id="t-${cat.replace(/ /g,'_')}-HR" value="${t.Hourly||0}" style="width:80px"></td>
+  </tr>`).join('');
+  // Room config
+  const rcBody=$('roomCfgBody');
+  if(rcBody) rcBody.innerHTML=DB.rooms.map((r,i)=>`<tr>
+    <td class="mono bold">${r.num}</td>
+    <td><select class="inp" style="width:140px" onchange="DB.rooms[${i}].cat=this.value;save()"><option ${r.cat==='Executive Room'?'selected':''}>Executive Room</option><option ${r.cat==='Executive Plus'?'selected':''}>Executive Plus</option><option ${r.cat==='Deluxe Room'?'selected':''}>Deluxe Room</option></select></td>
+    <td class="mono">${r.floor}</td>
+    <td><span class="chip">${r.ac?'AC':'Non-AC'}</span></td>
+    <td><span class="sp sp-occupied">Active</span></td>
+    <td><button class="ico-btn" onclick="removeRoom('${r.num}')">🗑</button></td>
+  </tr>`).join('');
+}
+function saveGeneral(){
+  const s=DB.settings;
+  s.propname=$('s-propname')?.value;s.loc=$('s-loc')?.value;s.gst=$('s-gst')?.value;s.phone=$('s-phone')?.value;
+  s.email=$('s-email')?.value;s.emailurl=$('s-emailurl')?.value;s.gasurl=$('s-gasurl')?.value;
+  s.grcnotice=$('s-grcnotice')?.value;s.invnotice=$('s-invnotice')?.value;
+  save();toast('Settings saved','ok');
+}
+function saveNumbering(){
+  DB.settings.rprefix=$('s-rprefix')?.value||'R';DB.settings.rstart=parseInt($('s-rstart')?.value)||1001;
+  DB.settings.iprefix=$('s-iprefix')?.value||'INV';DB.settings.istart=parseInt($('s-istart')?.value)||1001;
+  DB.settings.grcprefix=$('s-grcprefix')?.value||'GRC';
+  save();toast('Numbering saved','ok');
+}
+function saveTariffs(){
+  const cats=['Executive Room','Executive Plus','Deluxe Room'];
+  cats.forEach(cat=>{
+    const k=cat.replace(/ /g,'_');
+    if(!DB.settings.tariffs[cat]) DB.settings.tariffs[cat]={};
+    DB.settings.tariffs[cat].AC=parseFloat($('t-'+k+'-AC')?.value)||0;
+    DB.settings.tariffs[cat]['Non-AC']=parseFloat($('t-'+k+'-NAC')?.value)||0;
+    DB.settings.tariffs[cat].CP=parseFloat($('t-'+k+'-CP')?.value)||0;
+    DB.settings.tariffs[cat].EP=parseFloat($('t-'+k+'-EP')?.value)||0;
+    DB.settings.tariffs[cat].Hourly=parseFloat($('t-'+k+'-HR')?.value)||0;
+  });
+  save();toast('Tariffs saved','ok');
+}
+function applyColors(){
+  Object.keys(DB.settings.statusColors||{}).forEach(name=>{
+    const k=name.replace(/\s/g,'_');
+    const inp=$('cpick-'+k);
+    if(inp) DB.settings.statusColors[name]=inp.value;
+  });
+  save();toast('Colors updated','ok');
+}
+function toggleSW(el,key){el.classList.toggle('on');DB.settings[key]=el.classList.contains('on');save();}
+function addRoom(){
+  const num=$('nr-num')?.value?.trim();
+  if(!num){toast('Enter room number','err');return;}
+  if(DB.rooms.find(r=>r.num===num)){toast('Room already exists','err');return;}
+  DB.rooms.push({num,cat:$('nr-cat')?.value||'Executive Room',floor:parseInt($('nr-floor')?.value)||1,ac:$('nr-ac')?.value==='AC'});
+  save();closeModal('addRoomModal');renderSettings();toast('Room added','ok');
+}
+function removeRoom(num){
+  if(!confirm(`Remove room ${num}?`)) return;
+  DB.rooms=DB.rooms.filter(r=>r.num!==num);save();renderSettings();renderRooms();toast(`Room ${num} removed`,'inf');
+}
+
+// ════════════════════ DATA & BACKUP ════════════════════
+function renderBackup(){
+  try{
+    const sz=JSON.stringify(DB).length;
+    $('storageInfo').innerHTML=`Data size: ~${Math.round(sz/1024)} KB<br>Reservations: ${DB.reservations.length}<br>Payments: ${DB.payments.length}<br>Rooms: ${DB.rooms.length}`;
+  }catch(e){}
+}
+function exportJSON(){
+  const blob=new Blob([JSON.stringify(DB,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`akshaya-hms-backup-${today()}.json`;a.click();
+  toast('Export complete','ok');
+}
+function exportCSV(){
+  const hdr='Res No,Guest,Mobile,Rooms,Check-in,Check-out,Nights,Total,Paid,Balance,Status,Inv No\n';
+  const rows=DB.reservations.map(r=>{
+    const paid=getPaid(r),bal=getBalance(r);
+    return `"${r.resNo}","${r.guestName}","${r.mobile||''}","${r.rooms?.join('+')||''}","${r.checkin}","${r.checkout}",${r.nights},${r.totalAmount},${paid},${bal},"${r.status}","${r.invNo||''}"`;
+  }).join('\n');
+  const blob=new Blob([hdr+rows],{type:'text/csv'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`reservations-${today()}.csv`;a.click();
+  toast('CSV exported','ok');
+}
+function importJSON(inp){
+  const file=inp.files[0];if(!file) return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      const data=JSON.parse(e.target.result);
+      if(data.reservations){
+        DB=migrateDB(data);save();
+        toast('Data imported successfully','ok');
+        renderDash();renderRooms();
+      }else toast('Invalid backup file','err');
+    }catch{toast('Failed to parse file','err');}
+  };
+  reader.readAsText(file);
+}
+function clearData(what){
+  if(!confirm(`Clear ${what==='all'?'ALL data (factory reset)':'all '+what}? This cannot be undone.`)) return;
+  if(what==='all'){DB=defaultDB();}
+  else if(what==='payments'){DB.payments=[];}
+  save();toast(`${what} cleared`,'inf');renderDash();renderRooms();
+}
+async function syncNow(){
+  const url=DB.settings.gasurl;if(!url){toast('Enter Apps Script URL','err');return;}
+  $('syncStatus').textContent='⏳ Syncing...';
+  try{
+    await fetch(url,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'sync',data:DB.reservations,payments:DB.payments})});
+    $('syncStatus').textContent='✅ Synced '+new Date().toLocaleTimeString();toast('Synced','ok');
+  }catch(e){$('syncStatus').textContent='❌ '+e.message;toast('Sync failed','err');}
+}
+function testSync(){toast('Test request sent — check Apps Script logs','inf');}
+
+// ════════════════════ BOOKING ════════════════════
+let editResId=null, rr=[], grpSel=[];
+function initBooking(preRoom){
+  editResId=null; rr=[]; grpSel=[];
+  $('bkTitle').textContent='New Reservation';
+  $('b-group').checked=false;$('b-bookall').checked=false;$('b-comp').checked=false;
+  $('grpArea').style.display='none';$('singleRoomArea').style.display='block';
+  const t=today();
+  const tomorrow=new Date(Date.now()+86400000).toISOString().split('T')[0];
+  // Always allow backdate — let user choose; validation happens on save
+  $('b-cin').min='2020-01-01';
+  $('b-cin').value=t;
+  $('b-cout').value=tomorrow;
+  $('b-cout').min='2020-01-01'; // checkout validated against checkin on save
+  $('b-adv').value=0;
+  ['b-name','b-mob','b-email','b-idno','b-addr','b-city','b-state','b-remarks'].forEach(id=>{const el=$(id);if(el)el.value='';});
+  $('b-country').value='India';$('b-nat').value='Indian';
+  $('b-gprev').innerHTML='👤';$('b-gprev').dataset.img='';
+  $('b-idprev').innerHTML='🪪';$('b-idprev').dataset.img='';
+  rr=[preRoom?{type:DB.rooms.find(r=>r.num===preRoom)?.cat||'',rate:'AC',room:preRoom,adults:2,rateVal:0,inclTax:false}:{type:'',rate:'AC',room:'',adults:2,rateVal:0,inclTax:false}];
+  populateBSDropdowns();calcNights();refreshRRUI();
+}
+function calcNights(){
+  const n=nights($('b-cin')?.value,$('b-cout')?.value);
+  $('bs-nights').textContent=n;calcBilling();
+}
+function getAvailableRooms(){
+  const cin=$('b-cin')?.value,cout=$('b-cout')?.value;
+  if(!cin||!cout) return DB.rooms;
+  return DB.rooms.filter(room=>!DB.reservations.find(r=>r.rooms?.includes(room.num)&&!['Cancelled','Checked Out','No Show'].includes(r.status)&&cin<r.checkout&&cout>r.checkin&&r.resId!==editResId));
+}
+function refreshRRUI(){
+  const avail=getAvailableRooms();
+  $('rrBody').innerHTML=rr.map((row,i)=>{
+    const catRooms=row.type?avail.filter(r=>r.cat===row.type):avail;
+    const tariff=row.type?(DB.settings.tariffs[row.type]?.[row.rate]||0):0;
+    if(row.rateVal===0&&tariff>0) row.rateVal=tariff;
+    return `<tr>
+      <td><select class="inp" style="width:138px" onchange="rrType(${i},this.value)">
+        <option value="">-Select-</option>${['Executive Room','Executive Plus','Deluxe Room'].map(c=>`<option ${row.type===c?'selected':''}>${c}</option>`).join('')}</select></td>
+      <td><select class="inp" style="width:95px" onchange="rrRate(${i},this.value)">
+        ${['AC','Non-AC','CP','EP','Hourly'].map(r=>`<option ${row.rate===r?'selected':''}>${r}</option>`).join('')}</select></td>
+      <td><select class="inp" style="width:82px" onchange="rr[${i}].room=this.value;calcBilling()">
+        <option value="">-Rm-</option>${catRooms.map(r=>`<option value="${r.num}" ${row.room===r.num?'selected':''}>${r.num}</option>`).join('')}</select></td>
+      <td><select class="inp" style="width:65px" onchange="rr[${i}].adults=parseInt(this.value)">${[1,2,3,4].map(n=>`<option ${row.adults===n?'selected':''}>${n}</option>`).join('')}</select></td>
+      <td><input type="number" class="inp" style="width:85px" value="${row.rateVal}" oninput="rr[${i}].rateVal=parseFloat(this.value)||0;calcBilling()"></td>
+      <td style="text-align:center"><input type="checkbox" ${row.inclTax?'checked':''} onchange="rr[${i}].inclTax=this.checked;calcBilling()" title="Inclusive Tax"></td>
+      <td>${rr.length>1?`<button class="ico-btn" onclick="rr.splice(${i},1);refreshRRUI()">🗑</button>`:''}</td>
+    </tr>`;
+  }).join('');
+  calcBilling();
+}
+function rrType(i,v){rr[i].type=v;rr[i].room='';rr[i].rateVal=DB.settings.tariffs[v]?.[rr[i].rate]||0;refreshRRUI();}
+function rrRate(i,v){rr[i].rate=v;rr[i].rateVal=DB.settings.tariffs[rr[i].type]?.[v]||0;refreshRRUI();}
+function addRR(){rr.push({type:'',rate:'AC',room:'',adults:2,rateVal:0,inclTax:false});refreshRRUI();}
+function toggleGrp(){
+  const on=$('b-group').checked;
+  $('grpArea').style.display=on?'block':'none';
+  $('singleRoomArea').style.display=on?'none':'block';
+  if(on) refreshGrpRooms();
+}
+function bookAll(){
+  if(!$('b-bookall').checked) return;
+  grpSel=getAvailableRooms().map(r=>r.num);
+  $('b-group').checked=true;toggleGrp();
+}
+function toggleComp(){const isFree=$('b-comp').checked;rr.forEach(r=>r.rateVal=isFree?0:DB.settings.tariffs[r.type]?.[r.rate]||0);refreshRRUI();}
+function refreshGrpRooms(){
+  const cat=$('grp-cat')?.value||'';
+  const all=DB.rooms.filter(r=>!cat||r.cat===cat);
+  const avail=getAvailableRooms();
+  $('grpRoomGrid').innerHTML=all.map(room=>{
+    const isAvail=avail.some(r=>r.num===room.num);
+    const isSel=grpSel.includes(room.num);
+    return `<div class="grp-chip ${isSel?'sel':''} ${!isAvail?'busy':''}" onclick="${isAvail?`toggleGrpChip('${room.num}')`:''}" title="${room.cat}">
+      ${room.num}<span class="grp-chip-cat">${room.cat.replace('Executive ','Exec ').replace('Deluxe','Dlx')}</span></div>`;
+  }).join('');
+  updateGrpSum();calcBilling();
+}
+function toggleGrpChip(num){
+  const i=grpSel.indexOf(num);if(i>=0)grpSel.splice(i,1);else grpSel.push(num);
+  refreshGrpRooms();
+}
+function updateGrpSum(){
+  const el=$('grpSummary');if(el) el.textContent=grpSel.length?`${grpSel.length} rooms selected: ${grpSel.join(', ')}`:'No rooms selected';
+}
+function calcBilling(){
+  const isGrp=$('b-group')?.checked, isFree=$('b-comp')?.checked;
+  const n=parseInt($('bs-nights')?.textContent)||0;
+  let rooms=0, charges=0;
+  if(isGrp){
+    rooms=grpSel.length;
+    const rateType=$('grp-rate')?.value||'AC';
+    grpSel.forEach(num=>{const rd=DB.rooms.find(r=>r.num===num);if(rd) charges+=(DB.settings.tariffs[rd.cat]?.[rateType]||0)*n;});
+  } else {
+    rooms=rr.filter(r=>r.room).length;
+    rr.forEach(row=>{
+      let rate=row.rateVal||0;
+      if(row.inclTax) rate=Math.round(rate/1.05); // extract base if inclusive
+      charges+=rate*n;
+    });
+  }
+  if(isFree) charges=0;
+  const gst=DB.settings.inclusiveTax?0:Math.round(charges*.05);
+  const total=charges+gst;
+  const adv=parseFloat($('b-adv')?.value)||0;
+  $('bs-rooms').textContent=rooms;
+  $('bs-charges').textContent=fmtM(charges);
+  $('bs-gst').textContent=fmtM(gst);
+  $('bs-total').textContent=fmtM(total);
+  $('bs-bal').textContent=fmtM(Math.max(0,total-adv));
+  const taxRow=$('bs-tax-row');if(taxRow) taxRow.style.display=DB.settings.inclusiveTax?'none':'flex';
+}
+function refreshAvail(){refreshRRUI();refreshGrpRooms();}
+function saveBooking(checkIn){
+  const isGrp=$('b-group').checked;
+  const rooms=isGrp?[...grpSel]:rr.filter(r=>r.room).map(r=>r.room);
+  if(!rooms.length){toast('Select at least one room','err');return;}
+  const cin=$('b-cin').value,cout=$('b-cout').value;
+  if(!cin||!cout){toast('Enter check-in and check-out dates','err');return;}
+  if(cout<=cin){toast('Check-out date must be after check-in date','err');return;}
+  if(!$('b-name').value.trim()){toast('Guest name required','err');return;}
+  const n=nights(cin,cout);
+  if(n<1){toast('Minimum 1 night required','err');return;}
+  const isFree=$('b-comp').checked;
+  let charges=0;
+  if(isGrp){
+    const rt=$('grp-rate')?.value||'AC';
+    rooms.forEach(num=>{const rd=DB.rooms.find(r=>r.num===num);if(rd) charges+=(DB.settings.tariffs[rd.cat]?.[rt]||0)*n;});
+  } else {
+    rr.filter(r=>r.room).forEach(row=>{let rate=row.rateVal||0;if(row.inclTax)rate=Math.round(rate/1.05);charges+=rate*n;});
+  }
+  if(isFree) charges=0;
+  const gst=DB.settings.inclusiveTax?0:Math.round(charges*.05);
+  const total=charges+gst;
+  const adv=parseFloat($('b-adv').value)||0;
+  const resId=editResId||('res_'+Date.now());
+  const resNo=editResId?DB.reservations.find(r=>r.resId===editResId)?.resNo:nextResNo();
+  const gname=($('b-sal').value+' '+$('b-name').value).trim();
+  // Conflict check — exclude self when editing
+  const conf=rooms.filter(num=>DB.reservations.find(r=>
+    r.rooms?.includes(num)&&
+    !['Cancelled','Checked Out','No Show'].includes(r.status)&&
+    cin<r.checkout&&cout>r.checkin&&
+    r.resId!==resId  // exclude self
+  ));
+  if(conf.length){toast(`Room(s) ${conf.join(', ')} already booked for these dates`,'err');return;}
+
+  const status=checkIn?'Occupied':($('b-restype').value==='Direct Check-in'?'Occupied':'Confirmed');
+  const res={
+    resId,resNo,rooms,checkin:cin,checkout:cout,cinTime:$('b-cinT').value,coutTime:$('b-coutT').value,
+    guestName:gname,mobile:$('b-mob').value,email:$('b-email').value,nationality:$('b-nat').value,
+    idType:$('b-idtype').value,idNum:$('b-idno').value,address:$('b-addr').value,city:$('b-city').value,
+    state:$('b-state').value,country:$('b-country').value,source:$('b-src').value,bsource:$('b-bsrc').value,
+    resType:$('b-restype').value,roomType:isGrp?($('grp-cat')?.value||'Mixed'):rr[0]?.type,
+    rateType:isGrp?($('grp-rate')?.value||'AC'):rr[0]?.rate,nights:n,charges,gst,totalAmount:total,
+    advance:adv,complimentary:isFree,remarks:$('b-remarks').value,
+    status,bookingDate:today(),invNo:null,
+    extraCharges: editResId?DB.reservations.find(r=>r.resId===editResId)?.extraCharges||[]:[]
+  };
+  if(editResId){const idx=DB.reservations.findIndex(r=>r.resId===editResId);if(idx>=0) DB.reservations[idx]=res;}
+  else DB.reservations.push(res);
+  if(adv>0) DB.payments.push({payId:'pay_'+Date.now(),resId,date:cin,amount:adv,mode:$('b-paymode').value,description:'Advance at booking',time:new Date().toLocaleTimeString()});
+  const gp=$('b-gprev');const ip=$('b-idprev');
+  if(gp?.dataset.img||ip?.dataset.img){if(!DB.guestPhotos[resId])DB.guestPhotos[resId]={};if(gp?.dataset.img)DB.guestPhotos[resId].guestPhoto=gp.dataset.img;if(ip?.dataset.img)DB.guestPhotos[resId].idPhoto=ip.dataset.img;}
+  save();closeModal('bkModal');renderRooms();renderDash();grpSel=[];
+  toast(`✅ ${resNo} — ${res.guestName} saved! Room(s): ${rooms.join(', ')}`,'ok');
+}
+
+// ════════════════════ ROOM DETAIL ════════════════════
+let curRoom=null, curRes=null;
+function openRmDetail(roomNum){
+  if(!roomNum){return;}
+  const room=DB.rooms.find(r=>r.num===roomNum);
+  const res=activeResForRoom(roomNum)||DB.reservations.filter(r=>r.rooms?.includes(roomNum)).sort((a,b)=>b.checkin.localeCompare(a.checkin))[0];
+  curRoom=roomNum; curRes=res;
+  $('rm-title').textContent='Room '+roomNum;
+  $('rm-sub').textContent=(room?.cat||'')+(res?' — '+res.resNo+' — '+res.guestName:'');
+  // Reset tabs
+  document.querySelectorAll('#rmModal .tab').forEach((b,i)=>{b.classList[i===0?'add':'remove']('active');});
+  document.querySelectorAll('#rmModal .tc').forEach((c,i)=>{c.classList[i===0?'add':'remove']('active');});
+  if(!res){
+    $('rm-info').innerHTML='<div class="text-dim">No reservation for this room.</div>';
+    $('rm-folio-summary').innerHTML='';$('rm-pays').innerHTML='';
+    $('rm-footer').innerHTML=`<button class="btn btn-gold btn-sm" onclick="quickBook('${roomNum}')">＋ Book</button><button class="btn btn-outline" onclick="closeModal('rmModal')">Close</button>`;
+    openModal('rmModal');return;
+  }
+  renderFolio();
+  // Guest fields
+  $('rg-name').value=res.guestName||'';$('rg-mob').value=res.mobile||'';$('rg-email').value=res.email||'';
+  $('rg-idtype').value=res.idType||'Aadhar Card';$('rg-idno').value=res.idNum||'';
+  $('rg-addr').value=res.address||'';$('rg-city').value=res.city||'';$('rg-state').value=res.state||'';
+  // Photos
+  const photos=DB.guestPhotos[res.resId]||{};
+  loadBoxPhoto('rm-gphoto',photos.guestPhoto,'👤');loadBoxPhoto('rm-idphoto',photos.idPhoto,'🪪');
+  // Charges
+  renderCharges();
+  $('rm-footer').innerHTML=`<button class="btn btn-outline" onclick="closeModal('rmModal')">Close</button>`;
+  openModal('rmModal');
+}
+function renderFolio(){
+  const r=curRes;if(!r) return;
+  const paid=getPaid(r),bal=getBalance(r),isDO=isDueOut(r);
+  const extraTotal=(r.extraCharges||[]).reduce((s,c)=>s+(c.amount||0),0);
+  const dispSt=isDO?'Due Out':r.status;
+  $('rm-info').innerHTML=`
+    <div><div class="fl">Res No</div><div class="mono bold">${r.resNo}</div></div>
+    <div><div class="fl">Status</div><div><span class="sp sp-${isDO?'dueout':r.status?.toLowerCase().replace(/ /g,'-')}">${dispSt}</span>${r.invNo?`<span class="chip" style="margin-left:6px">${r.invNo}</span>`:''}</div></div>
+    <div><div class="fl">Check-in</div><div class="mono">${fmtD(r.checkin)} ${r.cinTime||''}</div></div>
+    <div><div class="fl">Check-out</div><div class="mono">${fmtD(r.checkout)} ${r.coutTime||''}</div></div>
+    <div><div class="fl">Nights</div><div class="mono bold">${r.nights}</div></div>
+    <div><div class="fl">Rate</div><div>${r.rateType}${r.complimentary?' (Comp)':''}</div></div>`;
+  $('rm-folio-summary').innerHTML=`
+    <div class="bill-row"><span class="text-dim">Room Charges</span><span class="mono">${fmtM(r.charges)}</span></div>
+    ${r.gst?`<div class="bill-row"><span class="text-dim">GST (5%)</span><span class="mono">${fmtM(r.gst)}</span></div>`:''}
+    ${extraTotal>0?`<div class="bill-row"><span class="text-dim">Extra Charges</span><span class="mono text-red">${fmtM(extraTotal)}</span></div>`:''}
+    <div class="bill-sep"></div>
+    <div class="bill-row bill-total"><span>Total</span><span class="mono">${fmtM(r.totalAmount)}</span></div>
+    <div class="bill-row"><span class="text-dim">Paid</span><span class="mono text-green">${fmtM(paid)}</span></div>
+    <div class="bill-row"><span class="text-dim">Balance</span><span class="mono ${bal>0?'bill-due':'text-green'}">${fmtM(bal)}</span></div>`;
+  const pays=DB.payments.filter(p=>p.resId===r.resId&&!p.isAuditPost);
+  $('rm-pays').innerHTML=pays.length?pays.map(p=>`
+    <tr>
+      <td>${fmtD(p.date)}</td>
+      <td>${p.description||'Payment'}</td>
+      <td class="mono text-green">${fmtM(p.amount)}</td>
+      <td><span class="chip">${p.mode}</span></td>
+      <td><button class="ico-btn" onclick="delPay('${p.payId}')">🗑</button></td>
+    </tr>`).join(''):`<tr><td colspan="5" style="text-align:center;color:var(--text3);padding:10px">No payments recorded</td></tr>`;
+  const canCO=(r.status==='Occupied'||isDO);
+  const isCoedOut=r.status==='Checked Out';
+  $('rm-co-btn').style.display=canCO?'':'none';
+  // Show undo checkout button
+  let undoBtn=$('rm-undo-btn');
+  if(!undoBtn){
+    undoBtn=document.createElement('button');
+    undoBtn.id='rm-undo-btn';undoBtn.className='btn btn-outline btn-sm';
+    undoBtn.textContent='↩ Undo Checkout';undoBtn.onclick=undoCheckout;
+    $('rm-co-btn')?.parentNode?.appendChild(undoBtn);
+  }
+  undoBtn.style.display=isCoedOut?'':'none';
+  // Show delete button
+  let delBtn=$('rm-del-btn');
+  if(!delBtn){
+    delBtn=document.createElement('button');
+    delBtn.id='rm-del-btn';delBtn.className='btn btn-danger btn-sm';
+    delBtn.textContent='🗑 Delete Booking';delBtn.onclick=deleteRes;
+    $('rm-co-btn')?.parentNode?.appendChild(delBtn);
+  }
+}
+function renderCharges(){
+  const r=curRes;if(!r) return;
+  const rows=[
+    {date:r.checkin,desc:`Room (${r.nights}n × ${fmtM(r.charges/Math.max(r.nights,1)|0)})`,amount:r.charges},
+    {date:r.checkin,desc:'GST 5%',amount:r.gst},
+    ...(r.extraCharges||[])
+  ];
+  $('rm-charges-body').innerHTML=rows.map((c,i)=>`<tr><td>${fmtD(c.date)}</td><td>${c.desc}</td><td class="mono">${fmtM(c.amount)}</td><td>${i>1?`<button class="ico-btn" onclick="delCharge(${i-2})">🗑</button>`:''}</td></tr>`).join('');
+}
+function addCharge(){
+  if(!curRes){toast('No active reservation','err');return;}
+  // Use inline prompt with better UX
+  const desc=window.prompt('Charge description (e.g. Restaurant, Laundry, Minibar):');
+  if(!desc||!desc.trim()) return;
+  const amtStr=window.prompt(`Amount (₹) for "${desc}":`);
+  const amt=parseFloat(amtStr);
+  if(isNaN(amt)||amt<=0){toast('Enter a valid amount','err');return;}
+  const r=DB.reservations.find(r=>r.resId===curRes?.resId);if(!r) return;
+  if(!r.extraCharges) r.extraCharges=[];
+  r.extraCharges.push({date:today(),desc:desc.trim(),amount:amt});
+  r.totalAmount+=amt;
+  curRes=r;
+  save();renderFolio();renderCharges();
+  toast(`✅ Charge added: ${desc} — ${fmtM(amt)}`,'ok');
+}
+function delCharge(i){
+  const r=DB.reservations.find(r=>r.resId===curRes?.resId);if(!r) return;
+  const c=r.extraCharges[i];if(!c) return;
+  r.totalAmount-=c.amount;r.extraCharges.splice(i,1);
+  save();renderFolio();renderCharges();toast('Charge removed','inf');
+}
+function delPay(payId){
+  if(!confirm('Remove this payment?')) return;
+  DB.payments=DB.payments.filter(p=>p.payId!==payId);
+  save();renderFolio();toast('Payment removed','inf');
+}
+function doCheckout(){
+  const r=curRes;if(!r) return;
+  const bal=getBalance(r);
+  // Block checkout if outstanding balance
+  if(bal>0){
+    toast(`❌ Cannot checkout — Balance due: ${fmtM(bal)}. Please settle before checkout.`,'err');
+    return;
+  }
+  if(!confirm(`Confirm checkout for ${r.guestName}?\nRoom: ${r.rooms?.join(', ')}\nInvoice will be generated.`)) return;
+  const res=DB.reservations.find(x=>x.resId===r.resId);
+  if(res){res.status='Checked Out';res.checkoutTime=new Date().toLocaleTimeString();res.invNo=nextInvNo();}
+  save();curRes=res;renderFolio();renderRooms();renderDash();
+  toast(`✅ Room ${curRoom} checked out. Invoice No: ${res.invNo}`,'ok');
+  // Auto-show invoice
+  setTimeout(()=>{
+    buildInvoice();
+    document.querySelectorAll('#rmModal .tab').forEach((b,i)=>{b.classList[i===3?'add':'remove']('active');});
+    document.querySelectorAll('#rmModal .tc').forEach((c,i)=>{c.classList[i===3?'add':'remove']('active');});
+  },300);
+}
+
+function undoCheckout(){
+  const r=curRes;if(!r) return;
+  if(!confirm(`Undo checkout for ${r.guestName}? This will restore the room to Occupied.`)) return;
+  const res=DB.reservations.find(x=>x.resId===r.resId);
+  if(res){res.status='Occupied';res.invNo=null;res.checkoutTime=null;}
+  save();curRes=res;renderFolio();renderRooms();renderDash();
+  toast(`↩ Checkout undone — Room ${curRoom} is Occupied again`,'ok');
+}
+
+function deleteRes(){
+  const r=curRes;if(!r) return;
+  if(!confirm(`DELETE reservation ${r.resNo} for ${r.guestName}?\n\nThis will also delete all payments for this booking.\nThis CANNOT be undone!`)) return;
+  DB.reservations=DB.reservations.filter(x=>x.resId!==r.resId);
+  DB.payments=DB.payments.filter(p=>p.resId!==r.resId);
+  if(DB.guestPhotos[r.resId]) delete DB.guestPhotos[r.resId];
+  save();closeModal('rmModal');renderRooms();renderDash();renderRes();
+  toast(`🗑 Reservation ${r.resNo} deleted`,'inf');
+}
+function editRes(){
+  const r=curRes;if(!r) return;
+  editResId=r.resId;
+  closeModal('rmModal');openModal('bkModal');
+  // Populate booking form
+  $('bkTitle').textContent='Edit Reservation — '+r.resNo;
+  $('b-cin').value=r.checkin;$('b-cout').value=r.checkout;
+  $('b-cinT').value=r.cinTime||'12:00';$('b-coutT').value=r.coutTime||'12:00';
+  const nameParts=r.guestName?.split(' ')||[];
+  const salutes=['Mr.','Mrs.','Ms.','Dr.'];
+  if(salutes.includes(nameParts[0])){$('b-sal').value=nameParts[0];$('b-name').value=nameParts.slice(1).join(' ');}
+  else{$('b-name').value=r.guestName||'';}
+  $('b-mob').value=r.mobile||'';$('b-email').value=r.email||'';$('b-idtype').value=r.idType||'Aadhar Card';
+  $('b-idno').value=r.idNum||'';$('b-addr').value=r.address||'';$('b-city').value=r.city||'';
+  $('b-state').value=r.state||'';$('b-country').value=r.country||'India';
+  $('b-remarks').value=r.remarks||'';$('b-src').value=r.source||'Direct';
+  rr=[{type:r.roomType||'',rate:r.rateType||'AC',room:r.rooms?.[0]||'',adults:2,rateVal:Math.round((r.charges||0)/Math.max(r.nights,1)),inclTax:false}];
+  populateBSDropdowns();calcNights();refreshRRUI();
+}
+function openPayModal(){
+  if(!curRes){toast('No active reservation','err');return;}
+  $('pay-date').value=today();$('pay-amt').value='';$('pay-mode').value='Cash';$('pay-rem').value='';
+  populateBSDropdowns();
+  // Show remaining balance
+  const bal=getBalance(curRes);
+  $('pay-amt').placeholder=bal>0?`Balance: ₹${bal.toLocaleString('en-IN')}`:'0';
+  openModal('payModal');
+}
+
+function savePay(){
+  if(!curRes){toast('No active reservation','err');return;}
+  const amt=parseFloat($('pay-amt').value);
+  if(!amt||amt<=0){toast('Enter a valid amount','err');return;}
+  const mode=$('pay-mode').value;
+  // City Ledger must have a business source selected
+  if(mode==='City Ledger'&&!$('pay-bs').value){
+    toast('⚠ Please select a Business Source / Ledger for City Ledger payment','err');
+    return;
+  }
+  const pay={
+    payId:'pay_'+Date.now(),
+    resId:curRes.resId,
+    date:$('pay-date').value||today(),
+    amount:amt,
+    mode,
+    bsource:$('pay-bs').value,
+    description:$('pay-rem').value||('Payment — '+mode),
+    time:new Date().toLocaleTimeString()
+  };
+  DB.payments.push(pay);
+  save();
+  closeModal('payModal');
+  // Refresh folio — works even after checkout
+  const res=DB.reservations.find(r=>r.resId===curRes.resId);
+  curRes=res;
+  renderFolio();
+  renderCashier();
+  const newBal=getBalance(curRes);
+  toast(`✅ Payment of ${fmtM(amt)} recorded via ${mode}. Balance: ${fmtM(newBal)}`,'ok');
+}
+function saveGuest(){
+  const r=DB.reservations.find(x=>x.resId===curRes?.resId);if(!r) return;
+  r.guestName=$('rg-name').value;r.mobile=$('rg-mob').value;r.email=$('rg-email').value;
+  r.idType=$('rg-idtype').value;r.idNum=$('rg-idno').value;r.address=$('rg-addr').value;
+  r.city=$('rg-city').value;r.state=$('rg-state').value;
+  curRes=r;
+  save();
+  // Refresh the title too
+  $('rm-sub').textContent=(DB.rooms.find(rm=>rm.num===curRoom)?.cat||'')+' — '+r.resNo+' — '+r.guestName;
+  toast('✅ Guest details saved','ok');
+}
+function buildInvoice(){
+  const r=curRes;if(!r) return;
+  const paid=getPaid(r),bal=getBalance(r);
+  const invNo=r.invNo||'DRAFT';
+  $('rm-invoice-wrap').innerHTML=`<div class="inv-wrap">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px">
+      <div><div class="inv-logo">${DB.settings.propname||'Akshaya Comforts'}</div><div style="font-size:11px;color:#666;margin-top:3px">${DB.settings.loc||'Mysore'}</div>${DB.settings.gst?`<div style="font-size:11px;color:#666">GSTIN: ${DB.settings.gst}</div>`:''}</div>
+      <div style="text-align:right"><div style="font-size:17px;font-weight:700">INVOICE</div><div style="font-size:12px;color:#666">${invNo==='DRAFT'?'<em>Generated on Checkout</em>':'No. '+invNo}</div><div style="font-size:11px;color:#666">Date: ${fmtD(today())}</div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;font-size:12.5px">
+      <div><div style="font-weight:700;margin-bottom:3px">Guest</div><div>${r.guestName}</div><div style="color:#666">${r.mobile||''}</div><div style="color:#666">${r.address?r.address+', ':''} ${r.city||''}</div>${r.idType?`<div style="color:#666">${r.idType}: ${r.idNum||''}</div>`:''}</div>
+      <div><div style="font-weight:700;margin-bottom:3px">Stay</div><div>Room: ${r.rooms?.join(', ')} (${r.roomType})</div><div>Res No: ${r.resNo}</div><div>${fmtD(r.checkin)} → ${fmtD(r.checkout)} (${r.nights} nights)</div><div>Rate: ${r.rateType}</div></div>
+    </div>
+    <table class="inv-tbl"><thead><tr><th>Description</th><th style="width:80px">Qty</th><th style="width:100px">Rate</th><th style="width:100px">Amount</th></tr></thead>
+    <tbody>
+      <tr><td>Room Charges — ${r.roomType} (${r.rateType})</td><td>${r.nights} nights</td><td>${fmtM(Math.round((r.charges||0)/Math.max(r.nights,1)))}/night</td><td>${fmtM(r.charges)}</td></tr>
+      ${r.gst?`<tr><td>GST @ 5%</td><td colspan="2"></td><td>${fmtM(r.gst)}</td></tr>`:''}
+      ${(r.extraCharges||[]).map(c=>`<tr><td>${c.desc}</td><td colspan="2"></td><td>${fmtM(c.amount)}</td></tr>`).join('')}
+    </tbody>
+    <tfoot><tr class="inv-foot"><td colspan="3"><strong>Total Amount</strong></td><td><strong>${fmtM(r.totalAmount)}</strong></td></tr>
+    <tr><td colspan="3" style="color:green">Amount Paid</td><td style="color:green">${fmtM(paid)}</td></tr>
+    <tr><td colspan="3" style="color:${bal>0?'red':'green'};font-weight:600">Balance Due</td><td style="color:${bal>0?'red':'green'};font-weight:700">${fmtM(bal)}</td></tr>
+    </tfoot></table>
+    <div style="margin-top:14px;font-size:10px;color:#888">${DB.settings.invnotice||''}</div>
+  </div>`;
+}
+function emailInvoice(){
+  const r=curRes;if(!r?.email){toast('No email on file','err');return;}
+  toast(`Invoice would be emailed to ${r.email}`,'inf');
+}
+function printGRC(){
+  const r=curRes;if(!r) return;
+  const w=window.open('','_blank');
+  w.document.write(`<!DOCTYPE html><html><head><title>GRC ${r.resNo}</title><style>body{font-family:Arial,sans-serif;padding:24px;max-width:600px;color:#222}h2{color:#c9a84c}table{width:100%;border-collapse:collapse}td{padding:6px;border-bottom:1px solid #eee;font-size:13px}@media print{button{display:none}}</style></head><body>
+    <h2>${DB.settings.propname||'Akshaya Comforts'}</h2><p style="color:#666">Guest Registration Card</p>
+    <table>
+      <tr><td><b>Res No</b></td><td>${r.resNo}</td><td><b>Room</b></td><td>${r.rooms?.join(', ')}</td></tr>
+      <tr><td><b>Guest</b></td><td>${r.guestName}</td><td><b>Mobile</b></td><td>${r.mobile||'-'}</td></tr>
+      <tr><td><b>Check-in</b></td><td>${fmtD(r.checkin)} ${r.cinTime||''}</td><td><b>Check-out</b></td><td>${fmtD(r.checkout)}</td></tr>
+      <tr><td><b>ID</b></td><td>${r.idType}</td><td><b>ID No</b></td><td>${r.idNum||'-'}</td></tr>
+      <tr><td><b>Address</b></td><td colspan="3">${r.address||''}, ${r.city||''}, ${r.state||''}</td></tr>
+      <tr><td><b>Rate Type</b></td><td>${r.rateType}</td><td><b>Nights</b></td><td>${r.nights}</td></tr>
+    </table>
+    <br><div style="display:flex;justify-content:space-between;margin-top:30px"><div>Guest Signature: _______________</div><div>Front Desk: _______________</div></div>
+    <p style="font-size:10px;color:#888;margin-top:20px">${DB.settings.grcnotice||''}</p>
+    <button onclick="window.print()" style="margin-top:10px;padding:8px 16px;background:#c9a84c;border:none;border-radius:5px;cursor:pointer">Print</button>
+  </body></html>`);
+}
+
+// ════════════════════ PHOTOS & CAMERA ════════════════════
+let camTargetInput=null, camTargetBox=null, camKey=null, camStream=null;
+let camPhotoKey=null; // 'guestPhoto' or 'idPhoto' for room modal persistence
+
+function prevPhoto(inputId,boxId){
+  const inp=$(inputId);if(!inp?.files?.[0]) return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const box=$(boxId);if(!box) return;
+    box.dataset.img=e.target.result;
+    box.innerHTML=`<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover;border-radius:6px">`;
+  };
+  reader.readAsDataURL(inp.files[0]);
+}
+
+function loadBoxPhoto(boxId,src,fallback){
+  const box=$(boxId);if(!box) return;
+  const inp=box.querySelector('input');
+  if(src){
+    box.innerHTML='';
+    const img=document.createElement('img');
+    img.src=src;img.style.cssText='width:100%;height:100%;object-fit:cover';
+    box.appendChild(img);
+    if(inp) box.appendChild(inp);
+  } else {
+    box.innerHTML=fallback;
+    if(inp) box.appendChild(inp);
+  }
+}
+
+function loadRmPhoto(input,boxId,photoKey){
+  if(!input.files?.[0]) return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    loadBoxPhoto(boxId,e.target.result,'');
+    if(curRes){
+      if(!DB.guestPhotos[curRes.resId]) DB.guestPhotos[curRes.resId]={};
+      DB.guestPhotos[curRes.resId][photoKey]=e.target.result;
+      save();
+    }
+  };
+  reader.readAsDataURL(input.files[0]);
+}
+
+function dlPhoto(boxId){
+  const box=$(boxId);
+  const src=box?.querySelector('img')?.src||box?.dataset?.img;
+  if(!src||src.startsWith('http')){toast('No photo to download','err');return;}
+  const a=document.createElement('a');a.href=src;a.download=boxId+'.jpg';a.click();
+}
+
+function delPhoto(boxId,key){
+  if(!confirm('Delete this photo?')) return;
+  const box=$(boxId);if(!box) return;
+  const isGuest=boxId.includes('gphoto');
+  const inp=box.querySelector('input');
+  box.innerHTML=isGuest?'👤':'🪪';
+  if(inp) box.appendChild(inp);
+  box.dataset.img='';
+  if(curRes){
+    if(!DB.guestPhotos[curRes.resId]) DB.guestPhotos[curRes.resId]={};
+    DB.guestPhotos[curRes.resId][key]=null;
+    save();
+  }
+  toast('Photo deleted','inf');
+}
+
+// ── Camera: tries getUserMedia first, falls back to file input capture attr ──
+async function camCapture(inputId, boxId, photoKey){
+  camTargetInput=inputId;
+  camTargetBox=boxId;
+  camPhotoKey=photoKey||null;
+
+  // Check if we are on HTTPS or localhost (required for camera on mobile)
+  const isSecure=location.protocol==='https:'||location.hostname==='localhost'||location.hostname==='127.0.0.1';
+
+  // Try getUserMedia (works on desktop + HTTPS mobile)
+  if(navigator.mediaDevices && navigator.mediaDevices.getUserMedia && isSecure){
+    openModal('camModal');
+    // Small delay so modal is visible before camera starts
+    await new Promise(r=>setTimeout(r,200));
+    const feed=$('camFeed');
+    const constraints=[
+      {video:{facingMode:{exact:'environment'},width:{ideal:1280},height:{ideal:720}}},
+      {video:{facingMode:'environment'}},
+      {video:{facingMode:'user'}},
+      {video:true}
+    ];
+    let started=false;
+    for(const c of constraints){
+      try{
+        camStream=await navigator.mediaDevices.getUserMedia(c);
+        feed.srcObject=camStream;
+        await feed.play().catch(()=>{});
+        started=true;break;
+      }catch(e){/* try next */}
+    }
+    if(!started){
+      closeModal('camModal');
+      toast('Camera blocked — using file picker instead','inf');
+      useFilePicker(inputId,boxId,photoKey);
+    }
+    return;
+  }
+
+  // Fallback: use input[capture] which triggers native camera on mobile
+  toast('Using device camera picker','inf');
+  useFilePicker(inputId,boxId,photoKey,true);
+}
+
+function useFilePicker(inputId,boxId,photoKey,capture=false){
+  // Create a temporary file input with capture attribute
+  const tmp=document.createElement('input');
+  tmp.type='file';tmp.accept='image/*';
+  if(capture) tmp.setAttribute('capture','environment');
+  tmp.style.display='none';
+  document.body.appendChild(tmp);
+  tmp.onchange=()=>{
+    if(!tmp.files?.[0]){document.body.removeChild(tmp);return;}
+    const reader=new FileReader();
+    reader.onload=e=>{
+      const data=e.target.result;
+      applyPhoto(data,boxId,photoKey);
+      document.body.removeChild(tmp);
+    };
+    reader.readAsDataURL(tmp.files[0]);
+  };
+  tmp.click();
+}
+
+function applyPhoto(dataUrl,boxId,photoKey){
+  const box=$(boxId);
+  if(box){
+    const inp=box.querySelector('input');
+    box.innerHTML='';
+    const img=document.createElement('img');
+    img.src=dataUrl;
+    img.style.cssText='width:100%;height:100%;object-fit:cover;border-radius:inherit';
+    box.appendChild(img);
+    if(inp) box.appendChild(inp);
+    box.dataset.img=dataUrl;
+  }
+  // Persist for booking form preview boxes (non-div targets)
+  const prev=$(camTargetInput==='b-gphoto'?'b-gprev':camTargetInput==='b-idphoto'?'b-idprev':null);
+  if(prev&&prev!==box){
+    prev.dataset.img=dataUrl;
+    prev.innerHTML=`<img src="${dataUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:6px">`;
+  }
+  // Persist for room modal
+  if(curRes&&photoKey){
+    if(!DB.guestPhotos[curRes.resId]) DB.guestPhotos[curRes.resId]={};
+    DB.guestPhotos[curRes.resId][photoKey]=dataUrl;
+    save();
+  }
+  toast('Photo saved ✓','ok');
+}
+
+function snapCam(){
+  const v=$('camFeed'),c=$('camCanvas');
+  if(!v||!c) return;
+  c.width=v.videoWidth||640;c.height=v.videoHeight||480;
+  c.getContext('2d').drawImage(v,0,0);
+  const data=c.toDataURL('image/jpeg',0.88);
+  stopCam();
+  // Determine photoKey from target box
+  const pk=camTargetBox==='rm-gphoto'?'guestPhoto':camTargetBox==='rm-idphoto'?'idPhoto':camPhotoKey;
+  applyPhoto(data,camTargetBox,pk);
+}
+
+function stopCam(){
+  if(camStream){camStream.getTracks().forEach(t=>t.stop());camStream=null;}
+  const feed=$('camFeed');if(feed) feed.srcObject=null;
+  closeModal('camModal');
+}
+
+// ════════════════════ MOBILE SIDEBAR ════════════════════
+function toggleSidebar(){
+  const sb=$('sidebar'),ov=$('sidebar-overlay');
+  const isOpen=sb.classList.contains('open');
+  if(isOpen){sb.classList.remove('open');ov.classList.remove('show');}
+  else{sb.classList.add('open');ov.classList.add('show');}
+}
+function closeSidebar(){
+  $('sidebar').classList.remove('open');
+  $('sidebar-overlay').classList.remove('show');
+}
+function setMobNav(btn){
+  document.querySelectorAll('.mob-nav-btn').forEach(b=>b.classList.remove('active'));
+  btn?.classList.add('active');closeSidebar();
+}
+document.querySelectorAll('.nav-item').forEach(btn=>{
+  btn.addEventListener('click',()=>{if(window.innerWidth<=768) closeSidebar();});
+});
+
+// ════════════════════ CLOUD SYNC (two-way) ════════════════════
+let syncTimer=null;
+const DEVICE_ID = 'dev_'+(localStorage.getItem('hms_device_id')||(()=>{const id=Math.random().toString(36).slice(2,8);localStorage.setItem('hms_device_id',id);return id;})());
+
+// Called after every save() — debounced 2 seconds so rapid changes batch
+function triggerAutoSync(){
+  if(!DB.settings.autoSync||!DB.settings.gasurl) return;
+  clearTimeout(syncTimer);
+  syncTimer=setTimeout(()=>syncNow(true),2000);
+}
+
+// Push local DB to cloud, receive latest cloud DB back, merge
+async function syncNow(silent=false){
+  const url=DB.settings.gasurl;
+  if(!url){if(!silent)toast('Enter Apps Script URL in Settings → Cloud Sync','err');return;}
+  setSyncStatus('⏳ Syncing...',false);
+  try{
+    const res=await fetch(url,{
+      method:'POST',
+      headers:{'Content-Type':'text/plain'}, // avoid CORS preflight
+      body:JSON.stringify({action:'sync',device:DEVICE_ID,data:dbForSync()})
+    });
+    const json=await res.json();
+    if(json.ok){
+      if(json.pulled) mergeFromCloud(json.pulled);
+      const t=new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+      setSyncStatus('✅ Synced '+t,true);
+      if(!silent) toast('Synced with cloud ✅','ok');
+    } else {
+      setSyncStatus('❌ '+json.error,false);
+      if(!silent) toast('Sync error: '+json.error,'err');
+    }
+  }catch(err){
+    setSyncStatus('❌ Cannot reach server',false);
+    if(!silent) toast('Sync failed — check URL or internet','err');
+  }
+}
+
+// Pull latest from cloud without pushing (read-only refresh)
+async function pullFromCloud(){
+  const url=DB.settings.gasurl;
+  if(!url){toast('Enter Apps Script URL first','err');return;}
+  setSyncStatus('⏳ Pulling...',false);
+  try{
+    const res=await fetch(url+'?action=pull&device='+DEVICE_ID);
+    const json=await res.json();
+    if(json.ok&&json.data){
+      mergeFromCloud(json.data);
+      const t=new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+      setSyncStatus('✅ Pulled '+t,true);
+      toast('Data pulled from cloud ✅','ok');
+    } else toast('Pull failed: '+(json.error||'no data'),'err');
+  }catch(err){ toast('Cannot reach cloud — check internet','err'); }
+}
+
+// Merge cloud data into local — cloud wins for reservations/payments, local wins for settings
+function mergeFromCloud(cloudDB){
+  if(!cloudDB) return;
+  // Merge reservations — add/update any cloud records not in local
+  if(cloudDB.reservations?.length){
+    cloudDB.reservations.forEach(cr=>{
+      const li=DB.reservations.findIndex(r=>r.resId===cr.resId);
+      if(li<0) DB.reservations.push(cr); // new from cloud
+      else {
+        // Cloud wins on status changes (checkout, cancellation)
+        if(cr.status!==DB.reservations[li].status) DB.reservations[li]=cr;
+      }
+    });
+  }
+  // Merge payments
+  if(cloudDB.payments?.length){
+    cloudDB.payments.forEach(cp=>{
+      if(!DB.payments.find(p=>p.payId===cp.payId)) DB.payments.push(cp);
+    });
+  }
+  // Merge business sources
+  if(cloudDB.businessSources?.length){
+    cloudDB.businessSources.forEach(cs=>{
+      if(!DB.businessSources.find(s=>s.id===cs.id)) DB.businessSources.push(cs);
+    });
+  }
+  // Rooms from cloud (if cloud has more rooms than local)
+  if(cloudDB.rooms?.length>DB.rooms.length) DB.rooms=cloudDB.rooms;
+  // Save merged result locally
+  save();
+  renderDash();renderRooms();updateTopbar();
+}
+
+// Strip photos from DB before sending to cloud (too large)
+function dbForSync(){
+  return {
+    reservations:DB.reservations,
+    payments:DB.payments,
+    rooms:DB.rooms,
+    businessSources:DB.businessSources,
+    nightAuditLog:DB.nightAuditLog,
+    settings:DB.settings,
+    // guestPhotos intentionally excluded — stored locally only
+  };
+}
+
+function setSyncStatus(msg,ok){
+  const el=$('syncStatus');
+  if(el) el.innerHTML=`<span style="color:${ok?'var(--green)':'var(--text3)'}">${msg}</span>`;
+  // also update topbar sync indicator
+  const ind=$('sync-indicator');
+  if(ind){ind.textContent=ok?'☁✅':'☁';ind.title=msg;}
+}
+
+function saveGasUrl(){
+  const url=$('s-gasurl')?.value?.trim();
+  if(!url){toast('Please paste the URL first','err');return;}
+  if(!url.includes('script.google.com')){toast('URL must be a script.google.com address','err');return;}
+  DB.settings.gasurl=url;
+  save();
+  const msg=$('urlSavedMsg');
+  if(msg) msg.style.display='block';
+  toast('URL saved ✅ Now tap ▲ Push to Cloud','ok');
+}
+
+async function testSync(){
+  const url=DB.settings.gasurl;if(!url){toast('Enter URL first','err');return;}
+  try{
+    const r=await fetch(url+'?action=ping');const j=await r.json();
+    if(j.ok) toast('✅ Connected! Server time: '+j.time,'ok');
+    else toast('❌ Server error: '+j.error,'err');
+  }catch(e){toast('❌ Cannot reach URL','err');}
+}
+
+// Auto-pull every 60 seconds if sync is enabled (keeps devices in sync passively)
+function startAutoRefresh(){
+  setInterval(()=>{
+    if(DB.settings.autoSync&&DB.settings.gasurl&&!document.hidden) pullFromCloud();
+  },60000);
+}
+
+// ════════════════════ SAVE override — triggers cloud sync ════════════════════
+const _save = save;
+function save(){
+  _save();
+  triggerAutoSync();
+}
+
+// ════════════════════ INIT ════════════════════
+async function init(){
+  $('sbDate').textContent=new Date().toLocaleDateString('en-IN',{weekday:'short',day:'2-digit',month:'short',year:'numeric'});
+  $('crDate').value=today();
+  populateBSDropdowns();
+  renderDash();renderRooms();
+  updateTopbar();
+  // Pull from cloud on startup if sync is configured
+  if(DB.settings.autoSync&&DB.settings.gasurl){
+    setSyncStatus('⏳ Loading cloud data...', false);
+    await pullFromCloud();
+  }
+  startAutoRefresh();
+}
+init();
+</script>
+</body>
+</html>
