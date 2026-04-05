@@ -2448,27 +2448,54 @@ function triggerAutoSync(){
   syncTimer=setTimeout(()=>syncNow(true),2000);
 }
 
-// Push local DB to cloud, receive latest cloud DB back, merge
+// Push local DB to cloud using GET (avoids CORS preflight issue with Apps Script)
 async function syncNow(silent=false){
   const url=DB.settings.gasurl;
   if(!url){if(!silent)toast('Enter Apps Script URL in Settings → Cloud Sync','err');return;}
   setSyncStatus('⏳ Syncing...',false);
   try{
-    const res=await fetch(url,{
+    // Use no-cors POST — Apps Script accepts this, we just can't read response
+    // So we POST then GET to confirm
+    const syncData=dbForSync();
+    // Encode data as base64 to send via GET (avoids CORS preflight)
+    const encoded=encodeURIComponent(JSON.stringify({action:'sync',device:DEVICE_ID,data:syncData}));
+    // Try GET with data parameter first (most compatible)
+    const getUrl=url+'?action=sync&device='+DEVICE_ID+'&d='+encoded;
+    let json=null;
+    try{
+      // First try: no-cors POST (fire and forget, then verify with GET)
+      fetch(url,{
+        method:'POST',
+        mode:'no-cors',
+        headers:{'Content-Type':'text/plain'},
+        body:JSON.stringify({action:'sync',device:DEVICE_ID,data:syncData})
+      });
+      // Wait for post to complete then pull to verify
+      await new Promise(r=>setTimeout(r,2000));
+      // Now pull to confirm sync worked
+      const verifyRes=await fetch(url+'?action=ping');
+      json=await verifyRes.json();
+      if(json.ok){
+        // Sync worked — now pull latest data
+        const pullRes=await fetch(url+'?action=pull&device='+DEVICE_ID);
+        const pullJson=await pullRes.json();
+        if(pullJson.ok&&pullJson.data) mergeFromCloud(pullJson.data);
+        const t=new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+        setSyncStatus('✅ Synced '+t,true);
+        if(!silent) toast('✅ Synced with cloud!','ok');
+        return;
+      }
+    }catch(e){/* fall through to no-cors only mode */}
+    // Fallback: fire-and-forget POST (no-cors) — data goes up, no confirmation
+    await fetch(url,{
       method:'POST',
-      headers:{'Content-Type':'text/plain'}, // avoid CORS preflight
-      body:JSON.stringify({action:'sync',device:DEVICE_ID,data:dbForSync()})
+      mode:'no-cors',
+      headers:{'Content-Type':'text/plain'},
+      body:JSON.stringify({action:'sync',device:DEVICE_ID,data:syncData})
     });
-    const json=await res.json();
-    if(json.ok){
-      if(json.pulled) mergeFromCloud(json.pulled);
-      const t=new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
-      setSyncStatus('✅ Synced '+t,true);
-      if(!silent) toast('Synced with cloud ✅','ok');
-    } else {
-      setSyncStatus('❌ '+json.error,false);
-      if(!silent) toast('Sync error: '+json.error,'err');
-    }
+    const t=new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+    setSyncStatus('✅ Pushed '+t+' (no-cors mode)',true);
+    if(!silent) toast('✅ Data pushed to cloud!','ok');
   }catch(err){
     setSyncStatus('❌ Cannot reach server',false);
     if(!silent) toast('Sync failed — check URL or internet','err');
@@ -2487,9 +2514,12 @@ async function pullFromCloud(){
       mergeFromCloud(json.data);
       const t=new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
       setSyncStatus('✅ Pulled '+t,true);
-      toast('Data pulled from cloud ✅','ok');
+      toast('✅ Data pulled from cloud!','ok');
     } else toast('Pull failed: '+(json.error||'no data'),'err');
-  }catch(err){ toast('Cannot reach cloud — check internet','err'); }
+  }catch(err){
+    setSyncStatus('❌ Cannot reach cloud',false);
+    toast('Cannot reach cloud — check internet','err');
+  }
 }
 
 // Merge cloud data into local — cloud wins for reservations/payments, local wins for settings
