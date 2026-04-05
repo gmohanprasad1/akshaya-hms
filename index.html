@@ -39,7 +39,7 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;font-size:14px;color:var(
 
 /* ─── LAYOUT ─── */
 body{display:flex}
-#sidebar{width:210px;min-width:210px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;height:100vh;overflow-y:auto;z-index:200;transition:transform .25s ease,background .2s}
+#sidebar{width:210px;min-width:210px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;height:100vh;overflow-y:auto;z-index:200;transition:transform .25s ease,background .2s;padding-bottom:80px}
 #sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:190;backdrop-filter:blur(2px)}
 #main{flex:1;display:flex;flex-direction:column;height:100vh;overflow:hidden}
 #topbar{display:flex;align-items:center;gap:10px;padding:0 14px;height:52px;border-bottom:1px solid var(--border);background:var(--bg2);flex-shrink:0}
@@ -472,17 +472,29 @@ td{padding:9px 11px;vertical-align:middle}
 
 <!-- ══════════════════════ RESERVATIONS ══════════════════════ -->
 <div class="page" id="page-reservations">
+  <!-- Quick status tabs -->
+  <div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap">
+    <button class="btn btn-gold btn-sm" id="res-tab-all" onclick="setResTab('all',this)">All</button>
+    <button class="btn btn-outline btn-sm" id="res-tab-arrival" onclick="setResTab('Arrival',this)">🛬 Arrivals</button>
+    <button class="btn btn-outline btn-sm" id="res-tab-inhouse" onclick="setResTab('Occupied',this)">🏨 In-House</button>
+    <button class="btn btn-outline btn-sm" id="res-tab-confirmed" onclick="setResTab('Confirmed',this)">📋 Confirmed</button>
+    <button class="btn btn-outline btn-sm" id="res-tab-checkout" onclick="setResTab('Checked Out',this)">🛫 Checked Out</button>
+    <button class="btn btn-outline btn-sm" id="res-tab-cancelled" onclick="setResTab('Cancelled',this)">❌ Cancelled</button>
+  </div>
+  <!-- Search & filter row -->
   <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center">
-    <div class="search-box"><span>🔍</span><input type="text" placeholder="Guest, room, phone, res no..." oninput="filterRes()" id="resQ"></div>
+    <div class="search-box" style="flex:1;min-width:200px"><span>🔍</span><input type="text" placeholder="Guest, room, phone, res no..." oninput="filterRes()" id="resQ"></div>
     <input type="date" class="inp" id="resFrom" style="width:135px" onchange="filterRes()">
     <input type="date" class="inp" id="resTo" style="width:135px" onchange="filterRes()">
-    <select class="inp" style="width:130px" id="resSt" onchange="filterRes()">
-      <option value="">All Status</option>
-      <option>Occupied</option><option>Arrival</option><option>Confirmed</option>
-      <option>Checked Out</option><option>Due Out</option><option>Cancelled</option><option>No Show</option>
-    </select>
-    <label class="frow gap4 text-sm" style="cursor:pointer"><input type="checkbox" id="backdateChk"> Allow Backdate</label>
   </div>
+  <!-- Room availability strip -->
+  <div class="card mb12" style="padding:10px 14px">
+    <div style="font-size:10.5px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">
+      Room Availability Today
+    </div>
+    <div id="res-room-avail" style="display:flex;flex-wrap:wrap;gap:6px"></div>
+  </div>
+  <!-- Reservations table -->
   <div class="tbl-wrap">
     <table><thead><tr>
       <th>Res No</th><th>Guest</th><th>Rooms</th><th>Check-in</th><th>Check-out</th>
@@ -494,14 +506,47 @@ td{padding:9px 11px;vertical-align:middle}
 
 <!-- ══════════════════════ GUEST SEARCH ══════════════════════ -->
 <div class="page" id="page-guestsearch">
-  <div class="section-hdr mb12"><div class="section-title">Guest Search</div></div>
-  <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
-    <div class="search-box" style="max-width:400px"><span>🔍</span><input type="text" placeholder="Name, mobile, email, ID number..." oninput="guestSearch()" id="gsQ"></div>
-    <select class="inp" style="width:130px" id="gsType" onchange="guestSearch()">
-      <option value="">All</option><option>Aadhar Card</option><option>PAN Card</option><option>Passport</option><option>Driving License</option>
-    </select>
+  <div class="section-hdr mb12">
+    <div>
+      <div class="section-title">Guest Search</div>
+      <div class="text-xs text-dim">Search across all reservations including checked-out guests</div>
+    </div>
+    <div style="display:flex;gap:6px">
+      <button class="btn btn-outline btn-sm" onclick="window.print()">🖨</button>
+    </div>
   </div>
-  <div class="tbl-wrap"><table><thead><tr><th>Guest Name</th><th>Mobile</th><th>Email</th><th>ID Type</th><th>ID Number</th><th>Visits</th><th>Last Stay</th><th>Total Spent</th><th>Action</th></tr></thead><tbody id="gsTbody"></tbody></table></div>
+  <div class="card mb12" style="padding:14px">
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+      <div class="search-box" style="flex:1;min-width:250px"><span>🔍</span><input type="text" placeholder="Search by guest name, phone number, or ID number..." oninput="guestSearch()" id="gsQ" style="font-size:13px"></div>
+      <select class="inp" style="width:140px" id="gsStatus" onchange="guestSearch()">
+        <option value="">All Status</option>
+        <option value="Occupied">In-House</option>
+        <option value="Arrival">Arrivals</option>
+        <option value="Confirmed">Confirmed</option>
+        <option value="Checked Out">Checked Out</option>
+        <option value="Cancelled">Cancelled</option>
+      </select>
+    </div>
+  </div>
+  <div class="card" style="padding:0">
+    <table style="width:100%;border-collapse:collapse">
+      <thead>
+        <tr style="background:var(--bg3)">
+          <th style="padding:11px 14px;text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.8px;color:var(--text3);font-weight:600;border-bottom:1px solid var(--border)">Res. No.</th>
+          <th style="padding:11px 14px;text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.8px;color:var(--text3);font-weight:600;border-bottom:1px solid var(--border)">Guest Name</th>
+          <th style="padding:11px 14px;text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.8px;color:var(--text3);font-weight:600;border-bottom:1px solid var(--border)">Phone</th>
+          <th style="padding:11px 14px;text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.8px;color:var(--text3);font-weight:600;border-bottom:1px solid var(--border)">ID</th>
+          <th style="padding:11px 14px;text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.8px;color:var(--text3);font-weight:600;border-bottom:1px solid var(--border)">Room</th>
+          <th style="padding:11px 14px;text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.8px;color:var(--text3);font-weight:600;border-bottom:1px solid var(--border)">Arrival</th>
+          <th style="padding:11px 14px;text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.8px;color:var(--text3);font-weight:600;border-bottom:1px solid var(--border)">Departure</th>
+          <th style="padding:11px 14px;text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.8px;color:var(--text3);font-weight:600;border-bottom:1px solid var(--border)">Total</th>
+          <th style="padding:11px 14px;text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.8px;color:var(--text3);font-weight:600;border-bottom:1px solid var(--border)">Balance</th>
+          <th style="padding:11px 14px;text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.8px;color:var(--text3);font-weight:600;border-bottom:1px solid var(--border)">Status</th>
+        </tr>
+      </thead>
+      <tbody id="gsTbody"></tbody>
+    </table>
+  </div>
 </div>
 
 <!-- ══════════════════════ CASHIER REPORT ══════════════════════ -->
@@ -993,9 +1038,24 @@ td{padding:9px 11px;vertical-align:middle}
     </div>
     <div class="s-card">
       <div class="s-ttl">🗑 Data Management</div>
-      <p class="text-sm text-dim mb12">Clear specific data sets.</p>
-      <button class="btn btn-danger btn-sm mb8" onclick="clearData('payments')">Clear All Payments</button><br>
-      <button class="btn btn-danger btn-sm" onclick="clearData('all')">⚠ Factory Reset</button>
+      <div style="margin-bottom:12px;padding:10px;background:rgba(231,76,60,.08);border-radius:8px;border:1px solid rgba(231,76,60,.2)">
+        <div style="font-size:12px;font-weight:600;color:var(--red);margin-bottom:4px">⚠ These actions cannot be undone</div>
+        <div class="bill-row mt8">
+          <div>
+            <div class="bold text-sm">Clear All Payments</div>
+            <div class="text-xs text-dim">Deletes payment records only. Reservations and guest details are kept. Balances reset to unpaid.</div>
+          </div>
+        </div>
+        <button class="btn btn-danger btn-sm mt8" onclick="clearData('payments')" style="width:100%">🗑 Clear All Payments</button>
+        <div class="bill-sep mt10"></div>
+        <div class="bill-row mt8">
+          <div>
+            <div class="bold text-sm">Factory Reset</div>
+            <div class="text-xs text-dim">Deletes EVERYTHING — all reservations, payments, guest data and settings. Rooms reset to default. Use only if starting fresh.</div>
+          </div>
+        </div>
+        <button class="btn btn-danger btn-sm mt8" onclick="clearData('all')" style="width:100%">⚠ Factory Reset (Wipe All Data)</button>
+      </div>
     </div>
     <div class="s-card">
       <div class="s-ttl">📊 Storage Info</div>
@@ -1624,7 +1684,7 @@ function toast(msg, type='inf') {
 }
 
 // ════════════════════ NAVIGATION ════════════════════
-const PAGE_TITLES = {dashboard:'Dashboard',roomview:'Room View',stayview:'Stay View',calendar90:'90-Day Calendar',reservations:'Reservations',guestsearch:'Guest Search',cashier:'Cashier Report',deposit:'Deposit Tracker',cityledger:'City Ledger',revenue:'Revenue Analytics',nightaudit:'Night Audit',invoice:'Invoice / Print',settings:'Settings',databackup:'Data & Backup','rpt-occupancy':'Occupancy Report','rpt-revenue':'Revenue Report','rpt-arrivals':'Arrivals / Departures','rpt-gst':'GST Register','rpt-monthly':'Monthly Summary'};
+const PAGE_TITLES = {dashboard:'Dashboard',roomview:'Room View',stayview:'Stay View',calendar90:'90-Day Calendar',reservations:'Reservations',guestsearch:'Guest Search',cashier:'Cashier Report',deposit:'Deposit Tracker',cityledger:'City Ledger',revenue:'Revenue Analytics',nightaudit:'Night Audit',invoice:'Invoice / Print',settings:'Settings',databackup:'Data & Backup','rpt-occupancy':'Occupancy Report','rpt-revenue':'Revenue Report','rpt-arrivals':'Arrivals / Departures','rpt-gst':'GST Register','rpt-monthly':'Monthly Summary',housekeeping:'Housekeeping',waitlist:'Waitlist',walkin:'Quick Walk-In',shift:'Shift Report',otaimport:'OTA Import'};
 
 function goPage(name) {
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
@@ -1744,10 +1804,11 @@ let roomFilter='all';
 function renderRooms() {
   const grid=$('roomGrid'); const t=today();
   let html=''; let counts={all:0,vacant:0,occupied:0,arrival:0,confirmed:0,dueout:0,dirty:0};
-  // Deduplicate rooms before rendering
+  // Deduplicate and sort rooms numerically
   const uniqueRooms=[];
   const seenNums=new Set();
-  DB.rooms.forEach(room=>{if(!seenNums.has(room.num)){seenNums.add(room.num);uniqueRooms.push(room);}});
+  [...DB.rooms].sort((a,b)=>parseInt(a.num)-parseInt(b.num))
+    .forEach(room=>{if(!seenNums.has(room.num)){seenNums.add(room.num);uniqueRooms.push(room);}});
 
   uniqueRooms.forEach(room=>{
     const res=activeResForRoom(room.num);     // today's active res only
@@ -1885,44 +1946,88 @@ function calDayClick(ds){
 }
 
 // ════════════════════ RESERVATIONS ════════════════════
-function renderRes(){
+let resTabFilter='all';
+function setResTab(tab, btn){
+  resTabFilter=tab;
+  document.querySelectorAll('[id^="res-tab-"]').forEach(b=>{b.className='btn btn-outline btn-sm';});
+  if(btn){btn.className='btn btn-gold btn-sm';}
+  renderRes();
+}
+
+function renderResRoomAvail(){
+  const el=$('res-room-avail'); if(!el) return;
   const t=today();
-  // Sort: active first (Occupied, Arrival, Due Out), then by checkin date newest first
+  // Sort rooms numerically
+  const seen=new Set();
+  const rooms=[...DB.rooms].filter(r=>{if(seen.has(r.num))return false;seen.add(r.num);return true;})
+    .sort((a,b)=>parseInt(a.num)-parseInt(b.num));
+  el.innerHTML=rooms.map(room=>{
+    const res=activeResForRoom(room.num);
+    const occupied=!!res;
+    const color=occupied?'#e74c3c':'#2ecc71';
+    const isDO=res&&isDueOut(res);
+    const dotColor=isDO?'#f39c12':color;
+    return `<div onclick="openRmDetail('${room.num}')" style="display:flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;border:1.5px solid ${dotColor};cursor:pointer;background:${dotColor}15;transition:all .15s" title="${occupied?(res.guestName+' → '+fmtD(res.checkout)):'Vacant'}">
+      <div style="width:9px;height:9px;border-radius:50%;background:${dotColor};flex-shrink:0"></div>
+      <span style="font-family:'Playfair Display',serif;font-size:13px;font-weight:600;color:var(--text)">${room.num}</span>
+      ${isDO?'<span style="font-size:9px;color:var(--orange)">★</span>':''}
+    </div>`;
+  }).join('');
+}
+
+function renderRes(){
+  renderResRoomAvail();
+  const t=today();
+  const q=$('resQ')?.value?.toLowerCase()||'';
+  const from=$('resFrom')?.value, to=$('resTo')?.value;
+
   let data=[...DB.reservations].sort((a,b)=>{
     const order={Occupied:0,'Due Out':0,Arrival:1,Confirmed:2,'Checked Out':3,Cancelled:4,'No Show':4};
     const aO=order[isDueOut(a)?'Due Out':a.status]??5;
     const bO=order[isDueOut(b)?'Due Out':b.status]??5;
     if(aO!==bO) return aO-bO;
-    return (b.checkin||'').localeCompare(a.checkin||'');
+    return (sanitizeDate(b.checkin)||'').localeCompare(sanitizeDate(a.checkin)||'');
   });
-  const q=$('resQ')?.value?.toLowerCase()||'';
-  const from=$('resFrom')?.value, to=$('resTo')?.value;
-  const st=$('resSt')?.value;
-  if(q) data=data.filter(r=>r.guestName?.toLowerCase().includes(q)||r.rooms?.join().includes(q)||r.mobile?.includes(q)||r.resNo?.toLowerCase().includes(q));
-  if(from) data=data.filter(r=>r.checkin>=from);
-  if(to) data=data.filter(r=>r.checkin<=to);
-  if(st) data=data.filter(r=>{
-    if(st==='Due Out') return isDueOut(r);
-    return r.status===st;
-  });
+
+  // Tab filter
+  if(resTabFilter!=='all'){
+    if(resTabFilter==='Occupied') data=data.filter(r=>r.status==='Occupied'||isDueOut(r));
+    else data=data.filter(r=>r.status===resTabFilter);
+  }
+  // Search filter
+  if(q) data=data.filter(r=>
+    r.guestName?.toLowerCase().includes(q)||
+    r.mobile?.includes(q)||
+    r.resNo?.toLowerCase().includes(q)||
+    r.rooms?.join(',').includes(q)||
+    r.idNum?.includes(q)
+  );
+  if(from) data=data.filter(r=>sanitizeDate(r.checkin)>=from);
+  if(to) data=data.filter(r=>sanitizeDate(r.checkin)<=to);
+
   $('resTbody').innerHTML=data.length?data.map(r=>{
-    const paid=getPaid(r); const bal=getBalance(r);
-    const isDO=isDueOut(r); const disp=isDO?'Due Out':r.status;
-    const spCls='sp-'+(isDO?'dueout':r.status?.toLowerCase().replace(/ /g,'-')||'');
-    return `<tr>
-      <td class="mono bold">${r.resNo}</td>
-      <td><div class="bold">${r.guestName}</div><div class="text-xs text-dim">${r.mobile||''}</div></td>
-      <td class="mono bold">${r.rooms?.join(', ')}</td>
+    const paid=getPaid(r),bal=getBalance(r),isDO=isDueOut(r);
+    const st=isDO?'Due Out':r.status;
+    const stCls='sp-'+(isDO?'dueout':r.status?.toLowerCase().replace(/ /g,'-')||'');
+    const rooms=[...new Set(r.rooms||[])].sort((a,b)=>parseInt(a)-parseInt(b));
+    return `<tr style="cursor:pointer" onclick="openRmDetail('${r.rooms?.[0]}')">
+      <td class="mono bold" style="color:var(--gold)">${r.resNo}</td>
+      <td class="bold">${r.guestName}</td>
+      <td class="mono">${rooms.map(rm=>`<b>${rm}</b>`).join(', ')}</td>
       <td class="mono">${fmtD(r.checkin)}</td>
       <td class="mono">${fmtD(r.checkout)}</td>
       <td class="mono">${r.nights}</td>
-      <td><span class="chip">${r.rateType||''}</span></td>
+      <td><span class="chip">${r.rateType||'-'}</span></td>
       <td class="mono">${fmtM(r.totalAmount)}</td>
       <td class="mono text-green">${fmtM(paid)}</td>
       <td class="mono ${bal>0?'text-red':'text-green'}">${fmtM(bal)}</td>
-      <td><span class="sp ${spCls}">${disp}</span></td>
-      <td class="mono text-dim">${r.invNo||'-'}</td>
-      <td><button class="ico-btn" onclick="openRmDetail('${r.rooms?.[0]}')" title="Open">👁</button> ${r.status!=='Checked Out'&&r.status!=='Cancelled'?`<button class="ico-btn" onclick="cancelR('${r.resId}')" title="Cancel">✕</button>`:''} <button class="ico-btn" onclick="deleteResById('${r.resId}')" title="Delete" style="color:var(--red)">🗑</button></td>
+      <td><span class="sp ${stCls}">${st}</span></td>
+      <td class="mono text-dim">${r.invNo||'—'}</td>
+      <td style="white-space:nowrap">
+        <button class="ico-btn" onclick="event.stopPropagation();openRmDetail('${r.rooms?.[0]}')" title="Open">👁</button>
+        <button class="ico-btn" onclick="event.stopPropagation();cancelR('${r.resId}')" title="Cancel">✕</button>
+        <button class="ico-btn" onclick="event.stopPropagation();deleteResById('${r.resId}')" title="Delete">🗑</button>
+      </td>
     </tr>`;
   }).join(''):`<tr><td colspan="13" style="text-align:center;color:var(--text3);padding:20px">No reservations found</td></tr>`;
 }
@@ -1946,42 +2051,44 @@ function deleteResById(id){
 // ════════════════════ GUEST SEARCH ════════════════════
 function renderGS(){guestSearch();}
 function guestSearch(){
-  const q=$('gsQ')?.value?.toLowerCase()||'';
-  const idtype=$('gsType')?.value||'';
-  const guests={};
-  DB.reservations.forEach(r=>{
-    const key=(r.mobile||r.email||r.guestName||'').toLowerCase();
-    if(!key) return;
-    if(q&&!r.guestName?.toLowerCase().includes(q)&&!r.mobile?.includes(q)&&!r.email?.toLowerCase().includes(q)&&!r.idNum?.includes(q)) return;
-    if(idtype&&r.idType!==idtype) return;
-    if(!guests[key]) guests[key]={name:r.guestName,mobile:r.mobile,email:r.email,idType:r.idType,idNum:r.idNum,visits:0,lastStay:'',spent:0,lastResId:r.resId,lastRoom:r.rooms?.[0]};
-    guests[key].visits++;
-    if(!guests[key].lastStay||r.checkin>guests[key].lastStay){guests[key].lastStay=r.checkin;guests[key].lastResId=r.resId;guests[key].lastRoom=r.rooms?.[0];}
-    guests[key].spent+=getPaid(r);
-  });
-  const rows=Object.values(guests);
-  $('gsTbody').innerHTML=rows.length?rows.map(g=>`<tr>
-    <td class="bold">${g.name}</td>
-    <td>${g.mobile||'-'}</td>
-    <td>${g.email||'-'}</td>
-    <td><span class="chip">${g.idType||'-'}</span></td>
-    <td class="mono">${g.idNum||'-'}</td>
-    <td class="mono bold">${g.visits}</td>
-    <td class="mono">${fmtD(g.lastStay)}</td>
-    <td class="mono text-gold">${fmtM(g.spent)}</td>
-    <td style="display:flex;gap:4px">
-      <button class="ico-btn" onclick="openRmDetail('${g.lastRoom}')" title="View Folio">👁</button>
-      <button class="ico-btn" onclick="viewGuestStays('${g.mobile||g.email||g.name}')" title="All Stays">📋</button>
-    </td>
-  </tr>`).join(''):`<tr><td colspan="9" style="text-align:center;color:var(--text3);padding:20px">No guests found</td></tr>`;
+  const q=($('gsQ')?.value||'').toLowerCase().trim();
+  const statusFilter=$('gsStatus')?.value||'';
+  let data=[...DB.reservations].sort((a,b)=>(sanitizeDate(b.checkin)||'').localeCompare(sanitizeDate(a.checkin)||''));
+  if(q) data=data.filter(r=>
+    r.guestName?.toLowerCase().includes(q)||
+    r.mobile?.includes(q)||
+    r.email?.toLowerCase().includes(q)||
+    r.idNum?.includes(q)||
+    r.resNo?.toLowerCase().includes(q)
+  );
+  if(statusFilter) data=data.filter(r=>r.status===statusFilter);
+  const paid=r=>getPaid(r), bal=r=>getBalance(r);
+  $('gsTbody').innerHTML=data.length?data.map(r=>{
+    const isDO=isDueOut(r);
+    const st=isDO?'Due Out':r.status;
+    const stCls=isDO?'dueout':r.status?.toLowerCase().replace(/ /g,'-')||'';
+    const stLabel=isDO?'Due Out':r.status==='Occupied'?'In-House':r.status==='Checked Out'?'Checked Out':r.status;
+    const rooms=[...new Set(r.rooms||[])].sort((a,b)=>parseInt(a)-parseInt(b));
+    const b=bal(r);
+    return `<tr style="cursor:pointer;border-bottom:1px solid var(--border)" onclick="openRmDetail('${r.rooms?.[0]}')">
+      <td style="padding:12px 14px;font-weight:700;color:var(--accent);font-family:'DM Mono',monospace;font-size:12.5px">${r.resNo}</td>
+      <td style="padding:12px 14px;font-weight:600">${r.guestName}</td>
+      <td style="padding:12px 14px;font-family:'DM Mono',monospace;color:var(--text2)">${r.mobile||'—'}</td>
+      <td style="padding:12px 14px;font-size:12px;color:var(--text3)">${r.idType?r.idType+': —':'—'}</td>
+      <td style="padding:12px 14px;font-family:'Playfair Display',serif;font-weight:700;font-size:14px">${rooms.join(', ')}</td>
+      <td style="padding:12px 14px;font-family:'DM Mono',monospace;font-size:12px">${fmtD(r.checkin)}</td>
+      <td style="padding:12px 14px;font-family:'DM Mono',monospace;font-size:12px">${fmtD(r.checkout)}</td>
+      <td style="padding:12px 14px;font-family:'DM Mono',monospace">${fmtM(r.totalAmount)}</td>
+      <td style="padding:12px 14px;font-family:'DM Mono',monospace;color:${b>0?'var(--red)':'var(--text3)'};font-weight:${b>0?700:400}">${fmtM(b)}</td>
+      <td style="padding:12px 14px">
+        <span style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;font-size:11.5px;font-weight:600;background:${stCls==='dueout'?'rgba(243,156,18,.15)':stCls==='occupied'||stCls==='in-house'?'rgba(46,204,113,.12)':stCls==='checked-out'?'rgba(231,76,60,.12)':stCls==='confirmed'?'rgba(155,89,182,.12)':'rgba(96,112,160,.12)'};color:${stCls==='dueout'?'var(--orange)':stCls==='occupied'||stCls==='in-house'?'var(--green)':stCls==='checked-out'?'var(--red)':stCls==='confirmed'?'var(--purple)':'var(--text3)'}">
+          <span style="width:7px;height:7px;border-radius:50%;background:currentColor;display:inline-block"></span>${stLabel}
+        </span>
+      </td>
+    </tr>`;
+  }).join(''):`<tr><td colspan="10" style="text-align:center;color:var(--text3);padding:30px">No guests found</td></tr>`;
 }
-
-function viewGuestStays(key){
-  const stays=DB.reservations.filter(r=>r.mobile===key||r.email===key||r.guestName===key);
-  if(!stays.length){toast('No stays found','inf');return;}
-  const msg=stays.map(r=>`${r.resNo} | Rm ${r.rooms?.join('+')} | ${fmtD(r.checkin)}→${fmtD(r.checkout)} | ${r.status} | ${fmtM(r.totalAmount)}`).join('\n');
-  alert(`Stay History for ${stays[0].guestName}:\n\n${msg}`);
-}
+function renderGS(){guestSearch();}
 
 // ════════════════════ CASHIER REPORT ════════════════════
 function renderCashier(){
@@ -2347,21 +2454,181 @@ function importJSON(inp){
   const reader=new FileReader();
   reader.onload=e=>{
     try{
-      const data=JSON.parse(e.target.result);
-      if(data.reservations){
-        DB=migrateDB(data);save();
-        toast('Data imported successfully','ok');
-        renderDash();renderRooms();
-      }else toast('Invalid backup file','err');
-    }catch{toast('Failed to parse file','err');}
+      const raw=e.target.result;
+      // Quick check before parsing
+      if(!raw||raw.length<10){toast('Empty file','err');return;}
+      const data=JSON.parse(raw);
+
+      // Detect old format: has 'arrival' field instead of 'checkin'
+      const isOldFormat=Array.isArray(data.reservations)&&
+        data.reservations.length>0&&
+        data.reservations[0]?.arrival!==undefined&&
+        data.reservations[0]?.checkin===undefined;
+
+      if(isOldFormat){
+        if(!confirm(`Found ${data.reservations.length} reservations in old format.\n\nConvert and import?\n\n(Current data will be replaced)`)) return;
+
+        const baseTime=Date.now();
+        // Convert each reservation — use stable unique IDs
+        const converted=data.reservations.map((r,i)=>{
+          const resId='res_'+baseTime+'_'+i;
+          const cin=r.arrival?String(r.arrival).substring(0,10):today();
+          const cout=r.departure?String(r.departure).substring(0,10):today();
+          const statusMap={'occupied':'Occupied','checkedout':'Checked Out','checked-out':'Checked Out','confirmed':'Confirmed','cancelled':'Cancelled','no-show':'No Show','noshow':'No Show'};
+          const status=statusMap[String(r.status||'').toLowerCase()]||'Occupied';
+          const base=parseFloat(r.base)||0;
+          const extra=parseFloat(r.extra)||0;
+          const total=parseFloat(r.total)||0;
+          const gst=total>0&&base>0?Math.round(Math.max(0,total-base-extra)):Math.round(base*0.05);
+          return {
+            resId, resNo:r.id||('R'+(1001+i)),
+            rooms:[String(r.room||'')].filter(Boolean),
+            checkin:cin, checkout:cout,
+            cinTime:r.atime||'12:00', coutTime:r.dtime||'12:00',
+            guestName:r.guest||'Guest',
+            mobile:String(r.phone||''),
+            email:r.email||'', nationality:r.nationality||'Indian',
+            idType:r.idtype==='Aadhaar'?'Aadhar Card':(r.idtype||'Aadhar Card'),
+            idNum:String(r.idnum||''),
+            address:r.address||'', city:r.city||'',
+            state:r.state||'', country:r.country||'India',
+            source:r.source||'Direct', bsource:'',
+            resType:'Direct Check-in',
+            roomType:r.cat||'Executive Room',
+            rateType:r.ratetype||'AC',
+            nights:parseInt(r.nights)||1,
+            charges:base, gst, totalAmount:total||base+gst,
+            advance:parseFloat(r.rfa)||0,
+            complimentary:false,
+            remarks:r.remarks||'',
+            status,
+            bookingDate:r.bkdate?String(r.bkdate).substring(0,10):today(),
+            invNo:status==='Checked Out'?('INV'+String(1001+i)):null,
+            extraCharges:extra>0?[{date:cin,desc:'Extra charges (imported)',amount:extra}]:[],
+          };
+        });
+
+        // Build payments with matching resIds
+        const payments=[];
+        data.reservations.forEach((r,i)=>{
+          const paid=parseFloat(r.totalPaid)||0;
+          if(paid>0){
+            const resId='res_'+baseTime+'_'+i;
+            payments.push({
+              payId:'pay_'+baseTime+'_'+i,
+              resId,
+              date:r.departure?String(r.departure).substring(0,10):today(),
+              amount:paid,
+              mode:r.rfm||'Cash',
+              description:'Imported payment',
+              time:'12:00'
+            });
+          }
+        });
+
+        // Apply directly without migrateDB to avoid recursion
+        DB.reservations=converted;
+        DB.payments=payments;
+        if(!DB.waitlist) DB.waitlist=[];
+        save();
+        autoUpdateStatuses();
+        renderDash();renderRooms();renderRes();populateBSDropdowns();updateTopbar();
+        showConfirmDialog('✅ IMPORT SUCCESSFUL',
+          `${converted.length} reservations imported.\n${payments.length} payment records restored.\n\nRooms are now updated.`,
+          '#2ecc71');
+
+      } else if(Array.isArray(data.reservations)){
+        if(!confirm(`Import ${data.reservations.length} reservations?\n\nThis will replace current data.`)) return;
+        // Direct assign to avoid recursion in migrateDB
+        DB.reservations=data.reservations.map(r=>sanitizeRes({...r}));
+        DB.payments=data.payments||[];
+        if(data.rooms?.length) DB.rooms=data.rooms;
+        if(data.businessSources?.length) DB.businessSources=data.businessSources;
+        if(data.nightAuditLog) DB.nightAuditLog=data.nightAuditLog;
+        if(data.waitlist) DB.waitlist=data.waitlist;
+        if(data.settings) DB.settings={...DB.settings,...data.settings,gasurl:DB.settings.gasurl};
+        save();
+        autoUpdateStatuses();
+        renderDash();renderRooms();renderRes();populateBSDropdowns();updateTopbar();
+        showConfirmDialog('✅ IMPORT SUCCESSFUL',
+          `${DB.reservations.length} reservations imported successfully.`,
+          '#2ecc71');
+      } else {
+        toast('Invalid backup file — no reservations found','err');
+      }
+    }catch(err){
+      console.error('Import error:',err);
+      toast('Import failed: '+err.message,'err');
+    }
   };
   reader.readAsText(file);
 }
 function clearData(what){
-  if(!confirm(`Clear ${what==='all'?'ALL data (factory reset)':'all '+what}? This cannot be undone.`)) return;
-  if(what==='all'){DB=defaultDB();}
-  else if(what==='payments'){DB.payments=[];}
-  save();toast(`${what} cleared`,'inf');renderDash();renderRooms();
+  const config={
+    payments:{
+      icon:'🗑',
+      title:'Clear All Payments?',
+      color:'#e74c3c',
+      lines:[
+        '• All payment records will be deleted',
+        '• Reservations and guest data are KEPT',
+        '• All room balances will show as unpaid',
+        '• This CANNOT be undone'
+      ],
+      confirm:'YES, CLEAR PAYMENTS',
+      action:()=>{
+        DB.payments=[];
+        save();renderDash();renderRooms();updateTopbar();
+        if(curRes) renderFolio();
+        toast('All payments cleared','inf');
+      }
+    },
+    all:{
+      icon:'⚠️',
+      title:'Factory Reset?',
+      color:'#e74c3c',
+      lines:[
+        '• ALL reservations will be deleted',
+        '• ALL payments will be deleted',
+        '• ALL guest data will be deleted',
+        '• ALL settings will be reset',
+        '• Rooms reset to default 8 rooms',
+        '• This ABSOLUTELY CANNOT be undone'
+      ],
+      confirm:'YES, WIPE EVERYTHING',
+      action:()=>{
+        DB=defaultDB();
+        save();renderDash();renderRooms();updateTopbar();populateBSDropdowns();
+        toast('Factory reset complete — all data wiped','inf');
+      }
+    }
+  };
+  const c=config[what];if(!c) return;
+
+  // Remove any existing dialog
+  const old=$('dangerDialog');if(old) old.remove();
+
+  const d=document.createElement('div');
+  d.id='dangerDialog';
+  d.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
+  d.innerHTML=`
+    <div style="background:#1a2030;border:2px solid ${c.color};border-radius:16px;padding:28px;max-width:380px;width:100%;box-shadow:0 16px 60px rgba(0,0,0,.8)">
+      <div style="text-align:center;margin-bottom:16px">
+        <div style="font-size:44px;margin-bottom:8px">${c.icon}</div>
+        <div style="font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:${c.color}">${c.title}</div>
+      </div>
+      <div style="background:rgba(231,76,60,.08);border:1px solid rgba(231,76,60,.25);border-radius:10px;padding:14px;margin-bottom:20px">
+        ${c.lines.map(l=>`<div style="font-size:13px;color:#e8eaf0;padding:3px 0;display:flex;gap:8px"><span style="color:${c.color};font-weight:700">!</span><span>${l}</span></div>`).join('')}
+      </div>
+      <button id="dangerConfirmBtn" style="width:100%;padding:13px;background:${c.color};color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;letter-spacing:.5px;margin-bottom:8px">${c.confirm}</button>
+      <button onclick="document.getElementById('dangerDialog').remove()" style="width:100%;padding:11px;background:transparent;color:var(--text2);border:1px solid var(--border2);border-radius:10px;font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif">Cancel — Go Back</button>
+    </div>`;
+  document.body.appendChild(d);
+  $('dangerConfirmBtn').onclick=()=>{
+    d.remove();
+    c.action();
+  };
+  d.onclick=e=>{if(e.target===d) d.remove();};
 }
 async function syncNow(){
   const url=DB.settings.gasurl;if(!url){toast('Enter Apps Script URL','err');return;}
@@ -2681,7 +2948,6 @@ function openRmDetail(roomNum){
 function renderFolio(){
   const r=curRes;if(!r) return;
   const paid=getPaid(r),bal=getBalance(r),isDO=isDueOut(r);
-  const extraTotal=(r.extraCharges||[]).reduce((s,c)=>s+(c.amount||0),0);
   const dispSt=isDO?'Due Out':r.status;
   $('rm-info').innerHTML=`
     <div><div class="fl">Res No</div><div class="mono bold">${r.resNo}</div></div>
@@ -2690,14 +2956,29 @@ function renderFolio(){
     <div><div class="fl">Check-out</div><div class="mono">${fmtD(r.checkout)} ${r.coutTime||''}</div></div>
     <div><div class="fl">Nights</div><div class="mono bold">${r.nights}</div></div>
     <div><div class="fl">Rate</div><div>${r.rateType}${r.complimentary?' (Comp)':''}</div></div>`;
+  const ratePerNight=r.nights>0?Math.round((r.charges||0)/r.nights):(r.charges||0);
+  const extraTotal=(r.extraCharges||[]).reduce((s,c)=>s+(c.amount>0?c.amount:0),0);
+  const discTotal=Math.abs((r.extraCharges||[]).filter(c=>c.amount<0).reduce((s,c)=>s+(c.amount||0),0));
+  const refunds=DB.payments.filter(p=>p.resId===r.resId&&p.amount<0).reduce((s,p)=>s+Math.abs(p.amount||0),0);
+  const cgst=Math.round((r.gst||0)/2), sgst=Math.round((r.gst||0)/2);
   $('rm-folio-summary').innerHTML=`
-    <div class="bill-row"><span class="text-dim">Room Charges</span><span class="mono">${fmtM(r.charges)}</span></div>
-    ${r.gst?`<div class="bill-row"><span class="text-dim">GST (5%)</span><span class="mono">${fmtM(r.gst)}</span></div>`:''}
-    ${extraTotal>0?`<div class="bill-row"><span class="text-dim">Extra Charges</span><span class="mono text-red">${fmtM(extraTotal)}</span></div>`:''}
+    <div class="bill-row"><span class="text-dim">Tariff/night</span><span class="mono">${fmtM(ratePerNight)}</span></div>
+    <div class="bill-row"><span class="text-dim">Nights</span><span class="mono">${r.nights}</span></div>
+    <div class="bill-row"><span class="text-dim">Base Rent</span><span class="mono">${fmtM(r.charges)}</span></div>
+    ${extraTotal>0?`<div class="bill-row"><span class="text-dim">Extra Charges</span><span class="mono">${fmtM(extraTotal)}</span></div>`:''}
+    ${discTotal>0?`<div class="bill-row"><span class="text-dim">Discount</span><span class="mono text-red">-${fmtM(discTotal)}</span></div>`:''}
+    <div class="bill-row"><span class="text-dim">Sub Total</span><span class="mono">${fmtM(r.charges+extraTotal-discTotal)}</span></div>
+    ${r.gst>0?`
+    <div class="bill-row"><span class="text-dim">SGST 2.5%</span><span class="mono">${fmtM(sgst)}</span></div>
+    <div class="bill-row"><span class="text-dim">CGST 2.5%</span><span class="mono">${fmtM(cgst)}</span></div>
+    `:''}
     <div class="bill-sep"></div>
-    <div class="bill-row bill-total"><span>Total</span><span class="mono">${fmtM(r.totalAmount)}</span></div>
-    <div class="bill-row"><span class="text-dim">Paid</span><span class="mono text-green">${fmtM(paid)}</span></div>
-    <div class="bill-row"><span class="text-dim">Balance</span><span class="mono ${bal>0?'bill-due':'text-green'}">${fmtM(bal)}</span></div>`;
+    <div class="bill-row bill-total"><span>Total Bill</span><span class="mono" style="color:var(--accent)">${fmtM(r.totalAmount)}</span></div>
+    <div class="bill-row"><span class="text-dim">Total Paid</span><span class="mono text-green">${fmtM(paid)}</span></div>
+    ${refunds>0?`<div class="bill-row"><span class="text-dim">Refunds</span><span class="mono text-red">-${fmtM(refunds)}</span></div>`:''}
+    <div class="bill-row" style="margin-top:4px"><span class="bold">Balance</span><span class="mono bold ${bal>0?'bill-due':'text-green'}" style="font-size:15px">${fmtM(bal)}</span></div>
+    ${r.complimentary?'<div style="text-align:center;margin-top:6px;font-size:11px;color:var(--gold)">★ Complimentary Stay</div>':''}`;
+
   const pays=DB.payments.filter(p=>p.resId===r.resId&&!p.isAuditPost);
   $('rm-pays').innerHTML=pays.length?pays.map(p=>`
     <tr>
