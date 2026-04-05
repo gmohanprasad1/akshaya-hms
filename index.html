@@ -1034,6 +1034,9 @@ function migrateDB(old) {
   if (old.roomFlags) d.roomFlags = old.roomFlags;
   if (old.guestPhotos) d.guestPhotos = old.guestPhotos;
   if (old.nightAuditLog) d.nightAuditLog = old.nightAuditLog;
+  // Always inject hardcoded URL — never lose it
+  d.settings.gasurl = 'https://script.google.com/macros/s/AKfycbxkfjmlAnvxvCY7fue2yK5M3gGJwAPgcTc0tWOBct47hGM_ju1kVfSOgWgtjzvqs1Ia/exec';
+  d.settings.autoSync = true;
   return d;
 }
 
@@ -1059,8 +1062,10 @@ function defaultDB() {
     settings: {
       propname:'Akshaya Comforts', loc:'Mysore, Karnataka', gst:'', phone:'',
       rprefix:'R', rstart:1001, iprefix:'INV', istart:1001, grcprefix:'GRC',
-      email:'', emailurl:'', gasurl:'',
-      autoEmail:true, emailCheckin:false, autoSync:false, nightSync:false,
+      email:'', emailurl:'',
+      // ── Hardcoded cloud URL — always present even after refresh ──
+      gasurl:'https://script.google.com/macros/s/AKfycbxkfjmlAnvxvCY7fue2yK5M3gGJwAPgcTc0tWOBct47hGM_ju1kVfSOgWgtjzvqs1Ia/exec',
+      autoEmail:true, emailCheckin:false, autoSync:true, nightSync:true,
       showBalance:true, showGST:true, inclusiveTax:false,
       grcnotice:'NOTICE TO GUESTS: This property is privately owned and management reserves the right to refuse service.',
       invnotice:'Computer generated invoice. Disputes subject to Mysore jurisdiction.',
@@ -1079,7 +1084,13 @@ function defaultDB() {
   };
 }
 
+// Always ensure gasurl is set from hardcoded value if missing
+const HARDCODED_GAS_URL = 'https://script.google.com/macros/s/AKfycbxkfjmlAnvxvCY7fue2yK5M3gGJwAPgcTc0tWOBct47hGM_ju1kVfSOgWgtjzvqs1Ia/exec';
+
 function save() {
+  // Always preserve the gasurl before saving
+  if(!DB.settings.gasurl) DB.settings.gasurl = HARDCODED_GAS_URL;
+  DB.settings.autoSync = true;
   try { localStorage.setItem(DB_KEY, JSON.stringify(DB)); }
   catch(e) { toast('Storage near full','err'); }
 }
@@ -2617,10 +2628,47 @@ async function init(){
   populateBSDropdowns();
   renderDash();renderRooms();
   updateTopbar();
-  // Pull from cloud on startup if sync is configured
-  if(DB.settings.autoSync&&DB.settings.gasurl){
-    setSyncStatus('⏳ Loading cloud data...', false);
-    await pullFromCloud();
+
+  // Always pull from cloud on startup if URL is configured
+  // This ensures data is always fresh regardless of localStorage state
+  const url=DB.settings.gasurl;
+  if(url){
+    // Show loading indicator
+    setSyncStatus('⏳ Loading your data from cloud...', false);
+    const ind=$('sync-indicator');
+    if(ind) ind.textContent='⏳';
+
+    // Show loading toast
+    toast('☁ Loading data from cloud...','inf');
+
+    try{
+      const res=await fetch(url+'?action=pull&device='+DEVICE_ID);
+      const json=await res.json();
+      if(json.ok&&json.data){
+        // Always replace local data with cloud data on fresh load
+        if(json.data.reservations?.length) DB.reservations=json.data.reservations;
+        if(json.data.payments?.length) DB.payments=json.data.payments;
+        if(json.data.rooms?.length) DB.rooms=json.data.rooms;
+        if(json.data.businessSources?.length) DB.businessSources=json.data.businessSources;
+        if(json.data.nightAuditLog?.length) DB.nightAuditLog=json.data.nightAuditLog;
+        // Preserve local gasurl setting even if cloud has different one
+        const localUrl=DB.settings.gasurl;
+        if(json.data.settings) DB.settings={...json.data.settings,gasurl:localUrl};
+        // Save merged data locally
+        localStorage.setItem(DB_KEY, JSON.stringify(DB));
+        // Refresh all views
+        populateBSDropdowns();
+        renderDash();renderRooms();updateTopbar();
+        const t=new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+        setSyncStatus('✅ Data loaded '+t,true);
+        toast('✅ Data loaded from cloud','ok');
+      } else {
+        setSyncStatus('⚠ Could not load cloud data',false);
+      }
+    } catch(err){
+      setSyncStatus('⚠ Offline — showing local data',false);
+      toast('⚠ Cannot reach cloud — showing local data','inf');
+    }
   }
   startAutoRefresh();
 }
