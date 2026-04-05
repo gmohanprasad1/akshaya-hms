@@ -824,10 +824,10 @@ td{padding:9px 11px;vertical-align:middle}
       </div>
     </div>
   </div>
-  <div class="mfoot">
-    <button class="btn btn-outline" onclick="closeModal('bkModal')">Cancel</button>
-    <button class="btn btn-outline" onclick="saveBooking(false)">💾 Save Reservation</button>
-    <button class="btn btn-success" onclick="saveBooking(true)">✓ Check In Now</button>
+  <div class="mfoot" style="flex-wrap:wrap;gap:8px">
+    <button class="btn btn-outline" onclick="closeModal('bkModal')" style="flex:0 0 auto">Cancel</button>
+    <button class="btn btn-outline" onclick="saveBooking(false)" style="flex:1;min-width:140px">💾 Save Reservation</button>
+    <button class="btn btn-success" onclick="saveBooking(true)" style="flex:1;min-width:130px">✓ Check In Now</button>
   </div>
 </div>
 </div>
@@ -848,8 +848,8 @@ td{padding:9px 11px;vertical-align:middle}
     </div>
     <!-- FOLIO -->
     <div class="tc active" id="rmt-folio">
-      <div style="display:grid;grid-template-columns:1fr 250px;gap:14px">
-        <div>
+      <div style="display:grid;grid-template-columns:1fr min(260px,35%);gap:14px">
+        <div style="min-width:0">
           <div class="grid2 mb12" id="rm-info"></div>
           <div class="section-hdr"><div class="section-title text-sm">Payments</div><button class="btn btn-gold btn-xs" onclick="openPayModal()">＋ Payment</button></div>
           <div class="tbl-wrap"><table><thead><tr><th>Date</th><th>Description</th><th>Amount</th><th>Mode</th><th></th></tr></thead><tbody id="rm-pays"></tbody></table></div>
@@ -1097,7 +1097,19 @@ function save() {
 
 // ════════════════════ UTILS ════════════════════
 const today = () => new Date().toISOString().split('T')[0];
-const fmtD = d => d ? new Date(d+'T00:00:00').toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}) : '-';
+const fmtD = d => {
+  if(!d) return '-';
+  try {
+    // Handle both 'YYYY-MM-DD' string and Date objects
+    const str = typeof d === 'string' ? d : d.toISOString().split('T')[0];
+    // Ensure format is YYYY-MM-DD
+    const match = str.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if(!match) return str; // return as-is if can't parse
+    const dt = new Date(parseInt(match[1]), parseInt(match[2])-1, parseInt(match[3]));
+    if(isNaN(dt.getTime())) return str;
+    return dt.toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
+  } catch(e) { return d||'-'; }
+};
 const fmtM = n => '₹'+(n||0).toLocaleString('en-IN');
 const nights = (a,b) => { if(!a||!b) return 0; return Math.max(0,Math.round((new Date(b)-new Date(a))/86400000)); };
 const $ = id => document.getElementById(id);
@@ -1386,13 +1398,15 @@ function cancelR(id){
   const choice=confirm(`Cancel reservation ${r.resNo} for ${r.guestName}?\n\nOK = Cancel (keep record)\nCancel = Do nothing`);
   if(!choice) return;
   r.status='Cancelled';
-  save();renderRes();renderRooms();toast(`Reservation ${r.resNo} cancelled`,'inf');
+  save();renderRes();renderRooms();renderDash();updateTopbar();
+  toast(`Reservation ${r.resNo} cancelled`,'inf');
 }
 function deleteResById(id){
   if(!confirm('Permanently DELETE this reservation and all its payments? This cannot be undone!')) return;
   DB.payments=DB.payments.filter(p=>p.resId!==id);
   DB.reservations=DB.reservations.filter(r=>r.resId!==id);
-  save();renderRes();renderRooms();toast('Reservation deleted','inf');
+  save();renderRes();renderRooms();renderDash();updateTopbar();
+  toast('Reservation deleted','inf');
 }
 
 // ════════════════════ GUEST SEARCH ════════════════════
@@ -1974,8 +1988,20 @@ function saveBooking(checkIn){
   if(adv>0) DB.payments.push({payId:'pay_'+Date.now(),resId,date:cin,amount:adv,mode:$('b-paymode').value,description:'Advance at booking',time:new Date().toLocaleTimeString()});
   const gp=$('b-gprev');const ip=$('b-idprev');
   if(gp?.dataset.img||ip?.dataset.img){if(!DB.guestPhotos[resId])DB.guestPhotos[resId]={};if(gp?.dataset.img)DB.guestPhotos[resId].guestPhoto=gp.dataset.img;if(ip?.dataset.img)DB.guestPhotos[resId].idPhoto=ip.dataset.img;}
-  save();closeModal('bkModal');renderRooms();renderDash();grpSel=[];
-  toast(`✅ ${resNo} — ${res.guestName} saved! Room(s): ${rooms.join(', ')}`,'ok');
+  save();
+  closeModal('bkModal');
+  // Immediately refresh all views so status shows without switching tabs
+  renderRooms();
+  renderDash();
+  renderRes();
+  updateTopbar();
+  grpSel=[];
+  // Show clear confirmation based on action
+  if(checkIn || status==='Occupied'){
+    toast(`✅ Checked In! Room ${rooms.join(', ')} — ${gname} (${resNo})`,'ok');
+  } else {
+    toast(`✅ Reservation saved! ${resNo} — ${gname} → Room ${rooms.join(', ')}`,'ok');
+  }
 }
 
 // ════════════════════ ROOM DETAIL ════════════════════
@@ -2106,8 +2132,15 @@ function doCheckout(){
   if(!confirm(`Confirm checkout for ${r.guestName}?\nRoom: ${r.rooms?.join(', ')}\nInvoice will be generated.`)) return;
   const res=DB.reservations.find(x=>x.resId===r.resId);
   if(res){res.status='Checked Out';res.checkoutTime=new Date().toLocaleTimeString();res.invNo=nextInvNo();}
-  save();curRes=res;renderFolio();renderRooms();renderDash();
-  toast(`✅ Room ${curRoom} checked out. Invoice No: ${res.invNo}`,'ok');
+  save();
+  curRes=res;
+  // Immediately refresh all views
+  renderRooms();
+  renderDash();
+  renderRes();
+  updateTopbar();
+  renderFolio();
+  toast(`✅ Room ${curRoom} Checked Out! Invoice No: ${res.invNo}`,'ok');
   // Auto-show invoice
   setTimeout(()=>{
     buildInvoice();
@@ -2121,7 +2154,9 @@ function undoCheckout(){
   if(!confirm(`Undo checkout for ${r.guestName}? This will restore the room to Occupied.`)) return;
   const res=DB.reservations.find(x=>x.resId===r.resId);
   if(res){res.status='Occupied';res.invNo=null;res.checkoutTime=null;}
-  save();curRes=res;renderFolio();renderRooms();renderDash();
+  save();
+  curRes=res;
+  renderRooms();renderDash();renderRes();updateTopbar();renderFolio();
   toast(`↩ Checkout undone — Room ${curRoom} is Occupied again`,'ok');
 }
 
@@ -2186,13 +2221,15 @@ function savePay(){
   DB.payments.push(pay);
   save();
   closeModal('payModal');
-  // Refresh folio — works even after checkout
+  // Refresh folio and all views immediately
   const res=DB.reservations.find(r=>r.resId===curRes.resId);
   curRes=res;
   renderFolio();
-  renderCashier();
+  renderRooms();
+  renderDash();
+  updateTopbar();
   const newBal=getBalance(curRes);
-  toast(`✅ Payment of ${fmtM(amt)} recorded via ${mode}. Balance: ${fmtM(newBal)}`,'ok');
+  toast(`✅ Payment of ${fmtM(amt)} received via ${mode}. Balance: ${fmtM(Math.max(0,newBal))}`,'ok');
 }
 function saveGuest(){
   const r=DB.reservations.find(x=>x.resId===curRes?.resId);if(!r) return;
@@ -2533,23 +2570,44 @@ async function pullFromCloud(){
   }
 }
 
-// Merge cloud data into local — cloud wins for reservations/payments, local wins for settings
+function sanitizeDate(d){
+  if(!d) return '';
+  if(typeof d === 'string'){
+    // Already YYYY-MM-DD
+    const m=d.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if(m) return `${m[1]}-${m[2]}-${m[3]}`;
+  }
+  if(d instanceof Date){
+    const y=d.getFullYear();
+    const m=String(d.getMonth()+1).padStart(2,'0');
+    const dd=String(d.getDate()).padStart(2,'0');
+    return `${y}-${m}-${dd}`;
+  }
+  return String(d).substring(0,10);
+}
+
+function sanitizeRes(r){
+  r.checkin=sanitizeDate(r.checkin);
+  r.checkout=sanitizeDate(r.checkout);
+  r.bookingDate=sanitizeDate(r.bookingDate);
+  return r;
+}
+
+// Merge cloud data into local
 function mergeFromCloud(cloudDB){
   if(!cloudDB) return;
   // Merge reservations — add/update any cloud records not in local
   if(cloudDB.reservations?.length){
     cloudDB.reservations.forEach(cr=>{
+      cr=sanitizeRes(cr);
       const li=DB.reservations.findIndex(r=>r.resId===cr.resId);
-      if(li<0) DB.reservations.push(cr); // new from cloud
-      else {
-        // Cloud wins on status changes (checkout, cancellation)
-        if(cr.status!==DB.reservations[li].status) DB.reservations[li]=cr;
-      }
+      if(li<0) DB.reservations.push(cr);
+      else { if(cr.status!==DB.reservations[li].status) DB.reservations[li]=cr; }
     });
   }
-  // Merge payments
   if(cloudDB.payments?.length){
     cloudDB.payments.forEach(cp=>{
+      cp.date=sanitizeDate(cp.date);
       if(!DB.payments.find(p=>p.payId===cp.payId)) DB.payments.push(cp);
     });
   }
@@ -2646,8 +2704,8 @@ async function init(){
       const json=await res.json();
       if(json.ok&&json.data){
         // Always replace local data with cloud data on fresh load
-        if(json.data.reservations?.length) DB.reservations=json.data.reservations;
-        if(json.data.payments?.length) DB.payments=json.data.payments;
+        if(json.data.reservations?.length) DB.reservations=json.data.reservations.map(sanitizeRes);
+        if(json.data.payments?.length) DB.payments=json.data.payments.map(p=>{p.date=sanitizeDate(p.date);return p;});
         if(json.data.rooms?.length) DB.rooms=json.data.rooms;
         if(json.data.businessSources?.length) DB.businessSources=json.data.businessSources;
         if(json.data.nightAuditLog?.length) DB.nightAuditLog=json.data.nightAuditLog;
