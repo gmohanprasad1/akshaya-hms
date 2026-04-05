@@ -376,7 +376,10 @@ td{padding:9px 11px;vertical-align:middle}
     <button id="menu-btn" onclick="toggleSidebar()">☰</button>
     <div class="tb-title" id="tbTitle">Dashboard</div>
     <div class="tb-stats" id="tbStats"></div>
-    <span id="sync-indicator" style="font-size:11px;color:var(--text3);cursor:pointer" onclick="syncNow()" title="Click to sync">☁</span>
+    <div id="sync-indicator" style="font-size:11px;color:var(--text3);cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:4px" onclick="syncNow()" title="Click to sync now">
+      <span id="sync-icon">☁</span>
+      <span id="sync-time" style="font-family:'DM Mono',monospace"></span>
+    </div>
     <button class="btn btn-gold btn-sm" onclick="openModal('bkModal');initBooking()">＋ New Booking</button>
   </div>
 
@@ -1962,14 +1965,22 @@ function saveBooking(checkIn){
   const resId=editResId||('res_'+Date.now());
   const resNo=editResId?DB.reservations.find(r=>r.resId===editResId)?.resNo:nextResNo();
   const gname=($('b-sal').value+' '+$('b-name').value).trim();
-  // Conflict check — exclude self when editing
-  const conf=rooms.filter(num=>DB.reservations.find(r=>
-    r.rooms?.includes(num)&&
-    !['Cancelled','Checked Out','No Show'].includes(r.status)&&
-    cin<r.checkout&&cout>r.checkin&&
-    r.resId!==resId  // exclude self
-  ));
-  if(conf.length){toast(`Room(s) ${conf.join(', ')} already booked for these dates`,'err');return;}
+  // Conflict check — proper date overlap, exclude completed/cancelled reservations and self
+  const conf=rooms.filter(num=>{
+    return DB.reservations.find(r=>{
+      if(!r.rooms?.includes(num)) return false;
+      // Skip completed/cancelled reservations
+      if(['Cancelled','Checked Out','No Show'].includes(r.status)) return false;
+      // Skip self when editing
+      if(r.resId===editResId) return false;
+      // Date overlap: new checkin is before existing checkout AND new checkout is after existing checkin
+      return cin < r.checkout && cout > r.checkin;
+    });
+  });
+  if(conf.length){
+    toast(`❌ Room(s) ${conf.join(', ')} already occupied for these dates`,'err');
+    return;
+  }
 
   const status=checkIn?'Occupied':($('b-restype').value==='Direct Check-in'?'Occupied':'Confirmed');
   const res={
@@ -1996,12 +2007,36 @@ function saveBooking(checkIn){
   renderRes();
   updateTopbar();
   grpSel=[];
-  // Show clear confirmation based on action
-  if(checkIn || status==='Occupied'){
-    toast(`✅ Checked In! Room ${rooms.join(', ')} — ${gname} (${resNo})`,'ok');
+  // Show clear confirmation dialog
+  if(status==='Occupied'){
+    showConfirmDialog('✅ CHECKED IN!',
+      `Guest: ${gname}\nRoom(s): ${rooms.join(', ')}\nRes No: ${resNo}\nCheck-out: ${fmtD(cout)}\nTotal: ${fmtM(total)}`
+    );
   } else {
-    toast(`✅ Reservation saved! ${resNo} — ${gname} → Room ${rooms.join(', ')}`,'ok');
+    showConfirmDialog('✅ RESERVATION SAVED!',
+      `Guest: ${gname}\nRoom(s): ${rooms.join(', ')}\nRes No: ${resNo}\nArrival: ${fmtD(cin)}\nTotal: ${fmtM(total)}`
+    );
   }
+}
+
+// ════════════════════ CONFIRMATION DIALOG ════════════════════
+function showConfirmDialog(title, message, color='var(--green)'){
+  // Remove any existing dialog
+  const old=$('confirmDialog');if(old) old.remove();
+  const d=document.createElement('div');
+  d.id='confirmDialog';
+  d.style.cssText=`position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:999;display:flex;align-items:center;justify-content:center;padding:20px`;
+  d.innerHTML=`
+    <div style="background:var(--bg2);border:2px solid ${color};border-radius:16px;padding:28px 32px;max-width:360px;width:100%;text-align:center;box-shadow:0 8px 40px rgba(0,0,0,.6)">
+      <div style="font-size:28px;margin-bottom:10px">${title.includes('CHECK')?(title.includes('OUT')?'🛫':'🛬'):(title.includes('CANCEL')?'❌':(title.includes('DELETE')?'🗑':'✅'))}</div>
+      <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:${color};margin-bottom:14px">${title}</div>
+      <div style="font-size:13px;color:var(--text2);white-space:pre-line;line-height:1.8;margin-bottom:20px">${message}</div>
+      <button onclick="document.getElementById('confirmDialog').remove()" style="background:${color};color:${color===('var(--red)'||'#e74c3c')?'#fff':'#000'};border:none;padding:10px 32px;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif">OK</button>
+    </div>`;
+  document.body.appendChild(d);
+  d.onclick=e=>{if(e.target===d) d.remove();};
+  // Auto close after 4 seconds
+  setTimeout(()=>d?.remove(), 4000);
 }
 
 // ════════════════════ ROOM DETAIL ════════════════════
@@ -2135,12 +2170,11 @@ function doCheckout(){
   save();
   curRes=res;
   // Immediately refresh all views
-  renderRooms();
-  renderDash();
-  renderRes();
-  updateTopbar();
-  renderFolio();
-  toast(`✅ Room ${curRoom} Checked Out! Invoice No: ${res.invNo}`,'ok');
+  renderRooms();renderDash();renderRes();updateTopbar();renderFolio();
+  showConfirmDialog('🛫 CHECKED OUT!',
+    `Guest: ${r.guestName}\nRoom: ${curRoom}\nInvoice No: ${res.invNo}\nTotal: ${fmtM(r.totalAmount)}\nPaid: ${fmtM(getPaid(r))}`,
+    'var(--orange)'
+  );
   // Auto-show invoice
   setTimeout(()=>{
     buildInvoice();
@@ -2640,9 +2674,35 @@ function dbForSync(){
 function setSyncStatus(msg,ok){
   const el=$('syncStatus');
   if(el) el.innerHTML=`<span style="color:${ok?'var(--green)':'var(--text3)'}">${msg}</span>`;
-  // also update topbar sync indicator
-  const ind=$('sync-indicator');
-  if(ind){ind.textContent=ok?'☁✅':'☁';ind.title=msg;}
+  const icon=$('sync-icon');
+  const timeEl=$('sync-time');
+  if(icon) icon.textContent=ok?'☁✅':'☁⏳';
+  if(timeEl) timeEl.textContent=ok?('Synced '+new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})):'';
+}
+
+// Sync countdown timer — shows "Next sync in Xs"
+let nextSyncIn=60;
+let syncCountdownTimer=null;
+function startSyncCountdown(){
+  if(syncCountdownTimer) clearInterval(syncCountdownTimer);
+  nextSyncIn=60;
+  syncCountdownTimer=setInterval(()=>{
+    nextSyncIn--;
+    const timeEl=$('sync-time');
+    const icon=$('sync-icon');
+    if(nextSyncIn<=0){
+      nextSyncIn=60;
+      if(DB.settings.autoSync&&DB.settings.gasurl&&!document.hidden){
+        if(icon) icon.textContent='☁⏳';
+        if(timeEl) timeEl.textContent='Syncing...';
+        pullFromCloud().then(()=>{if(timeEl) timeEl.textContent='';});
+      }
+    } else {
+      if(icon&&icon.textContent==='☁✅'){
+        if(timeEl) timeEl.textContent=`· Next: ${nextSyncIn}s`;
+      }
+    }
+  },1000);
 }
 
 function saveGasUrl(){
@@ -2665,11 +2725,9 @@ async function testSync(){
   }catch(e){toast('❌ Cannot reach URL','err');}
 }
 
-// Auto-pull every 60 seconds if sync is enabled (keeps devices in sync passively)
+// Auto-pull every 60 seconds — handled by startSyncCountdown
 function startAutoRefresh(){
-  setInterval(()=>{
-    if(DB.settings.autoSync&&DB.settings.gasurl&&!document.hidden) pullFromCloud();
-  },60000);
+  startSyncCountdown();
 }
 
 // ════════════════════ SAVE override — triggers cloud sync ════════════════════
