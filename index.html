@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Akshaya Comforts — HMS v9</title>
+<title>Akshaya Comforts — HMS v10</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
@@ -73,10 +73,10 @@ body{display:flex}
   .tb-title{font-size:15px}
   .tabs{overflow-x:auto;-webkit-overflow-scrolling:touch;flex-wrap:nowrap!important;padding-bottom:2px}
   .tab{flex-shrink:0}
-  .modal{width:98%!important;max-width:98%!important;margin:4px}
+  .modal{width:98%!important;max-width:98%!important;margin:4px;max-height:82vh!important}
   .mhdr{padding:14px 14px 12px}
   .mbody{padding:12px 14px}
-  .mfoot{padding:10px 14px;flex-wrap:wrap}
+  .mfoot{padding:10px 14px;flex-wrap:wrap;position:sticky;bottom:0;z-index:10}
   .tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;font-size:11.5px}
   thead th{font-size:9.5px;padding:7px 8px}
   td{padding:7px 8px;font-size:11.5px}
@@ -352,20 +352,32 @@ td{padding:9px 11px;vertical-align:middle}
   <div class="nav-sec">Reservations</div>
   <button class="nav-item" onclick="goPage('reservations')"><span class="ico">📋</span>Reservations</button>
   <button class="nav-item" onclick="openModal('bkModal');initBooking()"><span class="ico">＋</span>New Booking</button>
+  <button class="nav-item" onclick="goPage('walkin')"><span class="ico">🚶</span>Quick Walk-In</button>
   <button class="nav-item" onclick="goPage('guestsearch')"><span class="ico">🔍</span>Guest Search</button>
+  <button class="nav-item" onclick="goPage('waitlist')"><span class="ico">⏳</span>Waitlist</button>
+  <button class="nav-item" onclick="goPage('otaimport')"><span class="ico">📥</span>OTA Import</button>
   <div class="nav-sec">Finance</div>
   <button class="nav-item" onclick="goPage('cashier')"><span class="ico">💳</span>Cashier Report</button>
+  <button class="nav-item" onclick="goPage('shift')"><span class="ico">⏱</span>Shift Report</button>
   <button class="nav-item" onclick="goPage('deposit')"><span class="ico">🏦</span>Deposit Tracker</button>
   <button class="nav-item" onclick="goPage('cityledger')"><span class="ico">📒</span>City Ledger</button>
   <button class="nav-item" onclick="goPage('revenue')"><span class="ico">📊</span>Revenue Analytics</button>
+  <div class="nav-sec">Housekeeping</div>
+  <button class="nav-item" onclick="goPage('housekeeping')"><span class="ico">🧹</span>Housekeeping</button>
   <div class="nav-sec">Operations</div>
   <button class="nav-item" onclick="goPage('nightaudit')"><span class="ico">🌙</span>Night Audit</button>
   <button class="nav-item" onclick="goPage('invoice')"><span class="ico">🧾</span>Invoice / Print</button>
+  <div class="nav-sec">Reports</div>
+  <button class="nav-item" onclick="goPage('rpt-occupancy')"><span class="ico">📈</span>Occupancy</button>
+  <button class="nav-item" onclick="goPage('rpt-revenue')"><span class="ico">💰</span>Revenue</button>
+  <button class="nav-item" onclick="goPage('rpt-arrivals')"><span class="ico">🛬</span>Arrivals/Departures</button>
+  <button class="nav-item" onclick="goPage('rpt-gst')"><span class="ico">🧾</span>GST Register</button>
+  <button class="nav-item" onclick="goPage('rpt-monthly')"><span class="ico">📅</span>Monthly Summary</button>
   <div class="nav-sec">Admin</div>
   <button class="nav-item" onclick="goPage('settings')"><span class="ico">⚙️</span>Settings</button>
   <button class="nav-item" onclick="goPage('databackup')"><span class="ico">💾</span>Data & Backup</button>
   <div class="sb-footer">
-    <div style="font-size:10px;color:var(--text3)">v9.0</div>
+    <div style="font-size:10px;color:var(--text3)">v10.0</div>
     <button class="ico-btn" onclick="toggleTheme()" title="Toggle Light/Dark" id="themeBtn">🌙</button>
   </div>
 </nav>
@@ -392,7 +404,14 @@ td{padding:9px 11px;vertical-align:middle}
     <div class="stat-card sc-green"><div class="stat-ico">✅</div><div class="stat-lbl">Occupied</div><div class="stat-val text-green" id="d-occ">0</div><div class="stat-sub">In-house guests</div></div>
     <div class="stat-card sc-blue"><div class="stat-ico">🛬</div><div class="stat-lbl">Arrivals Today</div><div class="stat-val" style="color:var(--accent)" id="d-arr">0</div><div class="stat-sub">Due to check in</div></div>
     <div class="stat-card sc-orange"><div class="stat-ico">🛫</div><div class="stat-lbl">Due Out</div><div class="stat-val" style="color:var(--orange)" id="d-dout">0</div><div class="stat-sub">Checkout today</div></div>
-    <div class="stat-card sc-purple"><div class="stat-ico">💰</div><div class="stat-lbl">Revenue Today</div><div class="stat-val" style="color:var(--purple);font-size:18px" id="d-rev">₹0</div><div class="stat-sub">Payments received</div></div>
+    <div class="stat-card sc-purple"><div class="stat-ico">💰</div><div class="stat-lbl">Revenue Today</div><div class="stat-val" style="color:var(--purple);font-size:18px" id="d-rev">₹0</div><div class="stat-sub" id="d-rev-mtd">MTD: ₹0</div></div>
+  </div>
+  <!-- KPI Row -->
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px">
+    <div class="stat-card sc-teal" style="padding:12px 14px"><div class="stat-lbl">Occupancy %</div><div class="stat-val text-green" style="font-size:22px" id="d-occ-pct">0%</div></div>
+    <div class="stat-card sc-gold" style="padding:12px 14px"><div class="stat-lbl">ADR (Avg Daily Rate)</div><div class="stat-val text-gold" style="font-size:18px" id="d-adr">₹0</div></div>
+    <div class="stat-card sc-blue" style="padding:12px 14px"><div class="stat-lbl">RevPAR</div><div class="stat-val" style="font-size:18px;color:var(--accent)" id="d-revpar">₹0</div></div>
+    <div class="stat-card sc-purple" style="padding:12px 14px"><div class="stat-lbl">Pending Balance</div><div class="stat-val text-red" style="font-size:18px" id="d-pending">₹0</div></div>
   </div>
   <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px">
     <div class="card"><div class="section-hdr mb8"><div class="section-title text-sm">Category Snapshot</div></div><div id="d-cats"></div></div>
@@ -572,6 +591,282 @@ td{padding:9px 11px;vertical-align:middle}
   <div class="tbl-wrap"><table><thead><tr><th>Res No</th><th>Guest</th><th>Rooms</th><th>Check-out</th><th>Total</th><th>Paid</th><th>Balance</th><th>Inv No</th><th>Actions</th></tr></thead><tbody id="invTbody"></tbody></table></div>
 </div>
 
+<!-- ══════════════════════ OCCUPANCY REPORT ══════════════════════ -->
+<div class="page" id="page-rpt-occupancy">
+  <div class="section-hdr mb12">
+    <div class="section-title">📈 Occupancy Report</div>
+    <button class="btn btn-outline btn-sm" onclick="window.print()">🖨 Print</button>
+  </div>
+  <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:flex-end">
+    <div class="fg"><div class="fl">From</div><input type="date" class="inp" id="occ-from" style="width:145px" onchange="renderOccRpt()"></div>
+    <div class="fg"><div class="fl">To</div><input type="date" class="inp" id="occ-to" style="width:145px" onchange="renderOccRpt()"></div>
+    <div class="fg"><div class="fl">Category</div>
+      <select class="inp" id="occ-cat" style="width:160px" onchange="renderOccRpt()">
+        <option value="">All Categories</option>
+        <option>Executive Room</option><option>Executive Plus</option><option>Deluxe Room</option>
+      </select>
+    </div>
+    <button class="btn btn-gold btn-sm" onclick="renderOccRpt()">Generate</button>
+  </div>
+  <!-- Summary cards -->
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:14px" id="occ-summary"></div>
+  <!-- Daily grid -->
+  <div class="card">
+    <div class="section-hdr mb8"><div class="section-title text-sm">Daily Occupancy</div></div>
+    <div class="tbl-wrap"><table><thead><tr><th>Date</th><th>Day</th><th>Available</th><th>Occupied</th><th>Occ%</th><th>Arrivals</th><th>Departures</th><th>Revenue</th></tr></thead><tbody id="occ-tbody"></tbody></table></div>
+  </div>
+  <!-- By Category -->
+  <div class="card mt12">
+    <div class="section-hdr mb8"><div class="section-title text-sm">By Room Category</div></div>
+    <div class="tbl-wrap"><table><thead><tr><th>Category</th><th>Rooms</th><th>Room Nights</th><th>Occ%</th><th>Revenue</th><th>ADR</th></tr></thead><tbody id="occ-cat-tbody"></tbody></table></div>
+  </div>
+</div>
+
+<!-- ══════════════════════ REVENUE REPORT ══════════════════════ -->
+<div class="page" id="page-rpt-revenue">
+  <div class="section-hdr mb12">
+    <div class="section-title">💰 Revenue Report</div>
+    <button class="btn btn-outline btn-sm" onclick="window.print()">🖨 Print</button>
+  </div>
+  <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:flex-end">
+    <div class="fg"><div class="fl">From</div><input type="date" class="inp" id="rev-from" style="width:145px" onchange="renderRevRpt()"></div>
+    <div class="fg"><div class="fl">To</div><input type="date" class="inp" id="rev-to" style="width:145px" onchange="renderRevRpt()"></div>
+    <div class="fg"><div class="fl">Group By</div>
+      <select class="inp" id="rev-grpby" style="width:130px" onchange="renderRevRpt()">
+        <option value="day">Day</option><option value="week">Week</option><option value="month">Month</option>
+      </select>
+    </div>
+    <button class="btn btn-gold btn-sm" onclick="renderRevRpt()">Generate</button>
+  </div>
+  <!-- KPI row -->
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:14px" id="rev-rpt-kpis"></div>
+  <!-- By Period -->
+  <div class="card mb12">
+    <div class="section-hdr mb8"><div class="section-title text-sm">Revenue by Period</div></div>
+    <div class="tbl-wrap"><table><thead><tr><th>Period</th><th>Rooms Sold</th><th>Room Revenue</th><th>Extra Charges</th><th>GST</th><th>Total</th><th>Payments</th></tr></thead><tbody id="rev-period-tbody"></tbody></table></div>
+  </div>
+  <!-- By Room -->
+  <div class="card mb12">
+    <div class="section-hdr mb8"><div class="section-title text-sm">Revenue by Room</div></div>
+    <div class="tbl-wrap"><table><thead><tr><th>Room</th><th>Category</th><th>Nights Sold</th><th>Revenue</th><th>ADR</th></tr></thead><tbody id="rev-room-tbody"></tbody></table></div>
+  </div>
+  <!-- By Source -->
+  <div class="card">
+    <div class="section-hdr mb8"><div class="section-title text-sm">Revenue by Booking Source</div></div>
+    <div class="tbl-wrap"><table><thead><tr><th>Source</th><th>Bookings</th><th>Room Nights</th><th>Revenue</th><th>Share%</th></tr></thead><tbody id="rev-src-tbody"></tbody></table></div>
+  </div>
+</div>
+
+<!-- ══════════════════════ ARRIVALS / DEPARTURES ══════════════════════ -->
+<div class="page" id="page-rpt-arrivals">
+  <div class="section-hdr mb12">
+    <div class="section-title">🛬 Arrivals / Departures</div>
+    <button class="btn btn-outline btn-sm" onclick="window.print()">🖨 Print</button>
+  </div>
+  <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:flex-end">
+    <div class="fg"><div class="fl">Date</div><input type="date" class="inp" id="arr-date" style="width:145px" onchange="renderArrRpt()"></div>
+    <div class="fg"><div class="fl">View</div>
+      <select class="inp" id="arr-view" style="width:140px" onchange="renderArrRpt()">
+        <option value="both">Arrivals + Departures</option>
+        <option value="arrivals">Arrivals Only</option>
+        <option value="departures">Departures Only</option>
+        <option value="inhouse">In-House Only</option>
+      </select>
+    </div>
+    <button class="btn btn-gold btn-sm" onclick="renderArrRpt()">Generate</button>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px" id="arr-summary"></div>
+  <!-- Arrivals -->
+  <div class="card mb12" id="arr-section">
+    <div class="section-hdr mb8"><div class="section-title text-sm">🛬 Arrivals</div></div>
+    <div class="tbl-wrap"><table><thead><tr><th>Res No</th><th>Guest</th><th>Room</th><th>Category</th><th>Nights</th><th>Checkout</th><th>Rate Type</th><th>Total</th><th>Advance</th><th>Balance</th></tr></thead><tbody id="arr-tbody"></tbody></table></div>
+  </div>
+  <!-- Departures -->
+  <div class="card mb12" id="dep-section">
+    <div class="section-hdr mb8"><div class="section-title text-sm">🛫 Departures</div></div>
+    <div class="tbl-wrap"><table><thead><tr><th>Res No</th><th>Guest</th><th>Room</th><th>Nights</th><th>Total</th><th>Paid</th><th>Balance</th><th>Status</th></tr></thead><tbody id="dep-tbody"></tbody></table></div>
+  </div>
+  <!-- In-House -->
+  <div class="card" id="inhouse-section">
+    <div class="section-hdr mb8"><div class="section-title text-sm">🏨 In-House Guests</div></div>
+    <div class="tbl-wrap"><table><thead><tr><th>Res No</th><th>Guest</th><th>Room</th><th>Check-in</th><th>Checkout</th><th>Nights Left</th><th>Balance</th></tr></thead><tbody id="inhouse-tbody"></tbody></table></div>
+  </div>
+</div>
+
+<!-- ══════════════════════ GST REGISTER ══════════════════════ -->
+<div class="page" id="page-rpt-gst">
+  <div class="section-hdr mb12">
+    <div class="section-title">🧾 GST Invoice Register</div>
+    <button class="btn btn-outline btn-sm" onclick="window.print()">🖨 Print</button>
+  </div>
+  <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:flex-end">
+    <div class="fg"><div class="fl">From</div><input type="date" class="inp" id="gst-from" style="width:145px" onchange="renderGSTRpt()"></div>
+    <div class="fg"><div class="fl">To</div><input type="date" class="inp" id="gst-to" style="width:145px" onchange="renderGSTRpt()"></div>
+    <button class="btn btn-gold btn-sm" onclick="renderGSTRpt()">Generate</button>
+  </div>
+  <!-- GST Summary -->
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:14px" id="gst-summary"></div>
+  <div class="card">
+    <div class="tbl-wrap">
+      <table><thead><tr><th>Inv No</th><th>Date</th><th>Res No</th><th>Guest</th><th>Room</th><th>Taxable Amt</th><th>CGST 2.5%</th><th>SGST 2.5%</th><th>Total GST</th><th>Invoice Total</th></tr></thead>
+      <tbody id="gst-tbody"></tbody>
+      <tfoot id="gst-tfoot"></tfoot>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════ MONTHLY SUMMARY ══════════════════════ -->
+<div class="page" id="page-rpt-monthly">
+  <div class="section-hdr mb12">
+    <div class="section-title">📅 Monthly Summary</div>
+    <button class="btn btn-outline btn-sm" onclick="window.print()">🖨 Print</button>
+  </div>
+  <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:flex-end">
+    <div class="fg"><div class="fl">Month</div><input type="month" class="inp" id="mth-month" style="width:160px" onchange="renderMthRpt()"></div>
+    <button class="btn btn-gold btn-sm" onclick="renderMthRpt()">Generate</button>
+  </div>
+  <div id="monthly-report-wrap"></div>
+</div>
+
+<!-- ══════════════════════ HOUSEKEEPING ══════════════════════ -->
+<div class="page" id="page-housekeeping">
+  <div class="section-hdr mb12">
+    <div class="section-title">🧹 Housekeeping</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-outline btn-sm" onclick="hkFilter('all',this)" id="hk-all" style="background:var(--gold-dim);color:var(--gold)">All</button>
+      <button class="btn btn-outline btn-sm" onclick="hkFilter('dirty',this)">Dirty</button>
+      <button class="btn btn-outline btn-sm" onclick="hkFilter('cleaning',this)">Cleaning</button>
+      <button class="btn btn-outline btn-sm" onclick="hkFilter('clean',this)">Clean</button>
+      <button class="btn btn-outline btn-sm" onclick="hkFilter('inspected',this)">Inspected</button>
+      <button class="btn btn-outline btn-sm" onclick="hkFilter('dnd',this)">DND</button>
+    </div>
+  </div>
+  <div class="rv-grid" id="hk-grid"></div>
+</div>
+
+<!-- ══════════════════════ WAITLIST ══════════════════════ -->
+<div class="page" id="page-waitlist">
+  <div class="section-hdr mb12">
+    <div class="section-title">⏳ Waitlist</div>
+    <button class="btn btn-gold btn-sm" onclick="openModal('waitlistModal')">＋ Add to Waitlist</button>
+  </div>
+  <div class="tbl-wrap">
+    <table><thead><tr><th>Date Added</th><th>Guest</th><th>Mobile</th><th>Requested Dates</th><th>Category</th><th>Nights</th><th>Status</th><th>Actions</th></tr></thead>
+    <tbody id="waitlist-tbody"></tbody></table>
+  </div>
+</div>
+
+<!-- ══════════════════════ OTA IMPORT ══════════════════════ -->
+<div class="page" id="page-otaimport">
+  <div class="section-hdr mb12">
+    <div class="section-title">📥 OTA Reservation Import</div>
+  </div>
+  <div class="s-grid">
+    <div class="s-card">
+      <div class="s-ttl">📋 Paste Reservation Details</div>
+      <p class="text-sm text-dim mb12">Copy the reservation details from Booking.com, MakeMyTrip, Agoda etc. and paste below. The system will extract key details automatically.</p>
+      <div class="fg mb10"><div class="fl">Source</div>
+        <select class="inp" id="ota-source">
+          <option>Booking.com</option><option>MakeMyTrip</option><option>Agoda</option>
+          <option>Goibibo</option><option>Yatra</option><option>Airbnb</option><option>Other OTA</option>
+        </select>
+      </div>
+      <div class="fg mb10"><div class="fl">Paste Reservation Text / Email</div>
+        <textarea class="inp" id="ota-paste" rows="8" placeholder="Paste the reservation confirmation text, email content, or fill fields below manually..."></textarea>
+      </div>
+      <button class="btn btn-gold" onclick="parseOTA()" style="width:100%;margin-bottom:12px">🔍 Extract Details</button>
+    </div>
+    <div class="s-card">
+      <div class="s-ttl">✅ Extracted / Manual Entry</div>
+      <div class="fg mb8"><div class="fl">Guest Name</div><input class="inp" id="ota-name"></div>
+      <div class="fg mb8"><div class="fl">Mobile</div><input class="inp" id="ota-mob" type="tel"></div>
+      <div class="fg mb8"><div class="fl">OTA Booking Ref</div><input class="inp" id="ota-ref" placeholder="e.g. BDC-12345678"></div>
+      <div class="fg mb8"><div class="fl">Check-in</div><input class="inp" id="ota-cin" type="date"></div>
+      <div class="fg mb8"><div class="fl">Check-out</div><input class="inp" id="ota-cout" type="date"></div>
+      <div class="fg mb8"><div class="fl">Room Category</div>
+        <select class="inp" id="ota-cat">
+          <option>Executive Room</option><option>Executive Plus</option><option>Deluxe Room</option>
+        </select>
+      </div>
+      <div class="fg mb8"><div class="fl">Rate Type</div>
+        <select class="inp" id="ota-rate"><option>AC</option><option>Non-AC</option><option>CP</option><option>EP</option></select>
+      </div>
+      <div class="fg mb8"><div class="fl">Total Amount (₹)</div><input class="inp" id="ota-total" type="number" placeholder="0"></div>
+      <div class="fg mb10"><div class="fl">Special Requests</div><input class="inp" id="ota-remarks"></div>
+      <button class="btn btn-success" onclick="importOTA()" style="width:100%">✅ Create Reservation</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════ WALK-IN QUICK CHECK-IN ══════════════════════ -->
+<div class="page" id="page-walkin">
+  <div class="section-hdr mb12">
+    <div class="section-title">🚶 Quick Walk-In Check-In</div>
+    <div class="text-sm text-dim">Minimal fields — fast check-in for walk-in guests</div>
+  </div>
+  <div style="max-width:600px;margin:0 auto">
+    <div class="card">
+      <div class="grid2 mb12">
+        <div class="fg"><div class="fl">Guest Name</div>
+          <div style="display:flex;gap:5px">
+            <select class="inp" id="wi-sal" style="width:75px"><option>Mr.</option><option>Mrs.</option><option>Ms.</option><option>Dr.</option></select>
+            <input class="inp" id="wi-name" placeholder="Full name" style="flex:1" oninput="fetchGuestByPhone()">
+          </div>
+        </div>
+        <div class="fg"><div class="fl">Mobile</div>
+          <input class="inp" id="wi-mob" placeholder="Mobile" type="tel" oninput="autoFillGuest(this.value,'wi')">
+        </div>
+        <div class="fg"><div class="fl">ID Type</div>
+          <select class="inp" id="wi-idtype"><option>Aadhar Card</option><option>PAN Card</option><option>Passport</option><option>Driving License</option></select>
+        </div>
+        <div class="fg"><div class="fl">ID Number</div><input class="inp" id="wi-idno"></div>
+        <div class="fg"><div class="fl">Room</div>
+          <select class="inp" id="wi-room" onchange="wiRoomChange()">
+            <option value="">— Select —</option>
+          </select>
+        </div>
+        <div class="fg"><div class="fl">Rate Type</div>
+          <select class="inp" id="wi-ratetype" onchange="wiCalc()"><option>AC</option><option>Non-AC</option><option>CP</option><option>EP</option><option>Hourly</option></select>
+        </div>
+        <div class="fg"><div class="fl">Check-out Date</div><input class="inp" id="wi-cout" type="date" onchange="wiCalc()"></div>
+        <div class="fg"><div class="fl">Advance (₹)</div><input class="inp" id="wi-adv" type="number" value="0" oninput="wiCalc()"></div>
+      </div>
+      <!-- Quick billing summary -->
+      <div id="wi-billing" class="audit-info" style="margin-bottom:12px"></div>
+      <div class="fg mb10"><div class="fl">Payment Mode</div>
+        <select class="inp" id="wi-paymode"><option>Cash</option><option>UPI</option><option>Card</option></select>
+      </div>
+      <button class="btn btn-success" onclick="saveWalkIn()" style="width:100%;padding:14px;font-size:15px;font-weight:700">🛬 CHECK IN NOW</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════ SHIFT REPORT ══════════════════════ -->
+<div class="page" id="page-shift">
+  <div class="section-hdr mb12">
+    <div class="section-title">⏱ Shift Report</div>
+    <button class="btn btn-outline btn-sm" onclick="window.print()">🖨 Print</button>
+  </div>
+  <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:flex-end">
+    <div class="fg"><div class="fl">Date</div><input type="date" class="inp" id="shift-date" style="width:145px" onchange="renderShift()"></div>
+    <div class="fg"><div class="fl">Shift</div>
+      <select class="inp" id="shift-type" style="width:140px" onchange="renderShift()">
+        <option value="morning">Morning (6AM–2PM)</option>
+        <option value="evening">Evening (2PM–10PM)</option>
+        <option value="night">Night (10PM–6AM)</option>
+        <option value="full">Full Day</option>
+      </select>
+    </div>
+    <button class="btn btn-gold btn-sm" onclick="renderShift()">Generate</button>
+  </div>
+  <div id="shift-summary" class="dep-summary" style="grid-template-columns:repeat(auto-fit,minmax(130px,1fr));margin-bottom:14px"></div>
+  <div class="card">
+    <div class="section-hdr mb8"><div class="section-title text-sm">Transactions This Shift</div></div>
+    <div class="tbl-wrap"><table><thead><tr><th>Time</th><th>Res No</th><th>Guest</th><th>Room</th><th>Type</th><th>Mode</th><th>Amount</th></tr></thead><tbody id="shift-tbody"></tbody></table></div>
+  </div>
+</div>
+
 <!-- ══════════════════════ SETTINGS ══════════════════════ -->
 <div class="page" id="page-settings">
   <div class="tabs">
@@ -723,7 +1018,7 @@ td{padding:9px 11px;vertical-align:middle}
     <div class="mtitle" id="bkTitle">New Reservation</div>
     <button class="xbtn" onclick="closeModal('bkModal')">✕</button>
   </div>
-  <div class="mbody">
+  <div class="mbody" style="overflow-y:auto;-webkit-overflow-scrolling:touch;max-height:calc(82vh - 120px)">
     <div class="booking-layout">
       <!-- LEFT -->
       <div>
@@ -777,7 +1072,7 @@ td{padding:9px 11px;vertical-align:middle}
               <input class="inp" id="b-name" placeholder="Full name" style="flex:1">
             </div>
           </div>
-          <div class="fg"><div class="fl">Mobile</div><input class="inp" id="b-mob" placeholder="Mobile" type="tel"></div>
+          <div class="fg"><div class="fl">Mobile</div><input class="inp" id="b-mob" placeholder="Mobile" type="tel" oninput="autoFillGuest(this.value,'b')"></div>
           <div class="fg"><div class="fl">Email</div><input class="inp" id="b-email" placeholder="Email" type="email"></div>
           <div class="fg"><div class="fl">Nationality</div><input class="inp" id="b-nat" placeholder="Indian" value="Indian"></div>
           <div class="fg"><div class="fl">ID Type</div>
@@ -827,10 +1122,10 @@ td{padding:9px 11px;vertical-align:middle}
       </div>
     </div>
   </div>
-  <div class="mfoot" style="flex-wrap:wrap;gap:8px">
-    <button class="btn btn-outline" onclick="closeModal('bkModal')" style="flex:0 0 auto">Cancel</button>
-    <button class="btn btn-outline" onclick="saveBooking(false)" style="flex:1;min-width:140px">💾 Save Reservation</button>
-    <button class="btn btn-success" onclick="saveBooking(true)" style="flex:1;min-width:130px">✓ Check In Now</button>
+  <div class="mfoot" style="flex-wrap:wrap;gap:8px;padding:12px 16px">
+    <button class="btn btn-outline" onclick="closeModal('bkModal')" style="flex:0 0 auto;min-width:80px">Cancel</button>
+    <button class="btn btn-outline" onclick="saveBooking(false)" style="flex:1;min-width:120px">💾 Save</button>
+    <button class="btn btn-success" onclick="saveBooking(true)" style="flex:1;min-width:120px;font-weight:700">🛬 Check In</button>
   </div>
 </div>
 </div>
@@ -862,10 +1157,18 @@ td{padding:9px 11px;vertical-align:middle}
           <div id="rm-folio-summary"></div>
           <div class="bill-sep mt8"></div>
           <div style="display:flex;flex-direction:column;gap:6px;margin-top:8px">
+            <button class="btn btn-blue btn-sm" id="rm-ci-btn" onclick="doCheckin()" style="display:none">🛬 Check In</button>
             <button class="btn btn-success btn-sm" id="rm-co-btn" onclick="doCheckout()">✓ Check Out</button>
             <button class="btn btn-gold btn-sm" onclick="rmTab('rmt-invoice',document.querySelectorAll('#rmModal .tab')[3]);buildInvoice()">🧾 Invoice</button>
             <button class="btn btn-outline btn-sm" onclick="printGRC()">📄 Print GRC</button>
             <button class="btn btn-outline btn-sm" onclick="editRes()">✏ Edit Booking</button>
+            <button class="btn btn-outline btn-sm" onclick="openSplitPay()">💳 Split Payment</button>
+            <button class="btn btn-outline btn-sm" onclick="openDiscount()">🏷 Discount</button>
+            <button class="btn btn-outline btn-sm" onclick="openRefund()">↩ Refund</button>
+            <button class="btn btn-outline btn-sm" onclick="openTransfer()">🔄 Room Transfer</button>
+            <button class="btn btn-outline btn-sm" onclick="openExtend()">📅 Extend Stay</button>
+            <button class="btn btn-outline btn-sm" id="rm-undo-btn" onclick="undoCheckout()" style="display:none">↩ Undo Checkout</button>
+            <button class="btn btn-danger btn-sm" id="rm-del-btn" onclick="deleteRes()">🗑 Delete Booking</button>
           </div>
         </div>
       </div>
@@ -971,7 +1274,141 @@ td{padding:9px 11px;vertical-align:middle}
 </div>
 </div>
 
-<!-- CAMERA MODAL -->
+<!-- SPLIT PAYMENT MODAL -->
+<div class="overlay" id="splitPayModal">
+<div class="modal modal-sm" style="max-width:480px">
+  <div class="mhdr"><div class="mtitle">💳 Split Payment</div><button class="xbtn" onclick="closeModal('splitPayModal')">✕</button></div>
+  <div class="mbody">
+    <div id="split-res-info" class="audit-info mb12"></div>
+    <div id="split-rows">
+      <div class="split-row grid2 mb8" id="split-row-0">
+        <div class="fg"><div class="fl">Mode 1</div><select class="inp" id="sp-mode-0"><option>Cash</option><option>UPI</option><option>Card</option><option>City Ledger</option></select></div>
+        <div class="fg"><div class="fl">Amount (₹)</div><input class="inp" id="sp-amt-0" type="number" placeholder="0" oninput="updateSplitTotal()"></div>
+      </div>
+      <div class="split-row grid2 mb8" id="split-row-1">
+        <div class="fg"><div class="fl">Mode 2</div><select class="inp" id="sp-mode-1"><option>UPI</option><option>Cash</option><option>Card</option><option>City Ledger</option></select></div>
+        <div class="fg"><div class="fl">Amount (₹)</div><input class="inp" id="sp-amt-1" type="number" placeholder="0" oninput="updateSplitTotal()"></div>
+      </div>
+    </div>
+    <div class="bill-sep"></div>
+    <div class="bill-row mt8"><span class="text-dim">Total Paying</span><span class="mono bold" id="split-total">₹0</span></div>
+    <div class="bill-row"><span class="text-dim">Balance Due</span><span class="mono bill-due" id="split-balance">₹0</span></div>
+    <div class="fg mt10"><div class="fl">Remarks</div><input class="inp" id="split-rem" placeholder="Optional"></div>
+  </div>
+  <div class="mfoot"><button class="btn btn-outline" onclick="closeModal('splitPayModal')">Cancel</button><button class="btn btn-gold" onclick="saveSplitPay()">Save Payment</button></div>
+</div>
+</div>
+
+<!-- DISCOUNT MODAL -->
+<div class="overlay" id="discountModal">
+<div class="modal modal-sm" style="max-width:400px">
+  <div class="mhdr"><div class="mtitle">🏷 Apply Discount</div><button class="xbtn" onclick="closeModal('discountModal')">✕</button></div>
+  <div class="mbody">
+    <div id="disc-res-info" class="audit-info mb12"></div>
+    <div class="fg mb10"><div class="fl">Discount Type</div>
+      <select class="inp" id="disc-type" onchange="calcDiscount()">
+        <option value="pct">Percentage (%)</option><option value="flat">Flat Amount (₹)</option>
+      </select>
+    </div>
+    <div class="fg mb10"><div class="fl">Value</div><input class="inp" id="disc-val" type="number" placeholder="0" oninput="calcDiscount()"></div>
+    <div class="fg mb10"><div class="fl">Reason</div>
+      <select class="inp" id="disc-reason">
+        <option>Long Stay</option><option>Regular Guest</option><option>Corporate Rate</option>
+        <option>Promotional Offer</option><option>Management Discount</option><option>Other</option>
+      </select>
+    </div>
+    <div class="bill-sep"></div>
+    <div class="bill-row mt8"><span class="text-dim">Original Amount</span><span class="mono" id="disc-orig">₹0</span></div>
+    <div class="bill-row"><span class="text-dim">Discount</span><span class="mono text-red" id="disc-amt">-₹0</span></div>
+    <div class="bill-row bill-total"><span>New Total</span><span class="mono" id="disc-new">₹0</span></div>
+  </div>
+  <div class="mfoot"><button class="btn btn-outline" onclick="closeModal('discountModal')">Cancel</button><button class="btn btn-gold" onclick="saveDiscount()">Apply</button></div>
+</div>
+</div>
+
+<!-- REFUND MODAL -->
+<div class="overlay" id="refundModal">
+<div class="modal modal-sm" style="max-width:400px">
+  <div class="mhdr"><div class="mtitle">↩ Process Refund</div><button class="xbtn" onclick="closeModal('refundModal')">✕</button></div>
+  <div class="mbody">
+    <div id="refund-res-info" class="audit-info mb12"></div>
+    <div class="fg mb10"><div class="fl">Refund Amount (₹)</div><input class="inp" id="refund-amt" type="number" placeholder="0"></div>
+    <div class="fg mb10"><div class="fl">Refund Mode</div>
+      <select class="inp" id="refund-mode"><option>Cash</option><option>UPI</option><option>Bank Transfer</option></select>
+    </div>
+    <div class="fg mb10"><div class="fl">Reason</div><input class="inp" id="refund-reason" placeholder="Reason for refund"></div>
+  </div>
+  <div class="mfoot"><button class="btn btn-outline" onclick="closeModal('refundModal')">Cancel</button><button class="btn btn-danger" onclick="saveRefund()">Process Refund</button></div>
+</div>
+</div>
+
+<!-- ROOM TRANSFER MODAL -->
+<div class="overlay" id="transferModal">
+<div class="modal modal-sm" style="max-width:400px">
+  <div class="mhdr"><div class="mtitle">🔄 Room Transfer</div><button class="xbtn" onclick="closeModal('transferModal')">✕</button></div>
+  <div class="mbody">
+    <div id="transfer-res-info" class="audit-info mb12"></div>
+    <div class="fg mb10"><div class="fl">Transfer to Room</div>
+      <select class="inp" id="transfer-room"><option value="">— Select Room —</option></select>
+    </div>
+    <div class="fg mb10"><div class="fl">Reason</div>
+      <select class="inp" id="transfer-reason">
+        <option>Guest Request</option><option>Room Issue/Maintenance</option><option>Upgrade</option><option>Downgrade</option>
+      </select>
+    </div>
+    <div class="fg mb8"><div class="fl">New Rate (₹/night) — Leave 0 to keep same</div><input class="inp" id="transfer-rate" type="number" value="0"></div>
+  </div>
+  <div class="mfoot"><button class="btn btn-outline" onclick="closeModal('transferModal')">Cancel</button><button class="btn btn-gold" onclick="saveTransfer()">Transfer</button></div>
+</div>
+</div>
+
+<!-- EXTEND STAY MODAL -->
+<div class="overlay" id="extendModal">
+<div class="modal modal-sm" style="max-width:400px">
+  <div class="mhdr"><div class="mtitle">📅 Extend Stay</div><button class="xbtn" onclick="closeModal('extendModal')">✕</button></div>
+  <div class="mbody">
+    <div id="extend-res-info" class="audit-info mb12"></div>
+    <div class="fg mb10"><div class="fl">New Check-out Date</div><input class="inp" id="extend-cout" type="date"></div>
+    <div class="fg mb8"><div class="fl">Extra Nights Rate (₹/night)</div><input class="inp" id="extend-rate" type="number" value="0" oninput="calcExtend()"></div>
+    <div class="bill-sep"></div>
+    <div class="bill-row mt8"><span class="text-dim">Extra Nights</span><span class="mono" id="extend-nights">0</span></div>
+    <div class="bill-row"><span class="text-dim">Extra Charges</span><span class="mono" id="extend-charges">₹0</span></div>
+  </div>
+  <div class="mfoot"><button class="btn btn-outline" onclick="closeModal('extendModal')">Cancel</button><button class="btn btn-gold" onclick="saveExtend()">Extend</button></div>
+</div>
+</div>
+
+<!-- WAITLIST MODAL -->
+<div class="overlay" id="waitlistModal">
+<div class="modal modal-sm" style="max-width:440px">
+  <div class="mhdr"><div class="mtitle">⏳ Add to Waitlist</div><button class="xbtn" onclick="closeModal('waitlistModal')">✕</button></div>
+  <div class="mbody">
+    <div class="fg mb10"><div class="fl">Guest Name</div><input class="inp" id="wl-name" placeholder="Full name"></div>
+    <div class="fg mb10"><div class="fl">Mobile</div><input class="inp" id="wl-mob" type="tel"></div>
+    <div class="fg mb10"><div class="fl">Requested Check-in</div><input class="inp" id="wl-cin" type="date"></div>
+    <div class="fg mb10"><div class="fl">Requested Check-out</div><input class="inp" id="wl-cout" type="date"></div>
+    <div class="fg mb10"><div class="fl">Room Category</div>
+      <select class="inp" id="wl-cat"><option>Any</option><option>Executive Room</option><option>Executive Plus</option><option>Deluxe Room</option></select>
+    </div>
+    <div class="fg mb8"><div class="fl">Notes</div><input class="inp" id="wl-notes" placeholder="Special requests"></div>
+  </div>
+  <div class="mfoot"><button class="btn btn-outline" onclick="closeModal('waitlistModal')">Cancel</button><button class="btn btn-gold" onclick="saveWaitlist()">Add to Waitlist</button></div>
+</div>
+</div>
+
+<!-- RECEIPT MODAL -->
+<div class="overlay" id="receiptModal">
+<div class="modal modal-sm" style="max-width:420px">
+  <div class="mhdr"><div class="mtitle">🧾 Payment Receipt</div><button class="xbtn" onclick="closeModal('receiptModal')">✕</button></div>
+  <div class="mbody"><div id="receipt-content"></div></div>
+  <div class="mfoot">
+    <button class="btn btn-outline" onclick="closeModal('receiptModal')">Close</button>
+    <button class="btn btn-gold" onclick="window.print()">🖨 Print</button>
+  </div>
+</div>
+</div>
+
+
 <div class="overlay" id="camModal">
 <div class="modal modal-sm" style="max-width:440px">
   <div class="mhdr"><div class="mtitle">📸 Capture Photo</div><button class="xbtn" onclick="stopCam()">✕</button></div>
@@ -1029,14 +1466,23 @@ function loadDB() {
 
 function migrateDB(old) {
   const d = defaultDB();
-  if (old.reservations) d.reservations = old.reservations;
-  if (old.payments) d.payments = old.payments;
+  if (old.reservations) d.reservations = old.reservations.map(sanitizeRes);
+  if (old.payments) d.payments = old.payments.map(p=>{p.date=sanitizeDate(p.date);return p;});
   if (old.businessSources) d.businessSources = old.businessSources;
   if (old.settings) d.settings = { ...d.settings, ...old.settings };
-  if (old.rooms) d.rooms = old.rooms;
+  // Deduplicate rooms — keep only unique room numbers
+  if (old.rooms) {
+    const seen = new Set();
+    d.rooms = old.rooms.filter(r => {
+      if (seen.has(r.num)) return false;
+      seen.add(r.num);
+      return true;
+    });
+  }
   if (old.roomFlags) d.roomFlags = old.roomFlags;
   if (old.guestPhotos) d.guestPhotos = old.guestPhotos;
   if (old.nightAuditLog) d.nightAuditLog = old.nightAuditLog;
+  if (old.waitlist) d.waitlist = old.waitlist;
   // Always inject hardcoded URL — never lose it
   d.settings.gasurl = 'https://script.google.com/macros/s/AKfycbxkfjmlAnvxvCY7fue2yK5M3gGJwAPgcTc0tWOBct47hGM_ju1kVfSOgWgtjzvqs1Ia/exec';
   d.settings.autoSync = true;
@@ -1083,7 +1529,7 @@ function defaultDB() {
         'Due Out':'#f39c12',Dirty:'#888888'
       }
     },
-    roomFlags: {}, guestPhotos: {}, nightAuditLog: []
+    roomFlags: {}, guestPhotos: {}, nightAuditLog: [], waitlist: []
   };
 }
 
@@ -1114,7 +1560,13 @@ const fmtD = d => {
   } catch(e) { return d||'-'; }
 };
 const fmtM = n => '₹'+(n||0).toLocaleString('en-IN');
-const nights = (a,b) => { if(!a||!b) return 0; return Math.max(0,Math.round((new Date(b)-new Date(a))/86400000)); };
+const nights = (a,b) => {
+  if(!a||!b) return 0;
+  const diff=Math.round((new Date(b)-new Date(a))/86400000);
+  return Math.max(0,diff);
+};
+// For billing purposes: same-day = 1 unit
+const billingNights = n => Math.max(1, n);
 const $ = id => document.getElementById(id);
 const isDueOut = r => r.checkout === today() && r.status === 'Occupied';
 const getStatus = r => {
@@ -1131,7 +1583,26 @@ const getStatus = r => {
 const getLabel = s => ({vacant:'Vacant',occupied:'Occupied',arrival:'Arrival',confirmed:'Confirmed',dueout:'Due Out',checkout:'Checked Out',dirty:'Dirty',cancelled:'Cancelled',noshow:'No Show'}[s]||s);
 const getPaid = r => DB.payments.filter(p=>p.resId===r.resId&&!p.isAuditPost).reduce((s,p)=>s+(p.amount||0),0);
 const getBalance = r => (r.totalAmount||0) - getPaid(r);
-const activeResForRoom = num => DB.reservations.find(r=>r.rooms?.includes(num)&&!['Cancelled','Checked Out','No Show'].includes(r.status));
+// Active reservation for room = covers TODAY including Due Out (checkout=today)
+// checkout >= today so that rooms due out today still show as occupied/dueout
+const activeResForRoom = num => {
+  const t = today();
+  return DB.reservations.find(r =>
+    r.rooms?.includes(num) &&
+    !['Cancelled','Checked Out','No Show'].includes(r.status) &&
+    r.checkin <= t && r.checkout >= t
+  );
+};
+
+// Future reservation for room (confirmed for future date)
+const futureResForRoom = num => {
+  const t = today();
+  return DB.reservations.find(r =>
+    r.rooms?.includes(num) &&
+    !['Cancelled','Checked Out','No Show'].includes(r.status) &&
+    r.checkin > t
+  );
+};
 
 function nextResNo() {
   const p = DB.settings.rprefix||'R', s = parseInt(DB.settings.rstart)||1001;
@@ -1153,7 +1624,7 @@ function toast(msg, type='inf') {
 }
 
 // ════════════════════ NAVIGATION ════════════════════
-const PAGE_TITLES = {dashboard:'Dashboard',roomview:'Room View',stayview:'Stay View',calendar90:'90-Day Calendar',reservations:'Reservations',guestsearch:'Guest Search',cashier:'Cashier Report',deposit:'Deposit Tracker',cityledger:'City Ledger',revenue:'Revenue Analytics',nightaudit:'Night Audit',invoice:'Invoice / Print',settings:'Settings',databackup:'Data & Backup'};
+const PAGE_TITLES = {dashboard:'Dashboard',roomview:'Room View',stayview:'Stay View',calendar90:'90-Day Calendar',reservations:'Reservations',guestsearch:'Guest Search',cashier:'Cashier Report',deposit:'Deposit Tracker',cityledger:'City Ledger',revenue:'Revenue Analytics',nightaudit:'Night Audit',invoice:'Invoice / Print',settings:'Settings',databackup:'Data & Backup','rpt-occupancy':'Occupancy Report','rpt-revenue':'Revenue Report','rpt-arrivals':'Arrivals / Departures','rpt-gst':'GST Register','rpt-monthly':'Monthly Summary'};
 
 function goPage(name) {
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
@@ -1164,7 +1635,17 @@ function goPage(name) {
     if(n.getAttribute('onclick')?.includes("'"+name+"'")) n.classList.add('active');
   });
   if(window.innerWidth<=768) closeSidebar();
-  const renders = {roomview:renderRooms,stayview:renderSV,calendar90:renderCal90,reservations:renderRes,guestsearch:renderGS,cashier:renderCashier,deposit:renderDeposit,cityledger:renderCL,revenue:renderRevenue,nightaudit:renderNA,invoice:renderInvoicePage,settings:renderSettings,dashboard:renderDash,databackup:renderBackup};
+  const renders = {
+    roomview:renderRooms,stayview:renderSV,calendar90:renderCal90,
+    reservations:renderRes,guestsearch:renderGS,cashier:renderCashier,
+    deposit:renderDeposit,cityledger:renderCL,revenue:renderRevenue,
+    nightaudit:renderNA,invoice:renderInvoicePage,settings:renderSettings,
+    dashboard:renderDash,databackup:renderBackup,
+    'rpt-occupancy':renderOccRpt,'rpt-revenue':renderRevRpt,
+    'rpt-arrivals':renderArrRpt,'rpt-gst':renderGSTRpt,'rpt-monthly':renderMthRpt,
+    housekeeping:renderHK,waitlist:renderWaitlist,
+    walkin:initWalkIn,shift:renderShift,otaimport:()=>{}
+  };
   renders[name]?.();
   updateTopbar();
 }
@@ -1206,29 +1687,45 @@ function updateTopbar() {
 
 // ════════════════════ DASHBOARD ════════════════════
 function renderDash() {
-  const t = today();
-  const occ = DB.reservations.filter(r=>r.status==='Occupied');
-  const arr = DB.reservations.filter(r=>r.checkin===t&&['Arrival','Confirmed'].includes(r.status));
-  const dout = DB.reservations.filter(r=>isDueOut(r));
-  const rev = DB.payments.filter(p=>p.date===t&&!p.isAuditPost).reduce((s,p)=>s+(p.amount||0),0);
-  const total = DB.rooms.length;
-  $('d-total').textContent = total;
-  $('d-occ-sub').textContent = Math.round(occ.length/Math.max(total,1)*100)+'% occupied';
-  $('d-occ').textContent = occ.length;
-  $('d-arr').textContent = arr.length;
-  $('d-dout').textContent = dout.length;
-  $('d-rev').textContent = fmtM(rev);
+  const t=today();
+  const uniqueRooms=new Set(DB.rooms.map(r=>r.num)).size;
+  const occ=DB.reservations.filter(r=>r.status==='Occupied');
+  const arr=DB.reservations.filter(r=>r.checkin===t&&['Arrival','Confirmed'].includes(r.status));
+  const dout=DB.reservations.filter(r=>isDueOut(r));
+  const rev=DB.payments.filter(p=>p.date===t&&!p.isAuditPost).reduce((s,p)=>s+(p.amount||0),0);
+  // MTD revenue
+  const m=t.substring(0,7);
+  const mtd=DB.payments.filter(p=>p.date?.startsWith(m)&&!p.isAuditPost).reduce((s,p)=>s+(p.amount||0),0);
+  // KPIs
+  const occPct=Math.round(occ.length/Math.max(uniqueRooms,1)*100);
+  const adr=occ.length?Math.round(occ.reduce((s,r)=>s+((r.charges||0)/Math.max(r.nights,1)),0)/occ.length):0;
+  const revpar=Math.round(adr*occPct/100);
+  const pending=DB.reservations.filter(r=>r.status!=='Cancelled').reduce((s,r)=>s+Math.max(0,getBalance(r)),0);
+
+  $('d-total').textContent=uniqueRooms;
+  $('d-occ-sub').textContent=occPct+'% occupied today';
+  $('d-occ').textContent=occ.length;
+  $('d-arr').textContent=arr.length;
+  $('d-dout').textContent=dout.length;
+  $('d-rev').textContent=fmtM(rev);
+  if($('d-rev-mtd')) $('d-rev-mtd').textContent='MTD: '+fmtM(mtd);
+  if($('d-occ-pct')) $('d-occ-pct').textContent=occPct+'%';
+  if($('d-adr')) $('d-adr').textContent=fmtM(adr);
+  if($('d-revpar')) $('d-revpar').textContent=fmtM(revpar);
+  if($('d-pending')) $('d-pending').textContent=fmtM(pending);
   // Category snapshot
-  const cats = ['Executive Room','Executive Plus','Deluxe Room'];
-  $('d-cats').innerHTML = cats.map(c=>{
-    const total2=DB.rooms.filter(r=>r.cat===c).length;
-    const occ2=occ.filter(r=>r.rooms?.some(rn=>DB.rooms.find(rd=>rd.num===rn)?.cat===c)).length;
-    return `<div class="bill-row"><span class="text-dim">${c}</span><span class="mono bold">${occ2}/${total2}</span></div>`;
-  }).join('')+'<div class="bill-sep"></div><div class="bill-row"><span class="text-dim text-xs">Today Revenue</span><span class="mono text-gold">${fmtM(rev)}</span></div>';
+  const cats=['Executive Room','Executive Plus','Deluxe Room'];
+  $('d-cats').innerHTML=cats.map(c=>{
+    const t2=new Set(DB.rooms.filter(r=>r.cat===c).map(r=>r.num)).size;
+    const o2=occ.filter(r=>r.rooms?.some(rn=>DB.rooms.find(rd=>rd.num===rn)?.cat===c)).length;
+    return `<div class="bill-row"><span class="text-dim">${c}</span><span class="mono bold">${o2}/${t2}</span></div>`;
+  }).join('')+`<div class="bill-sep"></div><div class="bill-row"><span class="text-dim text-xs">Today Revenue</span><span class="mono text-gold">${fmtM(rev)}</span></div>`;
   // Activity
-  const act=[...arr.map(r=>`<div style="padding:4px 0;border-bottom:1px solid var(--border)">🛬 ${r.guestName} → Rm ${r.rooms?.join(',')}</div>`),
-    ...dout.map(r=>`<div style="padding:4px 0;border-bottom:1px solid var(--border)">🛫 ${r.guestName} — Rm ${r.rooms?.join(',')}</div>`)];
-  $('d-activity').innerHTML = act.length?act.join(''):'<div class="text-dim">No activity today</div>';
+  const act=[
+    ...arr.map(r=>`<div style="padding:4px 0;border-bottom:1px solid var(--border);font-size:12px">🛬 ${r.guestName} → Rm ${r.rooms?.join(',')}</div>`),
+    ...dout.map(r=>`<div style="padding:4px 0;border-bottom:1px solid var(--border);font-size:12px">🛫 ${r.guestName} — Rm ${r.rooms?.join(',')}</div>`)
+  ];
+  $('d-activity').innerHTML=act.length?act.join(''):'<div class="text-dim text-sm">No activity today</div>';
   // Mini chart (last 7 days)
   const days=7; const bars=[];
   for(let i=days-1;i>=0;i--){
@@ -1247,8 +1744,14 @@ let roomFilter='all';
 function renderRooms() {
   const grid=$('roomGrid'); const t=today();
   let html=''; let counts={all:0,vacant:0,occupied:0,arrival:0,confirmed:0,dueout:0,dirty:0};
-  DB.rooms.forEach(room=>{
-    const res=activeResForRoom(room.num);
+  // Deduplicate rooms before rendering
+  const uniqueRooms=[];
+  const seenNums=new Set();
+  DB.rooms.forEach(room=>{if(!seenNums.has(room.num)){seenNums.add(room.num);uniqueRooms.push(room);}});
+
+  uniqueRooms.forEach(room=>{
+    const res=activeResForRoom(room.num);     // today's active res only
+    const futRes=futureResForRoom(room.num);  // future booking (doesn't block today)
     let st = res ? getStatus(res) : 'vacant';
     const flag=DB.roomFlags[room.num]||{};
     if(flag.dirty&&!res) st='dirty';
@@ -1264,17 +1767,19 @@ function renderRooms() {
         <div class="rc-dates">${fmtD(res.checkin)} → ${fmtD(res.checkout)}</div>
         ${DB.settings.showBalance?`<div class="rc-bal ${bal>0?'bal-due':'bal-ok'}">${bal>0?fmtM(bal)+' due':'✓ Settled'}</div>`:''}`;
     }
-    const bookBtn = !res?`<button class="rc-book" onclick="event.stopPropagation();quickBook('${room.num}')">＋ Book</button>`:'';
+    // Show future booking as a small note — does NOT affect today's status
+    const futNote = (!res && futRes) ? `<div style="font-size:9.5px;color:var(--purple);margin-top:3px;padding-left:7px">📅 Booked ${fmtD(futRes.checkin)}</div>` : '';
+    const bookBtn = !res?`<button class="rc-book" onclick="event.stopPropagation();quickBook('${room.num}')">＋ Book Today</button>`:'';
     html+=`<div class="room-card st-${st}" onclick="openRmDetail('${room.num}')">
       <div class="rc-stripe" style="background:${DB.settings.statusColors?.[getLabel(st)]||'var(--border)'}"></div>
       <div class="rc-num">${room.num}</div>
       <div class="rc-cat ${catCls}">${room.cat.toUpperCase()}</div>
       <div class="rc-badge b-${st}">${getLabel(st)}</div>
-      ${gHtml}${bookBtn}
+      ${gHtml}${futNote}${bookBtn}
     </div>`;
   });
   grid.innerHTML = html||'<div class="text-dim text-sm">No rooms match filter</div>';
-  const vac=DB.rooms.length-counts.occupied-counts.arrival-counts.confirmed-counts.dueout;
+  const vac=counts.all-counts.occupied-counts.arrival-counts.dueout;
   $('rv-cnt').innerHTML=`<span class="mono bold">${counts.all}</span> total · <span class="mono text-green">${counts.occupied+counts.dueout}</span> occ · <span class="mono" style="color:var(--text2)">${Math.max(0,vac)}</span> vacant · <span class="mono" style="color:var(--orange)">${counts.dueout}</span> due out`;
   updateTopbar();
 }
@@ -1294,18 +1799,31 @@ function renderSV(){
   let html=`<table class="sv-tbl"><thead><tr><th class="sv-room-hdr">Room</th>`;
   dates.forEach(d=>{const isT=d===t;html+=`<th class="sv-date-hdr${isT?' today':''}">${new Date(d+'T00:00:00').toLocaleDateString('en-IN',{day:'2-digit',month:'short'})}<br>${new Date(d+'T00:00:00').toLocaleDateString('en-IN',{weekday:'short'})}</th>`;});
   html+=`</tr></thead><tbody>`;
+
+  // Deduplicate rooms for stay view
+  const uniqueRoomsSV=[];const seenSV=new Set();
+  DB.rooms.forEach(r=>{if(!seenSV.has(r.num)){seenSV.add(r.num);uniqueRoomsSV.push(r);}});
+
   cats.forEach(cat=>{
-    const rooms=DB.rooms.filter(r=>r.cat===cat);
-    if(!rooms.length) return;
+    const catRooms=uniqueRoomsSV.filter(r=>r.cat===cat);
+    if(!catRooms.length) return;
     html+=`<tr class="sv-cat-row"><td colspan="${DAYS+1}">${cat}</td></tr>`;
-    rooms.forEach(room=>{
+    catRooms.forEach(room=>{
       html+=`<tr><td class="sv-room-hdr">${room.num}</td>`;
       dates.forEach(d=>{
-        const res=DB.reservations.find(r=>r.rooms?.includes(room.num)&&!['Cancelled','No Show'].includes(r.status)&&d>=r.checkin&&d<r.checkout);
+        // Find reservation covering this date — use sanitized dates for comparison
+        const res=DB.reservations.find(r=>{
+          if(!r.rooms?.includes(room.num)) return false;
+          if(['Cancelled','No Show'].includes(r.status)) return false;
+          const cin=sanitizeDate(r.checkin);
+          const cout=sanitizeDate(r.checkout);
+          if(!cin||!cout) return false;
+          return d>=cin && d<cout;
+        });
         if(res){
-          const isdo=isDueOut(res)&&d===res.checkout;
-          const cls=res.status==='Occupied'?(isDueOut(res)?'sv-dueout':'sv-occ'):res.status==='Confirmed'?'sv-conf':'sv-arr';
-          html+=`<td class="sv-cell" onclick="openRmDetail('${room.num}')"><div class="${cls} sv-blk">${(res.guestName||'').split(' ')[0]}</div></td>`;
+          const isDO=isDueOut(res)&&d===sanitizeDate(res.checkout);
+          const cls=isDO?'sv-dueout':res.status==='Occupied'?'sv-occ':res.status==='Confirmed'?'sv-conf':res.status==='Checked Out'?'sv-occ':'sv-arr';
+          html+=`<td class="sv-cell" onclick="openRmDetail('${room.num}')"><div class="${cls} sv-blk" title="${res.guestName}">${(res.guestName||'').split(' ').slice(0,2).join(' ')}</div></td>`;
         }else{html+=`<td class="sv-cell" onclick="quickBook('${room.num}')"></td>`;}
       });
       html+=`</tr>`;
@@ -1313,9 +1831,15 @@ function renderSV(){
   });
   // Availability row
   html+=`<tr><td class="sv-room-hdr" style="color:var(--gold);font-size:10.5px">Available</td>`;
+  const totalUniqueRooms=new Set(DB.rooms.map(r=>r.num)).size;
   dates.forEach(d=>{
-    const occ=DB.reservations.filter(r=>!['Cancelled','Checked Out','No Show'].includes(r.status)&&d>=r.checkin&&d<r.checkout).flatMap(r=>r.rooms||[]).length;
-    html+=`<td style="text-align:center;font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;vertical-align:middle">${DB.rooms.length-occ}</td>`;
+    const occRooms=new Set();
+    DB.reservations.forEach(r=>{
+      if(['Cancelled','Checked Out','No Show'].includes(r.status)) return;
+      const cin=sanitizeDate(r.checkin);const cout=sanitizeDate(r.checkout);
+      if(cin&&cout&&d>=cin&&d<cout) r.rooms?.forEach(rn=>occRooms.add(rn));
+    });
+    html+=`<td style="text-align:center;font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;vertical-align:middle">${totalUniqueRooms-occRooms.size}</td>`;
   });
   html+=`</tr></tbody></table>`;
   $('svWrap').innerHTML=html;
@@ -1363,7 +1887,14 @@ function calDayClick(ds){
 // ════════════════════ RESERVATIONS ════════════════════
 function renderRes(){
   const t=today();
-  let data=[...DB.reservations].reverse();
+  // Sort: active first (Occupied, Arrival, Due Out), then by checkin date newest first
+  let data=[...DB.reservations].sort((a,b)=>{
+    const order={Occupied:0,'Due Out':0,Arrival:1,Confirmed:2,'Checked Out':3,Cancelled:4,'No Show':4};
+    const aO=order[isDueOut(a)?'Due Out':a.status]??5;
+    const bO=order[isDueOut(b)?'Due Out':b.status]??5;
+    if(aO!==bO) return aO-bO;
+    return (b.checkin||'').localeCompare(a.checkin||'');
+  });
   const q=$('resQ')?.value?.toLowerCase()||'';
   const from=$('resFrom')?.value, to=$('resTo')?.value;
   const st=$('resSt')?.value;
@@ -1640,21 +2171,37 @@ function renderNA(){
   $('naLogTbody').innerHTML=DB.nightAuditLog.slice().reverse().map(l=>`<tr><td>${fmtD(l.date)}</td><td>${l.rooms}</td><td class="mono">${fmtM(l.tariff||0)}</td><td>${l.time}</td></tr>`).join('')||`<tr><td colspan="4" style="text-align:center;color:var(--text3);padding:12px">No audits yet</td></tr>`;
 }
 function runAudit(){
-  if(!confirm('Run Night Audit? This posts room tariffs for all in-house guests.')) return;
-  const t=today(); const inhouse=DB.reservations.filter(r=>r.status==='Occupied');
+  if(!confirm('Run Night Audit?\n\nThis will:\n• Post room tariffs for all in-house guests\n• Update statuses for tomorrow\n• Mark today\'s date as audited')) return;
+  const t=today();
+  const tom=new Date(Date.now()+86400000).toISOString().split('T')[0];
+  const inhouse=DB.reservations.filter(r=>r.status==='Occupied');
   let posted=[], total=0;
+
   inhouse.forEach(r=>{
-    const nightly=Math.round((r.charges||0)/Math.max(r.nights||1,1));
+    const ratePerNight=Math.round((r.charges||0)/Math.max(r.nights||1,1));
+    const gInfo=calcGST(ratePerNight,1,false);
+    const nightly=gInfo.baseCharges+gInfo.gstAmt;
     total+=nightly;
-    // Change arrival to occupied for tomorrow's arrivals
     posted.push(`Room ${r.rooms?.join(',')} — ${r.guestName}: ${fmtM(nightly)}`);
   });
-  // Change Confirmed arriving today → Arrival
-  DB.reservations.filter(r=>r.checkin===t&&r.status==='Confirmed').forEach(r=>r.status='Arrival');
+
+  // Auto-update statuses for tomorrow
+  DB.reservations.forEach(r=>{
+    if(['Cancelled','Checked Out','No Show'].includes(r.status)) return;
+    // Confirmed arriving tomorrow → Arrival
+    if(r.status==='Confirmed'&&r.checkin===tom) r.status='Arrival';
+    // Occupied past checkout with no action → flag (keep as Occupied, isDueOut handles display)
+  });
+
   DB.nightAuditLog.push({date:t,rooms:inhouse.length,tariff:total,time:new Date().toLocaleTimeString()});
   save();
-  $('naPosted').innerHTML=posted.length?posted.map(p=>`<div style="padding:4px 0;border-bottom:1px solid var(--border)">✅ ${p}</div>`).join(''):'<div class="text-dim">No in-house rooms.</div>';
-  toast(`Night Audit done — ${inhouse.length} rooms processed`,'ok');
+  $('naPosted').innerHTML=posted.length?
+    `<div style="font-size:12px;color:var(--text3);margin-bottom:8px">Tariffs posted for audit date: ${fmtD(t)}</div>`+
+    posted.map(p=>`<div style="padding:4px 0;border-bottom:1px solid var(--border);font-size:12.5px">✅ ${p}</div>`).join(''):
+    '<div class="text-dim">No in-house rooms to post.</div>';
+  showConfirmDialog('🌙 NIGHT AUDIT COMPLETE',
+    `Date: ${fmtD(t)}\nRooms Processed: ${inhouse.length}\nTotal Tariff: ${fmtM(total)}\nStatuses updated for ${fmtD(tom)}`,
+    'var(--gold)');
   renderNA();
 }
 
@@ -1855,7 +2402,18 @@ function calcNights(){
 function getAvailableRooms(){
   const cin=$('b-cin')?.value,cout=$('b-cout')?.value;
   if(!cin||!cout) return DB.rooms;
-  return DB.rooms.filter(room=>!DB.reservations.find(r=>r.rooms?.includes(room.num)&&!['Cancelled','Checked Out','No Show'].includes(r.status)&&cin<r.checkout&&cout>r.checkin&&r.resId!==editResId));
+  // Deduplicate rooms first
+  const seen=new Set();
+  const uniqueRooms=DB.rooms.filter(r=>{if(seen.has(r.num))return false;seen.add(r.num);return true;});
+  return uniqueRooms.filter(room=>!DB.reservations.find(r=>{
+    if(!r.rooms?.includes(room.num)) return false;
+    if(['Cancelled','Checked Out','No Show'].includes(r.status)) return false;
+    if(r.resId===editResId) return false;
+    const rCin=sanitizeDate(r.checkin);
+    const rCout=sanitizeDate(r.checkout);
+    if(!rCin||!rCout) return false;
+    return cin < rCout && cout > rCin;
+  }));
 }
 function refreshRRUI(){
   const avail=getAvailableRooms();
@@ -1915,29 +2473,37 @@ function updateGrpSum(){
 function calcBilling(){
   const isGrp=$('b-group')?.checked, isFree=$('b-comp')?.checked;
   const n=parseInt($('bs-nights')?.textContent)||0;
-  let rooms=0, charges=0;
+  const bn=billingNights(n); // minimum 1 for billing
+  let rooms=0, baseCharges=0, gstAmt=0;
   if(isGrp){
     rooms=grpSel.length;
     const rateType=$('grp-rate')?.value||'AC';
-    grpSel.forEach(num=>{const rd=DB.rooms.find(r=>r.num===num);if(rd) charges+=(DB.settings.tariffs[rd.cat]?.[rateType]||0)*n;});
+    grpSel.forEach(num=>{
+      const rd=DB.rooms.find(r=>r.num===num);
+      if(rd){
+        const rate=DB.settings.tariffs[rd.cat]?.[rateType]||0;
+        const g=calcGST(rate,bn,false);
+        baseCharges+=g.baseCharges; gstAmt+=g.gstAmt;
+      }
+    });
   } else {
     rooms=rr.filter(r=>r.room).length;
     rr.forEach(row=>{
       let rate=row.rateVal||0;
-      if(row.inclTax) rate=Math.round(rate/1.05); // extract base if inclusive
-      charges+=rate*n;
+      const perNight=row.inclTax?Math.round(rate/1.05):rate;
+      const g=calcGST(perNight,bn,false);
+      baseCharges+=g.baseCharges; gstAmt+=g.gstAmt;
     });
   }
-  if(isFree) charges=0;
-  const gst=DB.settings.inclusiveTax?0:Math.round(charges*.05);
-  const total=charges+gst;
+  if(isFree){baseCharges=0;gstAmt=0;}
+  const total=baseCharges+gstAmt;
   const adv=parseFloat($('b-adv')?.value)||0;
   $('bs-rooms').textContent=rooms;
-  $('bs-charges').textContent=fmtM(charges);
-  $('bs-gst').textContent=fmtM(gst);
+  $('bs-charges').textContent=fmtM(baseCharges);
+  $('bs-gst').textContent=fmtM(gstAmt);
   $('bs-total').textContent=fmtM(total);
   $('bs-bal').textContent=fmtM(Math.max(0,total-adv));
-  const taxRow=$('bs-tax-row');if(taxRow) taxRow.style.display=DB.settings.inclusiveTax?'none':'flex';
+  const taxRow=$('bs-tax-row');if(taxRow) taxRow.style.display=(gstAmt===0&&!isFree)?'none':'flex';
 }
 function refreshAvail(){refreshRRUI();refreshGrpRooms();}
 function saveBooking(checkIn){
@@ -1946,20 +2512,28 @@ function saveBooking(checkIn){
   if(!rooms.length){toast('Select at least one room','err');return;}
   const cin=$('b-cin').value,cout=$('b-cout').value;
   if(!cin||!cout){toast('Enter check-in and check-out dates','err');return;}
-  if(cout<=cin){toast('Check-out date must be after check-in date','err');return;}
+  // Allow same date checkout (for hourly/day bookings) but not before checkin
+  if(cout<cin){toast('Check-out date cannot be before check-in date','err');return;}
   if(!$('b-name').value.trim()){toast('Guest name required','err');return;}
   const n=nights(cin,cout);
-  if(n<1){toast('Minimum 1 night required','err');return;}
+  if(n<0){toast('Invalid dates','err');return;}
+  const bn=billingNights(n);
   const isFree=$('b-comp').checked;
-  let charges=0;
+  let charges=0, gstTotal=0;
   if(isGrp){
     const rt=$('grp-rate')?.value||'AC';
-    rooms.forEach(num=>{const rd=DB.rooms.find(r=>r.num===num);if(rd) charges+=(DB.settings.tariffs[rd.cat]?.[rt]||0)*n;});
+    rooms.forEach(num=>{
+      const rd=DB.rooms.find(r=>r.num===num);
+      if(rd){const g=calcGST(DB.settings.tariffs[rd.cat]?.[rt]||0,bn,false);charges+=g.baseCharges;gstTotal+=g.gstAmt;}
+    });
   } else {
-    rr.filter(r=>r.room).forEach(row=>{let rate=row.rateVal||0;if(row.inclTax)rate=Math.round(rate/1.05);charges+=rate*n;});
+    rr.filter(r=>r.room).forEach(row=>{
+      const perNight=row.inclTax?Math.round((row.rateVal||0)/1.05):(row.rateVal||0);
+      const g=calcGST(perNight,bn,false);charges+=g.baseCharges;gstTotal+=g.gstAmt;
+    });
   }
-  if(isFree) charges=0;
-  const gst=DB.settings.inclusiveTax?0:Math.round(charges*.05);
+  if(isFree){charges=0;gstTotal=0;}
+  const gst=gstTotal;
   const total=charges+gst;
   const adv=parseFloat($('b-adv').value)||0;
   const resId=editResId||('res_'+Date.now());
@@ -1969,12 +2543,12 @@ function saveBooking(checkIn){
   const conf=rooms.filter(num=>{
     return DB.reservations.find(r=>{
       if(!r.rooms?.includes(num)) return false;
-      // Skip completed/cancelled reservations
       if(['Cancelled','Checked Out','No Show'].includes(r.status)) return false;
-      // Skip self when editing
       if(r.resId===editResId) return false;
-      // Date overlap: new checkin is before existing checkout AND new checkout is after existing checkin
-      return cin < r.checkout && cout > r.checkin;
+      const rCin=sanitizeDate(r.checkin);
+      const rCout=sanitizeDate(r.checkout);
+      if(!rCin||!rCout) return false;
+      return cin < rCout && cout > rCin;
     });
   });
   if(conf.length){
@@ -1989,7 +2563,7 @@ function saveBooking(checkIn){
     idType:$('b-idtype').value,idNum:$('b-idno').value,address:$('b-addr').value,city:$('b-city').value,
     state:$('b-state').value,country:$('b-country').value,source:$('b-src').value,bsource:$('b-bsrc').value,
     resType:$('b-restype').value,roomType:isGrp?($('grp-cat')?.value||'Mixed'):rr[0]?.type,
-    rateType:isGrp?($('grp-rate')?.value||'AC'):rr[0]?.rate,nights:n,charges,gst,totalAmount:total,
+    rateType:isGrp?($('grp-rate')?.value||'AC'):rr[0]?.rate,nights:bn,charges,gst,totalAmount:total,
     advance:adv,complimentary:isFree,remarks:$('b-remarks').value,
     status,bookingDate:today(),invNo:null,
     extraCharges: editResId?DB.reservations.find(r=>r.resId===editResId)?.extraCharges||[]:[]
@@ -2007,44 +2581,78 @@ function saveBooking(checkIn){
   renderRes();
   updateTopbar();
   grpSel=[];
-  // Show clear confirmation dialog
-  if(status==='Occupied'){
-    showConfirmDialog('✅ CHECKED IN!',
-      `Guest: ${gname}\nRoom(s): ${rooms.join(', ')}\nRes No: ${resNo}\nCheck-out: ${fmtD(cout)}\nTotal: ${fmtM(total)}`
-    );
-  } else {
-    showConfirmDialog('✅ RESERVATION SAVED!',
-      `Guest: ${gname}\nRoom(s): ${rooms.join(', ')}\nRes No: ${resNo}\nArrival: ${fmtD(cin)}\nTotal: ${fmtM(total)}`
-    );
-  }
+  // Delay dialog slightly so modal close animation completes first
+  setTimeout(()=>{
+    if(status==='Occupied'){
+      showConfirmDialog('🛬 CHECKED IN!',
+        `Guest: ${gname}\nRoom(s): ${rooms.join(', ')}\nRes No: ${resNo}\nCheck-out: ${fmtD(cout)}\nTotal: ${fmtM(total)}`,
+        'var(--green)'
+      );
+    } else {
+      showConfirmDialog('✅ RESERVATION SAVED!',
+        `Guest: ${gname}\nRoom(s): ${rooms.join(', ')}\nRes No: ${resNo}\nArrival: ${fmtD(cin)}\nTotal: ${fmtM(total)}`,
+        'var(--gold)'
+      );
+    }
+  }, 400);
 }
 
 // ════════════════════ CONFIRMATION DIALOG ════════════════════
 function showConfirmDialog(title, message, color='var(--green)'){
-  // Remove any existing dialog
   const old=$('confirmDialog');if(old) old.remove();
   const d=document.createElement('div');
   d.id='confirmDialog';
-  d.style.cssText=`position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:999;display:flex;align-items:center;justify-content:center;padding:20px`;
+  d.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px';
+  const icon=title.includes('OUT')?'🛫':title.includes('IN')?'🛬':title.includes('AUDIT')?'🌙':title.includes('DELETE')?'🗑':title.includes('CANCEL')?'❌':'✅';
+  const btnColor=color.includes('gold')||color.includes('c9a8')||color==='var(--gold)'?'#000':'#fff';
+  const resolvedColor=color==='var(--green)'?'#2ecc71':color==='var(--gold)'?'#c9a84c':color==='var(--orange)'?'#f39c12':color==='var(--red)'?'#e74c3c':color==='var(--accent)'?'#4a9eff':color;
   d.innerHTML=`
-    <div style="background:var(--bg2);border:2px solid ${color};border-radius:16px;padding:28px 32px;max-width:360px;width:100%;text-align:center;box-shadow:0 8px 40px rgba(0,0,0,.6)">
-      <div style="font-size:28px;margin-bottom:10px">${title.includes('CHECK')?(title.includes('OUT')?'🛫':'🛬'):(title.includes('CANCEL')?'❌':(title.includes('DELETE')?'🗑':'✅'))}</div>
-      <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:${color};margin-bottom:14px">${title}</div>
-      <div style="font-size:13px;color:var(--text2);white-space:pre-line;line-height:1.8;margin-bottom:20px">${message}</div>
-      <button onclick="document.getElementById('confirmDialog').remove()" style="background:${color};color:${color===('var(--red)'||'#e74c3c')?'#fff':'#000'};border:none;padding:10px 32px;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif">OK</button>
+    <div style="background:#1a2030;border:2px solid ${resolvedColor};border-radius:16px;padding:30px 28px;max-width:340px;width:100%;text-align:center;box-shadow:0 12px 48px rgba(0,0,0,.8)">
+      <div style="font-size:40px;margin-bottom:10px">${icon}</div>
+      <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:${resolvedColor};margin-bottom:14px;line-height:1.3">${title}</div>
+      <div style="font-size:13px;color:#a0aabf;white-space:pre-line;line-height:2;margin-bottom:22px;text-align:left;background:rgba(255,255,255,.04);padding:12px;border-radius:8px">${message}</div>
+      <button id="confirmOkBtn" style="background:${resolvedColor};color:${btnColor};border:none;padding:12px 40px;border-radius:8px;font-size:15px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;width:100%;letter-spacing:.5px">OK</button>
     </div>`;
   document.body.appendChild(d);
+  $('confirmOkBtn').onclick=()=>d.remove();
   d.onclick=e=>{if(e.target===d) d.remove();};
-  // Auto close after 4 seconds
-  setTimeout(()=>d?.remove(), 4000);
+  // Auto close after 8 seconds
+  setTimeout(()=>d?.remove(), 8000);
 }
 
-// ════════════════════ ROOM DETAIL ════════════════════
+// ════════════════════ GST CALCULATION — Fixed 5% ════════════════════
+function calcGST(ratePerNight, nights, inclusive=false){
+  const base = inclusive ? Math.round(ratePerNight / 1.05) : ratePerNight;
+  const baseCharges = base * nights;
+  const gstAmt = Math.round(baseCharges * 0.05);
+  return { baseCharges, gstAmt, pct:0.05, cgst: Math.round(gstAmt/2), sgst: Math.round(gstAmt/2) };
+}
+
+// ════════════════════ AUTO STATUS UPDATER ════════════════════
+// Run this on load and after night audit — updates reservation statuses based on today's date
+function autoUpdateStatuses(){
+  const t = today();
+  let changed = false;
+  DB.reservations.forEach(r => {
+    if(['Cancelled','Checked Out','No Show'].includes(r.status)) return;
+    // Confirmed → Arrival if checkin is today
+    if(r.status === 'Confirmed' && r.checkin === t){
+      r.status = 'Arrival'; changed = true;
+    }
+    // Arrival → Occupied if already past checkin time (auto after 2hrs)
+    // Note: Only auto-promote if Direct Check-in type
+    // Occupied past checkout date without checkout = flag as DueOut (handled by isDueOut)
+  });
+  if(changed) save();
+}
 let curRoom=null, curRes=null;
 function openRmDetail(roomNum){
   if(!roomNum){return;}
   const room=DB.rooms.find(r=>r.num===roomNum);
-  const res=activeResForRoom(roomNum)||DB.reservations.filter(r=>r.rooms?.includes(roomNum)).sort((a,b)=>b.checkin.localeCompare(a.checkin))[0];
+  const res=activeResForRoom(roomNum)||
+    DB.reservations
+      .filter(r=>r.rooms?.includes(roomNum))
+      .sort((a,b)=>(sanitizeDate(b.checkin)||'').localeCompare(sanitizeDate(a.checkin)||''))[0];
   curRoom=roomNum; curRes=res;
   $('rm-title').textContent='Room '+roomNum;
   $('rm-sub').textContent=(room?.cat||'')+(res?' — '+res.resNo+' — '+res.guestName:'');
@@ -2099,26 +2707,15 @@ function renderFolio(){
       <td><span class="chip">${p.mode}</span></td>
       <td><button class="ico-btn" onclick="delPay('${p.payId}')">🗑</button></td>
     </tr>`).join(''):`<tr><td colspan="5" style="text-align:center;color:var(--text3);padding:10px">No payments recorded</td></tr>`;
+
+  // Show/hide action buttons using static IDs — no dynamic injection
   const canCO=(r.status==='Occupied'||isDO);
+  const canCI=(r.status==='Arrival'||r.status==='Confirmed');
   const isCoedOut=r.status==='Checked Out';
   $('rm-co-btn').style.display=canCO?'':'none';
-  // Show undo checkout button
-  let undoBtn=$('rm-undo-btn');
-  if(!undoBtn){
-    undoBtn=document.createElement('button');
-    undoBtn.id='rm-undo-btn';undoBtn.className='btn btn-outline btn-sm';
-    undoBtn.textContent='↩ Undo Checkout';undoBtn.onclick=undoCheckout;
-    $('rm-co-btn')?.parentNode?.appendChild(undoBtn);
-  }
-  undoBtn.style.display=isCoedOut?'':'none';
-  // Show delete button
-  let delBtn=$('rm-del-btn');
-  if(!delBtn){
-    delBtn=document.createElement('button');
-    delBtn.id='rm-del-btn';delBtn.className='btn btn-danger btn-sm';
-    delBtn.textContent='🗑 Delete Booking';delBtn.onclick=deleteRes;
-    $('rm-co-btn')?.parentNode?.appendChild(delBtn);
-  }
+  $('rm-ci-btn').style.display=canCI?'':'none';
+  $('rm-undo-btn').style.display=isCoedOut?'':'none';
+  $('rm-del-btn').style.display='block'; // always visible
 }
 function renderCharges(){
   const r=curRes;if(!r) return;
@@ -2156,31 +2753,37 @@ function delPay(payId){
   DB.payments=DB.payments.filter(p=>p.payId!==payId);
   save();renderFolio();toast('Payment removed','inf');
 }
+function doCheckin(){
+  const r=curRes;if(!r) return;
+  if(!confirm(`Check in ${r.guestName} to Room ${r.rooms?.join(', ')}?`)) return;
+  const res=DB.reservations.find(x=>x.resId===r.resId);
+  if(res){res.status='Occupied';res.actualCheckin=today();}
+  save();curRes=res;
+  renderRooms();renderDash();renderRes();updateTopbar();renderFolio();
+  showConfirmDialog('🛬 CHECKED IN!',
+    `Guest: ${r.guestName}\nRoom: ${r.rooms?.join(', ')}\nRes No: ${r.resNo}\nCheck-out: ${fmtD(r.checkout)}\nTotal: ${fmtM(r.totalAmount)}`,'var(--green)');
+}
+
 function doCheckout(){
   const r=curRes;if(!r) return;
   const bal=getBalance(r);
-  // Block checkout if outstanding balance
   if(bal>0){
-    toast(`❌ Cannot checkout — Balance due: ${fmtM(bal)}. Please settle before checkout.`,'err');
+    showConfirmDialog('❌ CANNOT CHECKOUT',
+      `Outstanding Balance: ${fmtM(bal)}\n\nPlease collect payment first before checkout.`,
+      '#e74c3c');
     return;
   }
-  if(!confirm(`Confirm checkout for ${r.guestName}?\nRoom: ${r.rooms?.join(', ')}\nInvoice will be generated.`)) return;
+  if(!confirm(`Confirm checkout?\n\nGuest: ${r.guestName}\nRoom: ${r.rooms?.join(', ')}\n\nInvoice will be generated.`)) return;
   const res=DB.reservations.find(x=>x.resId===r.resId);
   if(res){res.status='Checked Out';res.checkoutTime=new Date().toLocaleTimeString();res.invNo=nextInvNo();}
   save();
   curRes=res;
-  // Immediately refresh all views
   renderRooms();renderDash();renderRes();updateTopbar();renderFolio();
+  // Show confirmation first, then invoice after OK
   showConfirmDialog('🛫 CHECKED OUT!',
-    `Guest: ${r.guestName}\nRoom: ${curRoom}\nInvoice No: ${res.invNo}\nTotal: ${fmtM(r.totalAmount)}\nPaid: ${fmtM(getPaid(r))}`,
-    'var(--orange)'
+    `Guest: ${r.guestName}\nRoom: ${curRoom}\nInvoice No: ${res.invNo}\nTotal: ${fmtM(r.totalAmount)}\nPaid: ${fmtM(getPaid(r))}\n\nTap Invoice tab to print.`,
+    '#f39c12'
   );
-  // Auto-show invoice
-  setTimeout(()=>{
-    buildInvoice();
-    document.querySelectorAll('#rmModal .tab').forEach((b,i)=>{b.classList[i===3?'add':'remove']('active');});
-    document.querySelectorAll('#rmModal .tc').forEach((c,i)=>{c.classList[i===3?'add':'remove']('active');});
-  },300);
 }
 
 function undoCheckout(){
@@ -2207,20 +2810,35 @@ function editRes(){
   const r=curRes;if(!r) return;
   editResId=r.resId;
   closeModal('rmModal');openModal('bkModal');
-  // Populate booking form
   $('bkTitle').textContent='Edit Reservation — '+r.resNo;
   $('b-cin').value=r.checkin;$('b-cout').value=r.checkout;
   $('b-cinT').value=r.cinTime||'12:00';$('b-coutT').value=r.coutTime||'12:00';
   const nameParts=r.guestName?.split(' ')||[];
   const salutes=['Mr.','Mrs.','Ms.','Dr.'];
   if(salutes.includes(nameParts[0])){$('b-sal').value=nameParts[0];$('b-name').value=nameParts.slice(1).join(' ');}
-  else{$('b-name').value=r.guestName||'';}
-  $('b-mob').value=r.mobile||'';$('b-email').value=r.email||'';$('b-idtype').value=r.idType||'Aadhar Card';
-  $('b-idno').value=r.idNum||'';$('b-addr').value=r.address||'';$('b-city').value=r.city||'';
-  $('b-state').value=r.state||'';$('b-country').value=r.country||'India';
-  $('b-remarks').value=r.remarks||'';$('b-src').value=r.source||'Direct';
+  else{$('b-sal').value='Mr.';$('b-name').value=r.guestName||'';}
+  $('b-mob').value=r.mobile||'';
+  $('b-email').value=r.email||'';
+  $('b-nat').value=r.nationality||'Indian';
+  $('b-idtype').value=r.idType||'Aadhar Card';
+  $('b-idno').value=r.idNum||'';
+  $('b-addr').value=r.address||'';
+  $('b-city').value=r.city||'';
+  $('b-state').value=r.state||'';
+  $('b-country').value=r.country||'India';
+  $('b-remarks').value=r.remarks||'';
+  $('b-src').value=r.source||'Direct';
+  $('b-restype').value=r.resType||'Direct Check-in';
+  $('b-adv').value=r.advance||0;
+  if($('b-comp')) $('b-comp').checked=r.complimentary||false;
+  // Load photos if available
+  const photos=DB.guestPhotos[r.resId]||{};
+  if(photos.guestPhoto){$('b-gprev').innerHTML=`<img src="${photos.guestPhoto}" style="width:100%;height:100%;object-fit:cover">`;$('b-gprev').dataset.img=photos.guestPhoto;}
+  if(photos.idPhoto){$('b-idprev').innerHTML=`<img src="${photos.idPhoto}" style="width:100%;height:100%;object-fit:cover">`;$('b-idprev').dataset.img=photos.idPhoto;}
   rr=[{type:r.roomType||'',rate:r.rateType||'AC',room:r.rooms?.[0]||'',adults:2,rateVal:Math.round((r.charges||0)/Math.max(r.nights,1)),inclTax:false}];
-  populateBSDropdowns();calcNights();refreshRRUI();
+  populateBSDropdowns();
+  if($('b-bsrc')) $('b-bsrc').value=r.bsource||'';
+  calcNights();refreshRRUI();
 }
 function openPayModal(){
   if(!curRes){toast('No active reservation','err');return;}
@@ -2255,15 +2873,13 @@ function savePay(){
   DB.payments.push(pay);
   save();
   closeModal('payModal');
-  // Refresh folio and all views immediately
   const res=DB.reservations.find(r=>r.resId===curRes.resId);
   curRes=res;
-  renderFolio();
-  renderRooms();
-  renderDash();
-  updateTopbar();
+  renderFolio();renderRooms();renderDash();updateTopbar();
   const newBal=getBalance(curRes);
   toast(`✅ Payment of ${fmtM(amt)} received via ${mode}. Balance: ${fmtM(Math.max(0,newBal))}`,'ok');
+  // Show receipt
+  setTimeout(()=>showReceiptModal(amt,mode,curRes.resId),300);
 }
 function saveGuest(){
   const r=DB.reservations.find(x=>x.resId===curRes?.resId);if(!r) return;
@@ -2280,26 +2896,80 @@ function buildInvoice(){
   const r=curRes;if(!r) return;
   const paid=getPaid(r),bal=getBalance(r);
   const invNo=r.invNo||'DRAFT';
-  $('rm-invoice-wrap').innerHTML=`<div class="inv-wrap">
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px">
-      <div><div class="inv-logo">${DB.settings.propname||'Akshaya Comforts'}</div><div style="font-size:11px;color:#666;margin-top:3px">${DB.settings.loc||'Mysore'}</div>${DB.settings.gst?`<div style="font-size:11px;color:#666">GSTIN: ${DB.settings.gst}</div>`:''}</div>
-      <div style="text-align:right"><div style="font-size:17px;font-weight:700">INVOICE</div><div style="font-size:12px;color:#666">${invNo==='DRAFT'?'<em>Generated on Checkout</em>':'No. '+invNo}</div><div style="font-size:11px;color:#666">Date: ${fmtD(today())}</div></div>
+  const ratePerNight=Math.round((r.charges||0)/Math.max(r.nights,1));
+  const gstInfo=calcGST(ratePerNight,r.nights,false);
+  const gstPct=gstInfo.pct*100;
+  const cgst=gstInfo.cgst, sgst=gstInfo.sgst;
+  const extraTotal=(r.extraCharges||[]).reduce((s,c)=>s+(c.amount||0),0);
+
+  $('rm-invoice-wrap').innerHTML=`
+  <div class="inv-wrap" id="printable-invoice">
+    <!-- HEADER -->
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #c9a84c;padding-bottom:14px;margin-bottom:14px">
+      <div>
+        <div class="inv-logo">${DB.settings.propname||'Akshaya Comforts'}</div>
+        <div style="font-size:11px;color:#555;margin-top:3px">${DB.settings.loc||'Mysore, Karnataka'}</div>
+        ${DB.settings.phone?`<div style="font-size:11px;color:#555">📞 ${DB.settings.phone}</div>`:''}
+        ${DB.settings.gst?`<div style="font-size:11px;color:#555">GSTIN: ${DB.settings.gst}</div>`:''}
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:20px;font-weight:800;color:#222;letter-spacing:2px">INVOICE</div>
+        <div style="font-size:13px;color:#555;margin-top:4px">${invNo==='DRAFT'?'<span style="color:#e74c3c;font-style:italic">Preview — Generated on Checkout</span>':'No. <b>'+invNo+'</b>'}</div>
+        <div style="font-size:11px;color:#777">Date: ${fmtD(r.checkoutTime?r.checkout:today())}</div>
+        <div style="font-size:11px;color:#777">Res No: ${r.resNo}</div>
+      </div>
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;font-size:12.5px">
-      <div><div style="font-weight:700;margin-bottom:3px">Guest</div><div>${r.guestName}</div><div style="color:#666">${r.mobile||''}</div><div style="color:#666">${r.address?r.address+', ':''} ${r.city||''}</div>${r.idType?`<div style="color:#666">${r.idType}: ${r.idNum||''}</div>`:''}</div>
-      <div><div style="font-weight:700;margin-bottom:3px">Stay</div><div>Room: ${r.rooms?.join(', ')} (${r.roomType})</div><div>Res No: ${r.resNo}</div><div>${fmtD(r.checkin)} → ${fmtD(r.checkout)} (${r.nights} nights)</div><div>Rate: ${r.rateType}</div></div>
+    <!-- GUEST & STAY -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;font-size:12px">
+      <div style="background:#f9f9f9;padding:10px;border-radius:6px">
+        <div style="font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#888;margin-bottom:6px">Guest Details</div>
+        <div style="font-size:13px;font-weight:700">${r.guestName}</div>
+        ${r.mobile?`<div style="color:#555">📱 ${r.mobile}</div>`:''}
+        ${r.email?`<div style="color:#555">✉ ${r.email}</div>`:''}
+        ${r.address?`<div style="color:#555">${r.address}${r.city?', '+r.city:''}${r.state?', '+r.state:''}</div>`:''}
+        ${r.idType&&r.idNum?`<div style="color:#555;margin-top:3px">${r.idType}: ${r.idNum}</div>`:''}
+      </div>
+      <div style="background:#f9f9f9;padding:10px;border-radius:6px">
+        <div style="font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#888;margin-bottom:6px">Stay Details</div>
+        <div><span style="color:#888">Room:</span> <b>${r.rooms?.join(', ')}</b> (${r.roomType})</div>
+        <div><span style="color:#888">Check-in:</span> ${fmtD(r.checkin)} ${r.cinTime||'12:00'}</div>
+        <div><span style="color:#888">Check-out:</span> ${fmtD(r.checkout)} ${r.coutTime||'12:00'}</div>
+        <div><span style="color:#888">Nights:</span> <b>${r.nights}</b> | Rate: ${r.rateType}</div>
+        ${r.source?`<div><span style="color:#888">Source:</span> ${r.source}</div>`:''}
+      </div>
     </div>
-    <table class="inv-tbl"><thead><tr><th>Description</th><th style="width:80px">Qty</th><th style="width:100px">Rate</th><th style="width:100px">Amount</th></tr></thead>
-    <tbody>
-      <tr><td>Room Charges — ${r.roomType} (${r.rateType})</td><td>${r.nights} nights</td><td>${fmtM(Math.round((r.charges||0)/Math.max(r.nights,1)))}/night</td><td>${fmtM(r.charges)}</td></tr>
-      ${r.gst?`<tr><td>GST @ 5%</td><td colspan="2"></td><td>${fmtM(r.gst)}</td></tr>`:''}
-      ${(r.extraCharges||[]).map(c=>`<tr><td>${c.desc}</td><td colspan="2"></td><td>${fmtM(c.amount)}</td></tr>`).join('')}
-    </tbody>
-    <tfoot><tr class="inv-foot"><td colspan="3"><strong>Total Amount</strong></td><td><strong>${fmtM(r.totalAmount)}</strong></td></tr>
-    <tr><td colspan="3" style="color:green">Amount Paid</td><td style="color:green">${fmtM(paid)}</td></tr>
-    <tr><td colspan="3" style="color:${bal>0?'red':'green'};font-weight:600">Balance Due</td><td style="color:${bal>0?'red':'green'};font-weight:700">${fmtM(bal)}</td></tr>
-    </tfoot></table>
-    <div style="margin-top:14px;font-size:10px;color:#888">${DB.settings.invnotice||''}</div>
+    <!-- CHARGES TABLE -->
+    <table class="inv-tbl">
+      <thead><tr><th style="width:45%">Description</th><th style="width:15%">Nights</th><th style="width:20%">Rate/Night</th><th style="width:20%">Amount</th></tr></thead>
+      <tbody>
+        <tr><td>Room Charges — ${r.roomType} (${r.rateType})${r.complimentary?' [Complimentary]':''}</td><td>${r.nights}</td><td>${fmtM(ratePerNight)}</td><td>${fmtM(r.charges)}</td></tr>
+        ${(r.extraCharges||[]).map(c=>`<tr><td>${c.desc} <span style="font-size:10px;color:#888">${fmtD(c.date)}</span></td><td></td><td></td><td>${fmtM(c.amount)}</td></tr>`).join('')}
+      </tbody>
+      <tfoot>
+        <tr><td colspan="3" style="text-align:right;color:#555">Sub Total</td><td>${fmtM(r.charges+extraTotal)}</td></tr>
+        ${r.gst>0?`
+        <tr><td colspan="3" style="text-align:right;color:#555">CGST @ 2.5%</td><td>${fmtM(cgst)}</td></tr>
+        <tr><td colspan="3" style="text-align:right;color:#555">SGST @ 2.5%</td><td>${fmtM(sgst)}</td></tr>
+        `:'<tr><td colspan="3" style="text-align:right;color:#888;font-size:11px">GST Exempt</td><td>₹0</td></tr>'}
+        <tr class="inv-foot"><td colspan="3" style="text-align:right"><b>Total Amount</b></td><td><b>${fmtM(r.totalAmount)}</b></td></tr>
+        <tr><td colspan="3" style="text-align:right;color:green">Amount Paid</td><td style="color:green">${fmtM(paid)}</td></tr>
+        ${paid<r.totalAmount?`<tr><td colspan="3" style="text-align:right;color:red;font-weight:700">Balance Due</td><td style="color:red;font-weight:700">${fmtM(bal)}</td></tr>`:'<tr><td colspan="4" style="text-align:center;color:green;font-weight:700">✓ FULLY PAID</td></tr>'}
+      </tfoot>
+    </table>
+    <!-- PAYMENT HISTORY -->
+    ${paid>0?`<div style="margin-top:10px;font-size:11px">
+      <div style="font-weight:700;color:#555;margin-bottom:4px;text-transform:uppercase;letter-spacing:1px">Payment History</div>
+      ${DB.payments.filter(p=>p.resId===r.resId&&!p.isAuditPost).map(p=>`<div style="display:flex;justify-content:space-between;padding:2px 0;border-bottom:1px solid #eee"><span>${fmtD(p.date)} — ${p.mode}</span><span style="color:green">${fmtM(p.amount)}</span></div>`).join('')}
+    </div>`:''}
+    <!-- FOOTER -->
+    <div style="margin-top:16px;padding-top:10px;border-top:1px solid #eee;display:flex;justify-content:space-between;align-items:flex-end">
+      <div style="font-size:10px;color:#aaa;max-width:60%">${DB.settings.invnotice||'Computer generated invoice.'}</div>
+      <div style="text-align:right;font-size:11px;color:#555">
+        <div style="margin-bottom:20px">Authorized Signatory</div>
+        <div>________________</div>
+        <div>${DB.settings.propname||'Akshaya Comforts'}</div>
+      </div>
+    </div>
   </div>`;
 }
 function emailInvoice(){
@@ -2500,7 +3170,862 @@ function stopCam(){
   closeModal('camModal');
 }
 
-// ════════════════════ MOBILE SIDEBAR ════════════════════
+// ═══════════════════════════════════════════════════
+// ════════════ REPORTS ════════════════════════════
+// ═══════════════════════════════════════════════════
+
+// ── helpers ──
+function datesInRange(from,to){
+  const dates=[];let d=new Date(from);const end=new Date(to);
+  while(d<=end){dates.push(d.toISOString().split('T')[0]);d.setDate(d.getDate()+1);}
+  return dates;
+}
+function monthStart(m){return m+'-01';}
+function monthEnd(m){const d=new Date(m+'-01');d.setMonth(d.getMonth()+1);d.setDate(0);return d.toISOString().split('T')[0];}
+function rptStatCard(lbl,val,color='var(--gold)'){
+  return `<div class="stat-card" style="padding:12px 14px;border-top:3px solid ${color}"><div class="stat-lbl">${lbl}</div><div class="stat-val" style="font-size:18px;color:${color}">${val}</div></div>`;
+}
+
+// ── 1. OCCUPANCY REPORT ──
+function renderOccRpt(){
+  const from=$('occ-from')?.value, to=$('occ-to')?.value;
+  if(!from||!to){return;}
+  const catFilter=$('occ-cat')?.value||'';
+  const dates=datesInRange(from,to);
+  const totalDays=dates.length;
+  const rooms=catFilter?DB.rooms.filter(r=>r.cat===catFilter):DB.rooms;
+  const uniqueRooms=[...new Set(rooms.map(r=>r.num))];
+  const totalRoomNights=uniqueRooms.length*totalDays;
+
+  let totalOccRoomNights=0,totalArr=0,totalDep=0,totalRev=0;
+
+  // Daily rows
+  const rows=dates.map(d=>{
+    const dayRooms=uniqueRooms.filter(num=>{
+      return DB.reservations.find(r=>r.rooms?.includes(num)&&!['Cancelled','No Show'].includes(r.status)&&sanitizeDate(r.checkin)<=d&&sanitizeDate(r.checkout)>=d&&r.status!=='Checked Out'||
+        DB.reservations.find(r=>r.rooms?.includes(num)&&r.status==='Checked Out'&&sanitizeDate(r.checkin)<=d&&sanitizeDate(r.checkout)>d));
+    });
+    const occ=DB.reservations.filter(r=>{
+      const cin=sanitizeDate(r.checkin),cout=sanitizeDate(r.checkout);
+      if(!cin||!cout) return false;
+      if(['Cancelled','No Show'].includes(r.status)) return false;
+      if(catFilter&&!r.rooms?.some(rn=>DB.rooms.find(rm=>rm.num===rn)?.cat===catFilter)) return false;
+      return cin<=d&&cout>d;
+    }).flatMap(r=>r.rooms||[]).filter(num=>uniqueRooms.includes(num));
+    const occCount=[...new Set(occ)].length;
+    const arr=DB.reservations.filter(r=>sanitizeDate(r.checkin)===d&&!['Cancelled','No Show'].includes(r.status)&&(!catFilter||r.roomType===catFilter)).length;
+    const dep=DB.reservations.filter(r=>sanitizeDate(r.checkout)===d&&!['Cancelled','No Show'].includes(r.status)&&(!catFilter||r.roomType===catFilter)).length;
+    const rev=DB.payments.filter(p=>p.date===d&&!p.isAuditPost).reduce((s,p)=>s+(p.amount||0),0);
+    const occPct=uniqueRooms.length?Math.round(occCount/uniqueRooms.length*100):0;
+    totalOccRoomNights+=occCount;totalArr+=arr;totalDep+=dep;totalRev+=rev;
+    const dow=new Date(d+'T00:00:00').toLocaleDateString('en-IN',{weekday:'short'});
+    return `<tr${occPct>=80?' style="background:rgba(46,204,113,.07)"':occPct===0?' style="background:rgba(231,76,60,.05)"':''}>
+      <td>${fmtD(d)}</td><td>${dow}</td>
+      <td class="mono">${uniqueRooms.length}</td>
+      <td class="mono bold">${occCount}</td>
+      <td class="mono ${occPct>=80?'text-green':occPct<30?'text-red':''}">${occPct}%</td>
+      <td class="mono">${arr}</td><td class="mono">${dep}</td>
+      <td class="mono">${rev>0?fmtM(rev):'-'}</td>
+    </tr>`;
+  }).join('');
+
+  const avgOcc=totalDays?Math.round(totalOccRoomNights/(uniqueRooms.length*totalDays)*100):0;
+  $('occ-summary').innerHTML=
+    rptStatCard('Available Room Nights',totalRoomNights,'var(--accent)')+
+    rptStatCard('Occupied Room Nights',totalOccRoomNights,'var(--green)')+
+    rptStatCard('Avg Occupancy',avgOcc+'%',avgOcc>=70?'var(--green)':'var(--orange)')+
+    rptStatCard('Total Arrivals',totalArr,'var(--purple)')+
+    rptStatCard('Total Departures',totalDep,'var(--orange)')+
+    rptStatCard('Total Revenue',fmtM(totalRev),'var(--gold)');
+  $('occ-tbody').innerHTML=rows||`<tr><td colspan="8" style="text-align:center;color:var(--text3);padding:16px">No data for selected range</td></tr>`;
+
+  // By category
+  const cats=['Executive Room','Executive Plus','Deluxe Room'];
+  $('occ-cat-tbody').innerHTML=cats.map(cat=>{
+    const catRooms=[...new Set(DB.rooms.filter(r=>r.cat===cat).map(r=>r.num))];
+    if(!catRooms.length) return '';
+    const catRes=DB.reservations.filter(r=>!['Cancelled','No Show'].includes(r.status)&&r.roomType===cat&&sanitizeDate(r.checkin)>=from&&sanitizeDate(r.checkout)<=to);
+    const roomNights=catRes.reduce((s,r)=>s+(r.nights||0),0);
+    const catRev=catRes.reduce((s,r)=>s+(r.charges||0),0);
+    const maxNights=catRooms.length*totalDays;
+    const occ=maxNights?Math.round(roomNights/maxNights*100):0;
+    const adr=roomNights?Math.round(catRev/roomNights):0;
+    return `<tr><td>${cat}</td><td class="mono">${catRooms.length}</td><td class="mono">${roomNights}</td><td class="mono">${occ}%</td><td class="mono">${fmtM(catRev)}</td><td class="mono">${fmtM(adr)}</td></tr>`;
+  }).join('');
+}
+
+// ── 2. REVENUE REPORT ──
+function renderRevRpt(){
+  const from=$('rev-from')?.value,to=$('rev-to')?.value;
+  if(!from||!to) return;
+  const grpby=$('rev-grpby')?.value||'day';
+  const dates=datesInRange(from,to);
+
+  // KPIs
+  const allRes=DB.reservations.filter(r=>!['Cancelled','No Show'].includes(r.status)&&sanitizeDate(r.checkin)>=from&&sanitizeDate(r.checkin)<=to);
+  const totalRev=allRes.reduce((s,r)=>s+(r.charges||0),0);
+  const totalGST=allRes.reduce((s,r)=>s+(r.gst||0),0);
+  const totalExtra=allRes.reduce((s,r)=>s+((r.extraCharges||[]).reduce((a,c)=>a+(c.amount||0),0)),0);
+  const totalInv=totalRev+totalGST+totalExtra;
+  const totalPaid=DB.payments.filter(p=>!p.isAuditPost&&p.date>=from&&p.date<=to).reduce((s,p)=>s+(p.amount||0),0);
+  const nights=allRes.reduce((s,r)=>s+(r.nights||0),0);
+  const adr=nights?Math.round(totalRev/nights):0;
+  $('rev-rpt-kpis').innerHTML=
+    rptStatCard('Room Revenue',fmtM(totalRev),'var(--gold)')+
+    rptStatCard('GST Collected',fmtM(totalGST),'var(--accent)')+
+    rptStatCard('Extra Charges',fmtM(totalExtra),'var(--orange)')+
+    rptStatCard('Total Invoiced',fmtM(totalInv),'var(--green)')+
+    rptStatCard('Payments Received',fmtM(totalPaid),'var(--teal)')+
+    rptStatCard('ADR',fmtM(adr),'var(--purple)');
+
+  // Group dates by period
+  function getPeriodKey(d){
+    if(grpby==='month') return d.substring(0,7);
+    if(grpby==='week'){const dt=new Date(d+'T00:00:00');const wd=dt.getDay();const mon=new Date(dt);mon.setDate(dt.getDate()-wd+1);return mon.toISOString().split('T')[0];}
+    return d;
+  }
+  const periods={};
+  dates.forEach(d=>{const k=getPeriodKey(d);if(!periods[k]) periods[k]=[];periods[k].push(d);});
+  $('rev-period-tbody').innerHTML=Object.entries(periods).map(([k,ds])=>{
+    const pRes=allRes.filter(r=>ds.includes(sanitizeDate(r.checkin)));
+    const roomRev=pRes.reduce((s,r)=>s+(r.charges||0),0);
+    const extra=pRes.reduce((s,r)=>s+((r.extraCharges||[]).reduce((a,c)=>a+(c.amount||0),0)),0);
+    const gst=pRes.reduce((s,r)=>s+(r.gst||0),0);
+    const total=roomRev+extra+gst;
+    const pays=DB.payments.filter(p=>!p.isAuditPost&&ds.includes(p.date)).reduce((s,p)=>s+(p.amount||0),0);
+    const lbl=grpby==='month'?new Date(k+'-01').toLocaleDateString('en-IN',{month:'long',year:'numeric'}):grpby==='week'?'Wk of '+fmtD(k):fmtD(k);
+    return `<tr><td>${lbl}</td><td class="mono">${pRes.length}</td><td class="mono">${fmtM(roomRev)}</td><td class="mono">${fmtM(extra)}</td><td class="mono">${fmtM(gst)}</td><td class="mono bold">${fmtM(total)}</td><td class="mono text-green">${fmtM(pays)}</td></tr>`;
+  }).join('')||`<tr><td colspan="7" style="text-align:center;color:var(--text3);padding:16px">No data</td></tr>`;
+
+  // By room
+  const uniqueRooms=[...new Set(DB.rooms.map(r=>r.num))];
+  $('rev-room-tbody').innerHTML=uniqueRooms.map(num=>{
+    const rRes=allRes.filter(r=>r.rooms?.includes(num));
+    if(!rRes.length) return '';
+    const rev2=rRes.reduce((s,r)=>s+(r.charges||0),0);
+    const ns=rRes.reduce((s,r)=>s+(r.nights||0),0);
+    const cat=DB.rooms.find(r=>r.num===num)?.cat||'-';
+    const adr2=ns?Math.round(rev2/ns):0;
+    return `<tr><td class="mono bold">${num}</td><td>${cat}</td><td class="mono">${ns}</td><td class="mono">${fmtM(rev2)}</td><td class="mono">${fmtM(adr2)}</td></tr>`;
+  }).filter(Boolean).join('')||`<tr><td colspan="5" style="text-align:center;color:var(--text3);padding:16px">No data</td></tr>`;
+
+  // By source
+  const sources={};
+  allRes.forEach(r=>{const s=r.source||'Direct';if(!sources[s])sources[s]={count:0,nights:0,rev:0};sources[s].count++;sources[s].nights+=(r.nights||0);sources[s].rev+=(r.charges||0);});
+  $('rev-src-tbody').innerHTML=Object.entries(sources).sort((a,b)=>b[1].rev-a[1].rev).map(([s,v])=>{
+    const share=totalRev?Math.round(v.rev/totalRev*100):0;
+    return `<tr><td>${s}</td><td class="mono">${v.count}</td><td class="mono">${v.nights}</td><td class="mono bold">${fmtM(v.rev)}</td><td class="mono">${share}%</td></tr>`;
+  }).join('')||`<tr><td colspan="5" style="text-align:center;color:var(--text3);padding:16px">No data</td></tr>`;
+}
+
+// ── 3. ARRIVALS / DEPARTURES ──
+function renderArrRpt(){
+  const d=$('arr-date')?.value||today();
+  const view=$('arr-view')?.value||'both';
+  const t=today();
+
+  const arrivals=DB.reservations.filter(r=>sanitizeDate(r.checkin)===d&&!['Cancelled','No Show'].includes(r.status));
+  const departures=DB.reservations.filter(r=>sanitizeDate(r.checkout)===d&&!['Cancelled','No Show'].includes(r.status));
+  const inhouse=DB.reservations.filter(r=>{
+    const cin=sanitizeDate(r.checkin),cout=sanitizeDate(r.checkout);
+    return !['Cancelled','No Show','Checked Out'].includes(r.status)&&cin<=d&&cout>d;
+  });
+
+  $('arr-summary').innerHTML=
+    rptStatCard('Arrivals',arrivals.length,'var(--accent)')+
+    rptStatCard('Departures',departures.length,'var(--orange)')+
+    rptStatCard('In-House',inhouse.length,'var(--green)')+
+    rptStatCard('Vacant',Math.max(0,new Set(DB.rooms.map(r=>r.num)).size-inhouse.flatMap(r=>r.rooms||[]).length),'var(--text3)');
+
+  $('arr-section').style.display=(view==='both'||view==='arrivals')?'':'none';
+  $('dep-section').style.display=(view==='both'||view==='departures')?'':'none';
+  $('inhouse-section').style.display=(view==='both'||view==='inhouse')?'':'none';
+
+  $('arr-tbody').innerHTML=arrivals.length?arrivals.map(r=>{
+    const bal=getBalance(r);
+    return `<tr><td class="mono">${r.resNo}</td><td>${r.guestName}<br><span class="text-xs text-dim">${r.mobile||''}</span></td><td class="mono bold">${r.rooms?.join(',')}</td><td>${r.roomType||''}</td><td class="mono">${r.nights}</td><td class="mono">${fmtD(r.checkout)}</td><td><span class="chip">${r.rateType||''}</span></td><td class="mono">${fmtM(r.totalAmount)}</td><td class="mono text-green">${fmtM(r.advance||0)}</td><td class="mono ${bal>0?'text-red':'text-green'}">${fmtM(bal)}</td></tr>`;
+  }).join(''):`<tr><td colspan="10" style="text-align:center;color:var(--text3);padding:12px">No arrivals for ${fmtD(d)}</td></tr>`;
+
+  $('dep-tbody').innerHTML=departures.length?departures.map(r=>{
+    const paid=getPaid(r),bal=getBalance(r);
+    return `<tr><td class="mono">${r.resNo}</td><td>${r.guestName}</td><td class="mono bold">${r.rooms?.join(',')}</td><td class="mono">${r.nights}</td><td class="mono">${fmtM(r.totalAmount)}</td><td class="mono text-green">${fmtM(paid)}</td><td class="mono ${bal>0?'text-red':'text-green'}">${fmtM(bal)}</td><td><span class="sp sp-${r.status?.toLowerCase().replace(/ /g,'-')}">${r.status}</span></td></tr>`;
+  }).join(''):`<tr><td colspan="8" style="text-align:center;color:var(--text3);padding:12px">No departures for ${fmtD(d)}</td></tr>`;
+
+  $('inhouse-tbody').innerHTML=inhouse.length?inhouse.map(r=>{
+    const cout=sanitizeDate(r.checkout);
+    const nLeft=nights(d,cout);
+    const bal=getBalance(r);
+    return `<tr><td class="mono">${r.resNo}</td><td>${r.guestName}</td><td class="mono bold">${r.rooms?.join(',')}</td><td class="mono">${fmtD(r.checkin)}</td><td class="mono">${fmtD(r.checkout)}</td><td class="mono ${nLeft<=1?'text-orange':''}">${nLeft} night${nLeft!==1?'s':''}</td><td class="mono ${bal>0?'text-red':'text-green'}">${bal>0?fmtM(bal):'✓ Settled'}</td></tr>`;
+  }).join(''):`<tr><td colspan="7" style="text-align:center;color:var(--text3);padding:12px">No in-house guests for ${fmtD(d)}</td></tr>`;
+}
+
+// ── 4. GST REGISTER ──
+function renderGSTRpt(){
+  const from=$('gst-from')?.value,to=$('gst-to')?.value;
+  if(!from||!to) return;
+  const invoices=DB.reservations.filter(r=>r.invNo&&sanitizeDate(r.checkout)>=from&&sanitizeDate(r.checkout)<=to).sort((a,b)=>(a.invNo||'').localeCompare(b.invNo||''));
+
+  let totalTaxable=0,totalCGST=0,totalSGST=0,totalGST=0,totalInv=0;
+  $('gst-tbody').innerHTML=invoices.length?invoices.map(r=>{
+    const taxable=r.charges||0;
+    const gst=r.gst||0;
+    const cgst=Math.round(gst/2),sgst=Math.round(gst/2);
+    const extra=(r.extraCharges||[]).reduce((s,c)=>s+(c.amount||0),0);
+    const total=(taxable+gst+extra);
+    totalTaxable+=taxable;totalCGST+=cgst;totalSGST+=sgst;totalGST+=gst;totalInv+=total;
+    return `<tr>
+      <td class="mono bold text-gold">${r.invNo}</td>
+      <td class="mono">${fmtD(r.checkout)}</td>
+      <td class="mono">${r.resNo}</td>
+      <td>${r.guestName}<br><span class="text-xs text-dim">${r.idType||''}: ${r.idNum||''}</span></td>
+      <td class="mono">${r.rooms?.join(',')}</td>
+      <td class="mono">${fmtM(taxable)}</td>
+      <td class="mono">${fmtM(cgst)}</td>
+      <td class="mono">${fmtM(sgst)}</td>
+      <td class="mono bold">${fmtM(gst)}</td>
+      <td class="mono bold text-gold">${fmtM(total)}</td>
+    </tr>`;
+  }).join(''):`<tr><td colspan="10" style="text-align:center;color:var(--text3);padding:16px">No invoices for selected period</td></tr>`;
+
+  $('gst-tfoot').innerHTML=invoices.length?`<tr style="background:var(--bg3);font-weight:700">
+    <td colspan="5" style="padding:9px 11px;font-weight:700">TOTAL (${invoices.length} invoices)</td>
+    <td class="mono">${fmtM(totalTaxable)}</td>
+    <td class="mono">${fmtM(totalCGST)}</td>
+    <td class="mono">${fmtM(totalSGST)}</td>
+    <td class="mono bold text-gold">${fmtM(totalGST)}</td>
+    <td class="mono bold text-gold">${fmtM(totalInv)}</td>
+  </tr>`:'';
+
+  $('gst-summary').innerHTML=
+    rptStatCard('Invoices',invoices.length,'var(--accent)')+
+    rptStatCard('Taxable Amount',fmtM(totalTaxable),'var(--text2)')+
+    rptStatCard('CGST (2.5%)',fmtM(totalCGST),'var(--orange)')+
+    rptStatCard('SGST (2.5%)',fmtM(totalSGST),'var(--orange)')+
+    rptStatCard('Total GST',fmtM(totalGST),'var(--red)')+
+    rptStatCard('Total Invoiced',fmtM(totalInv),'var(--gold)');
+}
+
+// ── 5. MONTHLY SUMMARY ──
+function renderMthRpt(){
+  const mth=$('mth-month')?.value;
+  if(!mth) return;
+  const from=monthStart(mth),to=monthEnd(mth);
+  const dates=datesInRange(from,to);
+  const mLabel=new Date(from+'T00:00:00').toLocaleDateString('en-IN',{month:'long',year:'numeric'});
+
+  const allRes=DB.reservations.filter(r=>!['Cancelled','No Show'].includes(r.status)&&sanitizeDate(r.checkin)>=from&&sanitizeDate(r.checkin)<=to);
+  const coRes=DB.reservations.filter(r=>r.status==='Checked Out'&&sanitizeDate(r.checkout)>=from&&sanitizeDate(r.checkout)<=to);
+  const totalPaid=DB.payments.filter(p=>!p.isAuditPost&&p.date>=from&&p.date<=to).reduce((s,p)=>s+(p.amount||0),0);
+  const totalRev=allRes.reduce((s,r)=>s+(r.charges||0),0);
+  const totalGST=allRes.reduce((s,r)=>s+(r.gst||0),0);
+  const totalExtra=allRes.reduce((s,r)=>s+((r.extraCharges||[]).reduce((a,c)=>a+(c.amount||0),0)),0);
+  const totalNights=allRes.reduce((s,r)=>s+(r.nights||0),0);
+  const uniqueRooms=new Set(DB.rooms.map(r=>r.num)).size;
+  const totalRoomNights=uniqueRooms*dates.length;
+  const avgOcc=totalRoomNights?Math.round(totalNights/totalRoomNights*100):0;
+  const adr=totalNights?Math.round(totalRev/totalNights):0;
+  const revpar=Math.round(adr*avgOcc/100);
+
+  // Payment mode breakdown
+  const payModes={Cash:0,UPI:0,Card:0,'City Ledger':0,Complimentary:0};
+  DB.payments.filter(p=>!p.isAuditPost&&p.date>=from&&p.date<=to).forEach(p=>{if(payModes[p.mode]!==undefined) payModes[p.mode]+=(p.amount||0);else payModes[p.mode]=(p.amount||0);});
+
+  // Source breakdown
+  const srcBreak={};
+  allRes.forEach(r=>{const s=r.source||'Direct';if(!srcBreak[s])srcBreak[s]=0;srcBreak[s]++;});
+
+  // Category breakdown
+  const catBreak={};
+  ['Executive Room','Executive Plus','Deluxe Room'].forEach(c=>{
+    const cRes=allRes.filter(r=>r.roomType===c);
+    catBreak[c]={count:cRes.length,nights:cRes.reduce((s,r)=>s+(r.nights||0),0),rev:cRes.reduce((s,r)=>s+(r.charges||0),0)};
+  });
+
+  $('monthly-report-wrap').innerHTML=`
+  <div id="monthly-printable">
+    <!-- Header -->
+    <div style="text-align:center;margin-bottom:18px;padding:16px;background:var(--card);border-radius:var(--radius);border:1px solid var(--border)">
+      <div style="font-family:'Playfair Display',serif;font-size:22px;color:var(--gold)">${DB.settings.propname||'Akshaya Comforts'}</div>
+      <div style="font-size:14px;color:var(--text2);margin-top:4px">Monthly Summary Report — ${mLabel}</div>
+      <div style="font-size:11px;color:var(--text3);margin-top:2px">Generated: ${fmtD(today())}</div>
+    </div>
+
+    <!-- KPI Grid -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:14px">
+      ${rptStatCard('Total Bookings',allRes.length,'var(--accent)')}
+      ${rptStatCard('Checkouts',coRes.length,'var(--orange)')}
+      ${rptStatCard('Room Nights Sold',totalNights,'var(--green)')}
+      ${rptStatCard('Avg Occupancy',avgOcc+'%',avgOcc>=70?'var(--green)':'var(--orange)')}
+      ${rptStatCard('ADR',fmtM(adr),'var(--gold)')}
+      ${rptStatCard('RevPAR',fmtM(revpar),'var(--purple)')}
+      ${rptStatCard('Room Revenue',fmtM(totalRev),'var(--gold)')}
+      ${rptStatCard('Extra Charges',fmtM(totalExtra),'var(--orange)')}
+      ${rptStatCard('GST Collected',fmtM(totalGST),'var(--red)')}
+      ${rptStatCard('Total Invoiced',fmtM(totalRev+totalGST+totalExtra),'var(--teal)')}
+      ${rptStatCard('Payments Received',fmtM(totalPaid),'var(--green)')}
+      ${rptStatCard('Outstanding',fmtM(Math.max(0,totalRev+totalGST+totalExtra-totalPaid)),'var(--red)')}
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:14px">
+      <!-- Category -->
+      <div class="card">
+        <div class="section-title text-sm mb8">By Room Category</div>
+        <table style="width:100%;font-size:12px;border-collapse:collapse">
+          <thead><tr><th style="text-align:left;color:var(--text3);padding:4px 0">Category</th><th style="text-align:right;color:var(--text3)">Bk</th><th style="text-align:right;color:var(--text3)">Nts</th><th style="text-align:right;color:var(--text3)">Rev</th></tr></thead>
+          <tbody>
+            ${Object.entries(catBreak).map(([c,v])=>`<tr><td style="padding:4px 0">${c.replace('Executive','Exec.')}</td><td class="mono" style="text-align:right">${v.count}</td><td class="mono" style="text-align:right">${v.nights}</td><td class="mono" style="text-align:right">${fmtM(v.rev)}</td></tr>`).join('')}
+          </tbody>
+        </table>
+      </div>
+      <!-- Payment Mode -->
+      <div class="card">
+        <div class="section-title text-sm mb8">Payment Collection</div>
+        <table style="width:100%;font-size:12px;border-collapse:collapse">
+          <tbody>
+            ${Object.entries(payModes).filter(([,v])=>v>0).map(([m,v])=>`<tr><td style="padding:4px 0">${m}</td><td class="mono text-green" style="text-align:right">${fmtM(v)}</td></tr>`).join('')}
+            <tr style="border-top:1px solid var(--border)"><td style="padding:4px 0;font-weight:700">Total</td><td class="mono text-gold" style="text-align:right;font-weight:700">${fmtM(totalPaid)}</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <!-- Source -->
+      <div class="card">
+        <div class="section-title text-sm mb8">By Booking Source</div>
+        <table style="width:100%;font-size:12px;border-collapse:collapse">
+          <tbody>
+            ${Object.entries(srcBreak).sort((a,b)=>b[1]-a[1]).map(([s,v])=>`<tr><td style="padding:4px 0">${s}</td><td class="mono" style="text-align:right">${v}</td></tr>`).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Weekly breakdown -->
+    <div class="card">
+      <div class="section-title text-sm mb8">Week-by-Week</div>
+      <div class="tbl-wrap">
+        <table><thead><tr><th>Week</th><th>Arrivals</th><th>Departures</th><th>Room Nights</th><th>Revenue</th><th>Avg Occ%</th></tr></thead>
+        <tbody>
+          ${(()=>{
+            const weeks={};
+            dates.forEach(d=>{
+              const dt=new Date(d+'T00:00:00');const wd=dt.getDay();
+              const mon=new Date(dt);mon.setDate(dt.getDate()-(wd===0?6:wd-1));
+              const wk=mon.toISOString().split('T')[0];
+              if(!weeks[wk])weeks[wk]={arr:0,dep:0,nights:0,rev:0};
+              DB.reservations.filter(r=>!['Cancelled','No Show'].includes(r.status)).forEach(r=>{
+                if(sanitizeDate(r.checkin)===d) weeks[wk].arr++;
+                if(sanitizeDate(r.checkout)===d) weeks[wk].dep++;
+                const cin=sanitizeDate(r.checkin),cout=sanitizeDate(r.checkout);
+                if(cin&&cout&&cin<=d&&cout>d) weeks[wk].nights++;
+              });
+              weeks[wk].rev+=DB.payments.filter(p=>p.date===d&&!p.isAuditPost).reduce((s,p)=>s+(p.amount||0),0);
+            });
+            return Object.entries(weeks).map(([wk,v])=>{
+              const occ=uniqueRooms?Math.round(v.nights/uniqueRooms*100/7):0;
+              return `<tr><td>Wk of ${fmtD(wk)}</td><td class="mono">${v.arr}</td><td class="mono">${v.dep}</td><td class="mono">${v.nights}</td><td class="mono">${fmtM(v.rev)}</td><td class="mono">${occ}%</td></tr>`;
+            }).join('');
+          })()}
+        </tbody>
+        </table>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ── Init report date defaults ──
+function initReportDates(){
+  const t=today();
+  const m=t.substring(0,7);
+  const firstDay=m+'-01';
+  // Occupancy
+  if($('occ-from'))$('occ-from').value=firstDay;
+  if($('occ-to'))$('occ-to').value=t;
+  // Revenue
+  if($('rev-from'))$('rev-from').value=firstDay;
+  if($('rev-to'))$('rev-to').value=t;
+  // Arrivals
+  if($('arr-date'))$('arr-date').value=t;
+  // GST
+  if($('gst-from'))$('gst-from').value=firstDay;
+  if($('gst-to'))$('gst-to').value=t;
+  // Monthly
+  if($('mth-month'))$('mth-month').value=m;
+}
+
+
+// ════════════════════ V10 — HOUSEKEEPING ════════════════════
+const HK_STATUS=['dirty','cleaning','clean','inspected','dnd'];
+const HK_LABEL={dirty:'Dirty',cleaning:'Cleaning',clean:'Clean',inspected:'Inspected ✓',dnd:'DND 🚫'};
+const HK_COLOR={dirty:'#e74c3c',cleaning:'#f39c12',clean:'#2ecc71',inspected:'#3498db',dnd:'#9b59b6'};
+let hkCurrentFilter='all';
+
+function getHKStatus(roomNum){
+  return DB.roomFlags[roomNum]?.hk || 'clean';
+}
+function setHKStatus(roomNum, status){
+  if(!DB.roomFlags[roomNum]) DB.roomFlags[roomNum]={};
+  DB.roomFlags[roomNum].hk=status;
+  save(); renderHK();
+}
+function getDNDStatus(roomNum){ return DB.roomFlags[roomNum]?.dnd||false; }
+function setDND(roomNum, val){
+  if(!DB.roomFlags[roomNum]) DB.roomFlags[roomNum]={};
+  DB.roomFlags[roomNum].dnd=val;
+  save(); renderHK();
+}
+
+function hkFilter(f,btn){
+  hkCurrentFilter=f;
+  document.querySelectorAll('#page-housekeeping .btn').forEach(b=>b.style.background='');
+  if(btn) btn.style.background='var(--gold-dim)';
+  renderHK();
+}
+
+function renderHK(){
+  const seen=new Set();
+  const rooms=DB.rooms.filter(r=>{if(seen.has(r.num))return false;seen.add(r.num);return true;});
+  const grid=$('hk-grid');if(!grid) return;
+  grid.innerHTML=rooms.filter(room=>{
+    const hk=getHKStatus(room.num);
+    const dnd=getDNDStatus(room.num);
+    const st=dnd?'dnd':hk;
+    return hkCurrentFilter==='all'||hkCurrentFilter===st;
+  }).map(room=>{
+    const res=activeResForRoom(room.num);
+    const hk=getHKStatus(room.num);
+    const dnd=getDNDStatus(room.num);
+    const st=dnd?'dnd':hk;
+    const color=HK_COLOR[st]||'#888';
+    const catCls=room.cat==='Executive Room'?'cat-exec':room.cat==='Executive Plus'?'cat-ep':'cat-dlx';
+    return `<div class="room-card" style="border-color:${color}" onclick="showHKMenu('${room.num}')">
+      <div class="rc-stripe" style="background:${color}"></div>
+      <div class="rc-num">${room.num}</div>
+      <div class="rc-cat ${catCls}">${room.cat.toUpperCase()}</div>
+      <div class="rc-badge" style="background:${color}22;color:${color};border:1px solid ${color};margin:6px 0 0 7px;display:inline-block;padding:2px 8px;border-radius:10px;font-size:9.5px;font-weight:600">${HK_LABEL[st]||st}</div>
+      ${res?`<div class="rc-guest" style="padding-left:7px">${res.guestName}</div>`:'<div style="font-size:10px;color:var(--text3);padding-left:7px;margin-top:4px">Vacant</div>'}
+    </div>`;
+  }).join('')||'<div class="text-dim">No rooms match filter</div>';
+}
+
+function showHKMenu(roomNum){
+  const hk=getHKStatus(roomNum);
+  const dnd=getDNDStatus(roomNum);
+  const room=DB.rooms.find(r=>r.num===roomNum);
+  const opts=HK_STATUS.map(s=>`<button class="btn btn-outline" style="width:100%;margin-bottom:6px;border-color:${HK_COLOR[s]};color:${HK_COLOR[s]}" onclick="setHKStatus('${roomNum}','${s}');document.getElementById('hkMenuDialog')?.remove()">${HK_LABEL[s]}</button>`).join('');
+  const dndBtn=`<button class="btn" style="width:100%;margin-bottom:6px;background:${dnd?'#9b59b6':'transparent'};color:${dnd?'#fff':'#9b59b6'};border:1px solid #9b59b6" onclick="setDND('${roomNum}',${!dnd});document.getElementById('hkMenuDialog')?.remove()">${dnd?'✓ DND Active — Tap to Remove':'🚫 Set Do Not Disturb'}</button>`;
+  const d=document.createElement('div');
+  d.id='hkMenuDialog';
+  d.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
+  d.innerHTML=`<div style="background:var(--bg2);border:1px solid var(--border2);border-radius:14px;padding:20px;width:100%;max-width:320px">
+    <div style="font-family:'Playfair Display',serif;font-size:16px;color:var(--gold);margin-bottom:14px">Room ${roomNum} — ${room?.cat}</div>
+    ${opts}${dndBtn}
+    <button class="btn btn-outline" style="width:100%" onclick="document.getElementById('hkMenuDialog')?.remove()">Cancel</button>
+  </div>`;
+  document.body.appendChild(d);
+  d.onclick=e=>{if(e.target===d) d.remove();};
+}
+
+// ════════════════════ V10 — WAITLIST ════════════════════
+function renderWaitlist(){
+  const data=DB.waitlist||[];
+  $('waitlist-tbody').innerHTML=data.length?data.map((w,i)=>`<tr>
+    <td>${fmtD(w.dateAdded)}</td><td class="bold">${w.name}</td><td>${w.mobile||'-'}</td>
+    <td class="mono">${fmtD(w.cin)} → ${fmtD(w.cout)}</td>
+    <td><span class="chip">${w.cat}</span></td>
+    <td class="mono">${nights(w.cin,w.cout)}</td>
+    <td><span class="sp ${w.status==='Booked'?'sp-occupied':'sp-confirmed'}">${w.status||'Waiting'}</span></td>
+    <td style="display:flex;gap:4px">
+      <button class="ico-btn" onclick="bookFromWaitlist(${i})" title="Book">📋</button>
+      <button class="ico-btn" onclick="removeWaitlist(${i})" title="Remove">🗑</button>
+    </td>
+  </tr>`).join(''):`<tr><td colspan="8" style="text-align:center;color:var(--text3);padding:20px">No guests on waitlist</td></tr>`;
+}
+
+function saveWaitlist(){
+  if(!DB.waitlist) DB.waitlist=[];
+  const name=$('wl-name').value.trim();
+  if(!name){toast('Enter guest name','err');return;}
+  DB.waitlist.push({
+    name,mobile:$('wl-mob').value,
+    cin:$('wl-cin').value,cout:$('wl-cout').value,
+    cat:$('wl-cat').value,notes:$('wl-notes').value,
+    dateAdded:today(),status:'Waiting'
+  });
+  save();closeModal('waitlistModal');renderWaitlist();
+  toast('✅ Added to waitlist','ok');
+}
+
+function removeWaitlist(i){
+  if(!confirm('Remove from waitlist?')) return;
+  DB.waitlist.splice(i,1);save();renderWaitlist();
+}
+
+function bookFromWaitlist(i){
+  const w=DB.waitlist[i];
+  openModal('bkModal');initBooking();
+  setTimeout(()=>{
+    $('b-name').value=w.name;$('b-mob').value=w.mobile||'';
+    $('b-cin').value=w.cin;$('b-cout').value=w.cout;
+    calcNights();refreshRRUI();
+    DB.waitlist[i].status='Booked';save();renderWaitlist();
+    toast('Waitlist guest loaded into booking form','ok');
+  },300);
+}
+
+// ════════════════════ V10 — OTA IMPORT ════════════════════
+function parseOTA(){
+  const text=$('ota-paste').value;
+  if(!text.trim()){toast('Paste reservation text first','err');return;}
+  // Extract patterns
+  const nameMatch=text.match(/(?:guest|name|passenger)[:\s]+([A-Za-z\s\.]+)/i);
+  const mobMatch=text.match(/(?:mobile|phone|contact)[:\s]+([0-9+\-\s]{8,15})/i);
+  const cinMatch=text.match(/(?:check.in|arrival|from)[:\s]+([0-9]{1,2}[\/-][0-9]{1,2}[\/-][0-9]{2,4}|[A-Za-z]+ [0-9]{1,2},? [0-9]{4}|[0-9]{4}-[0-9]{2}-[0-9]{2})/i);
+  const coutMatch=text.match(/(?:check.out|departure|to)[:\s]+([0-9]{1,2}[\/-][0-9]{1,2}[\/-][0-9]{2,4}|[A-Za-z]+ [0-9]{1,2},? [0-9]{4}|[0-9]{4}-[0-9]{2}-[0-9]{2})/i);
+  const totalMatch=text.match(/(?:total|amount|inr|rs\.?)[:\s₹]+([0-9,]+)/i);
+  const refMatch=text.match(/(?:booking|ref|id|confirmation)[:\s#]+([A-Z0-9\-]+)/i);
+  if(nameMatch) $('ota-name').value=nameMatch[1].trim();
+  if(mobMatch) $('ota-mob').value=mobMatch[1].trim();
+  if(refMatch) $('ota-ref').value=refMatch[1].trim();
+  if(totalMatch) $('ota-total').value=totalMatch[1].replace(/,/g,'');
+  if(cinMatch) try{$('ota-cin').value=sanitizeDate(new Date(cinMatch[1]).toISOString());}catch(e){}
+  if(coutMatch) try{$('ota-cout').value=sanitizeDate(new Date(coutMatch[1]).toISOString());}catch(e){}
+  toast('✅ Details extracted — please verify before creating','ok');
+}
+
+function importOTA(){
+  const name=$('ota-name').value.trim();
+  if(!name){toast('Guest name required','err');return;}
+  const cin=$('ota-cin').value,cout=$('ota-cout').value;
+  if(!cin||!cout){toast('Enter check-in and check-out dates','err');return;}
+  // Load into booking modal
+  openModal('bkModal');initBooking();
+  setTimeout(()=>{
+    $('b-name').value=name;$('b-mob').value=$('ota-mob').value;
+    $('b-cin').value=cin;$('b-cout').value=cout;
+    $('b-src').value=$('ota-source').value;
+    $('b-remarks').value=($('ota-ref').value?'OTA Ref: '+$('ota-ref').value+' | ':'') + ($('ota-remarks')?.value||'');
+    calcNights();
+    // Auto-select category
+    const cat=$('ota-cat').value;
+    if(rr[0]) rr[0].type=cat;
+    refreshRRUI();
+    toast('OTA reservation loaded — select room and check in','ok');
+  },300);
+}
+
+// ════════════════════ V10 — GUEST AUTO-FILL FROM PHONE ════════════════════
+function autoFillGuest(phone, prefix){
+  if(!phone||phone.length<8) return;
+  const prev=DB.reservations.filter(r=>r.mobile===phone).sort((a,b)=>b.checkin.localeCompare(a.checkin))[0];
+  if(!prev) return;
+  if(prefix==='wi'){
+    if($('wi-name').value==='') $('wi-name').value=prev.guestName||'';
+  } else if(prefix==='b'){
+    const nameEl=$('b-name');
+    if(nameEl&&!nameEl.value){
+      const parts=prev.guestName?.split(' ')||[];
+      const salutes=['Mr.','Mrs.','Ms.','Dr.'];
+      if(salutes.includes(parts[0])){$('b-sal').value=parts[0];nameEl.value=parts.slice(1).join(' ');}
+      else nameEl.value=prev.guestName||'';
+      if($('b-email')&&!$('b-email').value) $('b-email').value=prev.email||'';
+      if($('b-idtype')) $('b-idtype').value=prev.idType||'Aadhar Card';
+      if($('b-idno')&&!$('b-idno').value) $('b-idno').value=prev.idNum||'';
+      if($('b-addr')&&!$('b-addr').value) $('b-addr').value=prev.address||'';
+      if($('b-city')&&!$('b-city').value) $('b-city').value=prev.city||'';
+      if($('b-state')&&!$('b-state').value) $('b-state').value=prev.state||'';
+      toast(`✅ Auto-filled from previous stay (${fmtD(prev.checkin)})`, 'ok');
+    }
+  }
+}
+
+// ════════════════════ V10 — WALK-IN QUICK CHECK-IN ════════════════════
+function initWalkIn(){
+  const avail=DB.rooms.filter(r=>{
+    const seen=new Set();
+    if(seen.has(r.num)) return false; seen.add(r.num);
+    return !activeResForRoom(r.num);
+  });
+  const wiRoom=$('wi-room');
+  if(wiRoom){
+    wiRoom.innerHTML='<option value="">— Select Room —</option>'+avail.map(r=>`<option value="${r.num}">${r.num} — ${r.cat}</option>`).join('');
+  }
+  const t=today();
+  const tomorrow=new Date(Date.now()+86400000).toISOString().split('T')[0];
+  if($('wi-cout')) $('wi-cout').value=tomorrow;
+  wiCalc();
+}
+
+function wiRoomChange(){
+  // Auto-fill rate based on room category
+  const roomNum=$('wi-room').value;
+  const room=DB.rooms.find(r=>r.num===roomNum);
+  const rt=$('wi-ratetype')?.value||'AC';
+  if(room) wiCalc();
+}
+
+function wiCalc(){
+  const roomNum=$('wi-room').value;
+  const room=DB.rooms.find(r=>r.num===roomNum);
+  const rt=$('wi-ratetype')?.value||'AC';
+  const cout=$('wi-cout')?.value;
+  const n=billingNights(nights(today(),cout));
+  const rate=room?DB.settings.tariffs[room.cat]?.[rt]||0:0;
+  const g=calcGST(rate,n,false);
+  const adv=parseFloat($('wi-adv')?.value)||0;
+  const total=g.baseCharges+g.gstAmt;
+  const bal=Math.max(0,total-adv);
+  const wb=$('wi-billing');
+  if(wb) wb.innerHTML=room?`Room ${roomNum} (${room.cat}) | ${n} night(s) | Rate: ${fmtM(rate)}/night | GST: ${fmtM(g.gstAmt)} | <b>Total: ${fmtM(total)}</b> | Balance: ${fmtM(bal)}`:'Select a room to see billing';
+}
+
+function saveWalkIn(){
+  const roomNum=$('wi-room').value;
+  if(!roomNum){toast('Select a room','err');return;}
+  const name=($('wi-sal').value+' '+$('wi-name').value).trim();
+  if(!$('wi-name').value.trim()){toast('Guest name required','err');return;}
+  const room=DB.rooms.find(r=>r.num===roomNum);
+  const rt=$('wi-ratetype')?.value||'AC';
+  const cin=today(),cout=$('wi-cout').value;
+  const n=billingNights(nights(cin,cout));
+  const rate=DB.settings.tariffs[room?.cat]?.[rt]||0;
+  const g=calcGST(rate,n,false);
+  const adv=parseFloat($('wi-adv')?.value)||0;
+  const resId='res_'+Date.now();
+  const resNo=nextResNo();
+  const res={
+    resId,resNo,rooms:[roomNum],checkin:cin,checkout:cout,
+    cinTime:new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'}),coutTime:'12:00',
+    guestName:name,mobile:$('wi-mob').value,email:'',nationality:'Indian',
+    idType:$('wi-idtype').value,idNum:$('wi-idno').value,
+    address:'',city:'',state:'',country:'India',
+    source:'Walk-in',bsource:'',resType:'Direct Check-in',
+    roomType:room?.cat||'',rateType:rt,
+    nights:n,charges:g.baseCharges,gst:g.gstAmt,totalAmount:g.baseCharges+g.gstAmt,
+    advance:adv,complimentary:false,remarks:'Walk-in',
+    status:'Occupied',bookingDate:cin,invNo:null,extraCharges:[]
+  };
+  DB.reservations.push(res);
+  if(adv>0) DB.payments.push({payId:'pay_'+Date.now(),resId,date:cin,amount:adv,mode:$('wi-paymode').value,description:'Walk-in advance',time:new Date().toLocaleTimeString()});
+  save();
+  renderRooms();renderDash();updateTopbar();
+  showConfirmDialog('🛬 WALK-IN CHECKED IN!',`Guest: ${name}\nRoom: ${roomNum}\nRes No: ${resNo}\nCheck-out: ${fmtD(cout)}\nTotal: ${fmtM(res.totalAmount)}`,'#2ecc71');
+  // Reset form
+  ['wi-name','wi-mob','wi-idno','wi-adv'].forEach(id=>{const el=$(id);if(el)el.value=id==='wi-adv'?'0':'';});
+  $('wi-room').value='';wiCalc();
+  initWalkIn();
+}
+
+// ════════════════════ V10 — SPLIT PAYMENT ════════════════════
+function openSplitPay(){
+  if(!curRes){toast('No active reservation','err');return;}
+  const bal=getBalance(curRes);
+  $('split-res-info').innerHTML=`${curRes.guestName} | Room ${curRes.rooms?.join(', ')} | Balance: <b>${fmtM(bal)}</b>`;
+  $('sp-amt-0').value=bal>0?bal:'';$('sp-amt-1').value='';
+  updateSplitTotal();openModal('splitPayModal');
+}
+
+function updateSplitTotal(){
+  const a0=parseFloat($('sp-amt-0')?.value)||0;
+  const a1=parseFloat($('sp-amt-1')?.value)||0;
+  const total=a0+a1;
+  const bal=curRes?getBalance(curRes):0;
+  $('split-total').textContent=fmtM(total);
+  $('split-balance').textContent=fmtM(Math.max(0,bal-total));
+}
+
+function saveSplitPay(){
+  if(!curRes){toast('No reservation','err');return;}
+  const a0=parseFloat($('sp-amt-0')?.value)||0;
+  const a1=parseFloat($('sp-amt-1')?.value)||0;
+  if(!a0&&!a1){toast('Enter at least one amount','err');return;}
+  const t=today();
+  if(a0>0) DB.payments.push({payId:'pay_'+Date.now(),resId:curRes.resId,date:t,amount:a0,mode:$('sp-mode-0').value,description:($('split-rem').value||'Split payment')+ ' — Part 1',time:new Date().toLocaleTimeString()});
+  if(a1>0) DB.payments.push({payId:'pay_'+(Date.now()+1),resId:curRes.resId,date:t,amount:a1,mode:$('sp-mode-1').value,description:($('split-rem').value||'Split payment')+' — Part 2',time:new Date().toLocaleTimeString()});
+  save();closeModal('splitPayModal');
+  const res=DB.reservations.find(r=>r.resId===curRes.resId);curRes=res;
+  renderFolio();renderRooms();renderDash();
+  showConfirmDialog('✅ SPLIT PAYMENT SAVED',`Part 1: ${fmtM(a0)} via ${$('sp-mode-0').value}\nPart 2: ${fmtM(a1)} via ${$('sp-mode-1').value}\nTotal Paid: ${fmtM(a0+a1)}`,'#2ecc71');
+  showReceiptModal(a0+a1,'Split Payment');
+}
+
+// ════════════════════ V10 — DISCOUNT ════════════════════
+function openDiscount(){
+  if(!curRes){toast('No active reservation','err');return;}
+  $('disc-res-info').innerHTML=`${curRes.guestName} | Room ${curRes.rooms?.join(', ')} | Current Total: <b>${fmtM(curRes.totalAmount)}</b>`;
+  $('disc-orig').textContent=fmtM(curRes.totalAmount);
+  $('disc-val').value='';
+  calcDiscount();openModal('discountModal');
+}
+
+function calcDiscount(){
+  const r=curRes;if(!r) return;
+  const type=$('disc-type')?.value;
+  const val=parseFloat($('disc-val')?.value)||0;
+  const disc=type==='pct'?Math.round(r.totalAmount*val/100):val;
+  const newTotal=Math.max(0,r.totalAmount-disc);
+  $('disc-amt').textContent='-'+fmtM(disc);
+  $('disc-new').textContent=fmtM(newTotal);
+}
+
+function saveDiscount(){
+  const r=DB.reservations.find(x=>x.resId===curRes?.resId);if(!r) return;
+  const type=$('disc-type').value;
+  const val=parseFloat($('disc-val').value)||0;
+  const disc=type==='pct'?Math.round(r.totalAmount*val/100):val;
+  const reason=$('disc-reason').value;
+  if(!disc){toast('Enter discount value','err');return;}
+  r.totalAmount=Math.max(0,r.totalAmount-disc);
+  if(!r.extraCharges) r.extraCharges=[];
+  r.extraCharges.push({date:today(),desc:`Discount — ${reason} (${type==='pct'?val+'%':fmtM(val)})`,amount:-disc});
+  curRes=r;save();closeModal('discountModal');renderFolio();
+  toast(`✅ Discount of ${fmtM(disc)} applied`,'ok');
+}
+
+// ════════════════════ V10 — REFUND ════════════════════
+function openRefund(){
+  if(!curRes){toast('No active reservation','err');return;}
+  const paid=getPaid(curRes);const bal=getBalance(curRes);
+  $('refund-res-info').innerHTML=`${curRes.guestName} | Paid: <b>${fmtM(paid)}</b> | Balance: ${fmtM(bal)}`;
+  $('refund-amt').value='';
+  openModal('refundModal');
+}
+
+function saveRefund(){
+  const r=curRes;if(!r) return;
+  const amt=parseFloat($('refund-amt').value);
+  if(!amt||amt<=0){toast('Enter refund amount','err');return;}
+  const reason=$('refund-reason').value||'Refund';
+  // Add negative payment
+  DB.payments.push({payId:'pay_'+Date.now(),resId:r.resId,date:today(),amount:-amt,mode:$('refund-mode').value,description:'Refund — '+reason,time:new Date().toLocaleTimeString()});
+  save();closeModal('refundModal');
+  const res=DB.reservations.find(x=>x.resId===r.resId);curRes=res;
+  renderFolio();renderRooms();renderDash();
+  showConfirmDialog('↩ REFUND PROCESSED',`Amount: ${fmtM(amt)}\nMode: ${$('refund-mode').value}\nReason: ${reason}`,'#e74c3c');
+}
+
+// ════════════════════ V10 — ROOM TRANSFER ════════════════════
+function openTransfer(){
+  if(!curRes){toast('No active reservation','err');return;}
+  $('transfer-res-info').innerHTML=`${curRes.guestName} currently in Room ${curRes.rooms?.join(', ')}`;
+  // Populate available rooms
+  const avail=DB.rooms.filter(r=>!activeResForRoom(r.num)&&!curRes.rooms?.includes(r.num));
+  const seen=new Set();
+  const uniqueAvail=avail.filter(r=>{if(seen.has(r.num))return false;seen.add(r.num);return true;});
+  $('transfer-room').innerHTML='<option value="">— Select Room —</option>'+uniqueAvail.map(r=>`<option value="${r.num}">${r.num} — ${r.cat}</option>`).join('');
+  openModal('transferModal');
+}
+
+function saveTransfer(){
+  const r=DB.reservations.find(x=>x.resId===curRes?.resId);if(!r) return;
+  const newRoom=$('transfer-room').value;
+  if(!newRoom){toast('Select a room to transfer to','err');return;}
+  const oldRooms=[...r.rooms];
+  r.rooms=[newRoom];
+  const newRoomData=DB.rooms.find(rm=>rm.num===newRoom);
+  r.roomType=newRoomData?.cat||r.roomType;
+  const newRate=parseFloat($('transfer-rate').value)||0;
+  if(newRate>0) r.charges=newRate*r.nights;
+  if(!r.extraCharges) r.extraCharges=[];
+  r.extraCharges.push({date:today(),desc:`Room Transfer: ${oldRooms.join('+')} → ${newRoom} (${$('transfer-reason').value})`,amount:0});
+  curRes=r;save();closeModal('transferModal');
+  renderRooms();renderDash();renderFolio();
+  toast(`✅ Transferred from Room ${oldRooms.join('+')} to Room ${newRoom}`,'ok');
+}
+
+// ════════════════════ V10 — EXTEND STAY ════════════════════
+function openExtend(){
+  if(!curRes){toast('No active reservation','err');return;}
+  $('extend-res-info').innerHTML=`${curRes.guestName} | Current checkout: <b>${fmtD(curRes.checkout)}</b>`;
+  $('extend-cout').value=curRes.checkout;
+  $('extend-cout').min=curRes.checkout;
+  const perNight=Math.round((curRes.charges||0)/Math.max(curRes.nights,1));
+  $('extend-rate').value=perNight;
+  calcExtend();openModal('extendModal');
+}
+
+function calcExtend(){
+  const newCout=$('extend-cout')?.value;
+  const r=curRes;if(!r||!newCout) return;
+  const extraNights=nights(r.checkout,newCout);
+  const rate=parseFloat($('extend-rate')?.value)||0;
+  const g=calcGST(rate,extraNights,false);
+  $('extend-nights').textContent=extraNights;
+  $('extend-charges').textContent=fmtM(g.baseCharges+g.gstAmt);
+}
+
+function saveExtend(){
+  const r=DB.reservations.find(x=>x.resId===curRes?.resId);if(!r) return;
+  const newCout=$('extend-cout').value;
+  const extraNights=nights(r.checkout,newCout);
+  if(extraNights<=0){toast('New checkout must be after current checkout','err');return;}
+  const rate=parseFloat($('extend-rate').value)||0;
+  const g=calcGST(rate,extraNights,false);
+  const oldCout=r.checkout;
+  r.checkout=newCout;
+  r.nights=(r.nights||0)+extraNights;
+  r.charges=(r.charges||0)+g.baseCharges;
+  r.gst=(r.gst||0)+g.gstAmt;
+  r.totalAmount=(r.totalAmount||0)+g.baseCharges+g.gstAmt;
+  if(!r.extraCharges) r.extraCharges=[];
+  r.extraCharges.push({date:today(),desc:`Stay Extended: ${fmtD(oldCout)} → ${fmtD(newCout)} (${extraNights} nights)`,amount:g.baseCharges+g.gstAmt});
+  curRes=r;save();closeModal('extendModal');renderFolio();renderRooms();
+  toast(`✅ Stay extended to ${fmtD(newCout)}`,'ok');
+}
+
+// ════════════════════ V10 — RECEIPT PRINTING ════════════════════
+let receiptCounter=parseInt(localStorage.getItem('hms_receipt_no')||'1000');
+function showReceiptModal(amount,mode,resId){
+  receiptCounter++;
+  localStorage.setItem('hms_receipt_no',receiptCounter);
+  const r=resId?DB.reservations.find(x=>x.resId===resId):curRes;
+  const rcNo='RCP'+receiptCounter;
+  $('receipt-content').innerHTML=`
+    <div style="font-family:'DM Sans',sans-serif;padding:10px" id="print-receipt">
+      <div style="text-align:center;border-bottom:2px solid #c9a84c;padding-bottom:10px;margin-bottom:12px">
+        <div style="font-family:'Playfair Display',serif;font-size:18px;color:#c9a84c">${DB.settings.propname||'Akshaya Comforts'}</div>
+        <div style="font-size:11px;color:#666">${DB.settings.loc||'Mysore'}</div>
+        <div style="font-size:11px;color:#666">${DB.settings.phone||''}</div>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:8px">
+        <span><b>Receipt No:</b> ${rcNo}</span><span><b>Date:</b> ${fmtD(today())}</span>
+      </div>
+      ${r?`<div style="font-size:12px;margin-bottom:8px"><b>Guest:</b> ${r.guestName} | <b>Room:</b> ${r.rooms?.join(', ')} | <b>Res:</b> ${r.resNo}</div>`:''}
+      <div style="border:1px solid #eee;border-radius:6px;padding:10px;margin:10px 0">
+        <div style="display:flex;justify-content:space-between;font-size:14px"><span>Amount Received</span><b style="color:#2ecc71">${fmtM(amount)}</b></div>
+        <div style="font-size:12px;color:#666;margin-top:4px">Mode: ${mode}</div>
+      </div>
+      <div style="text-align:center;font-size:10px;color:#aaa;margin-top:10px">Thank you for staying with us!<br>${DB.settings.invnotice||''}</div>
+    </div>`;
+  openModal('receiptModal');
+}
+
+// ════════════════════ V10 — SHIFT REPORT ════════════════════
+function renderShift(){
+  const d=$('shift-date')?.value||today();
+  const shift=$('shift-type')?.value||'full';
+  const shiftHours={morning:[6,14],evening:[14,22],night:[22,30],full:[0,24]};
+  const [sH,eH]=shiftHours[shift]||[0,24];
+  const pays=DB.payments.filter(p=>{
+    if(p.date!==d||p.isAuditPost) return false;
+    if(shift==='full') return true;
+    const timeStr=p.time||'00:00';
+    const h=parseInt(timeStr.split(':')[0]||0);
+    const adjH=h<6&&shift==='night'?h+24:h;
+    return adjH>=sH&&adjH<eH;
+  });
+  const modes=['Cash','UPI','Card','City Ledger','Complimentary'];
+  const totals={};modes.forEach(m=>totals[m]=pays.filter(p=>p.mode===m&&p.amount>0).reduce((s,p)=>s+(p.amount||0),0));
+  const grand=pays.filter(p=>p.amount>0).reduce((s,p)=>s+(p.amount||0),0);
+  $('shift-summary').innerHTML=modes.map(m=>`<div class="stat-card sc-gold" style="padding:12px"><div class="stat-lbl">${m}</div><div class="stat-val text-gold" style="font-size:16px">${fmtM(totals[m])}</div></div>`).join('')+
+    `<div class="stat-card sc-green" style="padding:12px"><div class="stat-lbl">Grand Total</div><div class="stat-val text-green" style="font-size:16px">${fmtM(grand)}</div></div>`;
+  $('shift-tbody').innerHTML=pays.length?pays.map(p=>{
+    const r=DB.reservations.find(r=>r.resId===p.resId);
+    return `<tr><td class="mono text-dim">${p.time||'-'}</td><td class="mono">${r?.resNo||'-'}</td><td>${r?.guestName||'-'}</td><td class="mono">${r?.rooms?.join(',')||'-'}</td><td>${p.description||'Payment'}</td><td><span class="chip">${p.mode}</span></td><td class="mono ${p.amount<0?'text-red':'text-green'}">${fmtM(p.amount)}</td></tr>`;
+  }).join(''):`<tr><td colspan="7" style="text-align:center;color:var(--text3);padding:20px">No transactions for this shift</td></tr>`;
+}
+
+// ════════════════════ V10 — PAGE RENDERS REGISTER ════════════════════
+// Update goPage to include new pages
+
 function toggleSidebar(){
   const sb=$('sidebar'),ov=$('sidebar-overlay');
   const isOpen=sb.classList.contains('open');
@@ -2606,24 +4131,39 @@ async function pullFromCloud(){
 
 function sanitizeDate(d){
   if(!d) return '';
+  // Already correct YYYY-MM-DD format
   if(typeof d === 'string'){
-    // Already YYYY-MM-DD
-    const m=d.match(/^(\d{4})-(\d{2})-(\d{2})/);
-    if(m) return `${m[1]}-${m[2]}-${m[3]}`;
+    const iso=d.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if(iso) return `${iso[1]}-${iso[2]}-${iso[3]}`;
+    // Handle "Sun Apr 05 2026" or "Sun Apr 05" style (from old data or Google Sheets)
+    const parsed=new Date(d);
+    if(!isNaN(parsed.getTime())){
+      // If year is missing (e.g. "Sun Apr 05"), assume current year
+      const y=parsed.getFullYear()<2020?new Date().getFullYear():parsed.getFullYear();
+      const m=String(parsed.getMonth()+1).padStart(2,'0');
+      const dd=String(parsed.getDate()).padStart(2,'0');
+      return `${y}-${m}-${dd}`;
+    }
+    // Handle "1899-12-30T..." style (bad date from Google Sheets for time fields)
+    if(d.includes('1899')) return '';
   }
   if(d instanceof Date){
+    if(isNaN(d.getTime())) return '';
     const y=d.getFullYear();
     const m=String(d.getMonth()+1).padStart(2,'0');
     const dd=String(d.getDate()).padStart(2,'0');
     return `${y}-${m}-${dd}`;
   }
-  return String(d).substring(0,10);
+  return '';
 }
 
 function sanitizeRes(r){
   r.checkin=sanitizeDate(r.checkin);
   r.checkout=sanitizeDate(r.checkout);
-  r.bookingDate=sanitizeDate(r.bookingDate);
+  r.bookingDate=sanitizeDate(r.bookingDate)||today();
+  // Fix bad time values like "1899-12-30T06:38:50.000Z"
+  if(!r.cinTime||r.cinTime.includes('1899')) r.cinTime='12:00';
+  if(!r.coutTime||r.coutTime.includes('1899')) r.coutTime='12:00';
   return r;
 }
 
@@ -2653,6 +4193,8 @@ function mergeFromCloud(cloudDB){
   }
   // Rooms from cloud (if cloud has more rooms than local)
   if(cloudDB.rooms?.length>DB.rooms.length) DB.rooms=cloudDB.rooms;
+  // Waitlist merge
+  if(cloudDB.waitlist?.length) DB.waitlist=cloudDB.waitlist;
   // Save merged result locally
   save();
   renderDash();renderRooms();updateTopbar();
@@ -2666,6 +4208,7 @@ function dbForSync(){
     rooms:DB.rooms,
     businessSources:DB.businessSources,
     nightAuditLog:DB.nightAuditLog,
+    waitlist:DB.waitlist||[],
     settings:DB.settings,
     // guestPhotos intentionally excluded — stored locally only
   };
@@ -2741,7 +4284,15 @@ function save(){
 async function init(){
   $('sbDate').textContent=new Date().toLocaleDateString('en-IN',{weekday:'short',day:'2-digit',month:'short',year:'numeric'});
   $('crDate').value=today();
+  if($('shift-date')) $('shift-date').value=today();
+  if($('arr-date')) $('arr-date').value=today();
+  if($('occ-from')){const m=today().substring(0,8)+'01';$('occ-from').value=m;$('occ-to').value=today();}
+  if($('rev-from')){const m=today().substring(0,8)+'01';$('rev-from').value=m;$('rev-to').value=today();}
+  if($('gst-from')){const m=today().substring(0,8)+'01';$('gst-from').value=m;$('gst-to').value=today();}
+  if($('mth-month')) $('mth-month').value=today().substring(0,7);
   populateBSDropdowns();
+  autoUpdateStatuses();
+  initReportDates();
   renderDash();renderRooms();
   updateTopbar();
 
@@ -2764,9 +4315,14 @@ async function init(){
         // Always replace local data with cloud data on fresh load
         if(json.data.reservations?.length) DB.reservations=json.data.reservations.map(sanitizeRes);
         if(json.data.payments?.length) DB.payments=json.data.payments.map(p=>{p.date=sanitizeDate(p.date);return p;});
-        if(json.data.rooms?.length) DB.rooms=json.data.rooms;
+        if(json.data.rooms?.length){
+          // Deduplicate rooms from cloud
+          const seen=new Set();
+          DB.rooms=json.data.rooms.filter(r=>{if(seen.has(r.num))return false;seen.add(r.num);return true;});
+        }
         if(json.data.businessSources?.length) DB.businessSources=json.data.businessSources;
         if(json.data.nightAuditLog?.length) DB.nightAuditLog=json.data.nightAuditLog;
+        if(json.data.waitlist?.length) DB.waitlist=json.data.waitlist;
         // Preserve local gasurl setting even if cloud has different one
         const localUrl=DB.settings.gasurl;
         if(json.data.settings) DB.settings={...json.data.settings,gasurl:localUrl};
