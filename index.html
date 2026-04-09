@@ -388,9 +388,13 @@ td{padding:9px 11px;vertical-align:middle}
     <button id="menu-btn" onclick="toggleSidebar()">☰</button>
     <div class="tb-title" id="tbTitle">Dashboard</div>
     <div class="tb-stats" id="tbStats"></div>
-    <div id="sync-indicator" style="font-size:11px;color:var(--text3);cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:4px" onclick="syncNow()" title="Click to sync now">
-      <span id="sync-icon">☁</span>
-      <span id="sync-time" style="font-family:'DM Mono',monospace"></span>
+    <!-- Sync indicator with countdown -->
+    <div id="sync-indicator" style="display:flex;align-items:center;gap:6px;cursor:pointer;padding:5px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg3)" onclick="syncNow()" title="Click to sync now">
+      <span id="sync-icon" style="font-size:14px">☁</span>
+      <div style="display:flex;flex-direction:column;line-height:1.2">
+        <span id="sync-time" style="font-family:'DM Mono',monospace;font-size:10px;color:var(--text3)">Not synced</span>
+        <span id="sync-countdown" style="font-family:'DM Mono',monospace;font-size:9px;color:var(--text3)"></span>
+      </div>
     </div>
     <button class="btn btn-gold btn-sm" onclick="openModal('bkModal');initBooking()">＋ New Booking</button>
   </div>
@@ -582,12 +586,42 @@ td{padding:9px 11px;vertical-align:middle}
 <!-- ══════════════════════ CITY LEDGER ══════════════════════ -->
 <div class="page" id="page-cityledger">
   <div class="section-hdr mb12">
-    <div class="section-title">City Ledger / Business Sources</div>
+    <div class="section-title">City Ledger</div>
     <button class="btn btn-gold btn-sm" onclick="openModal('bsModal');editBSId=null;clearBSForm()">＋ Add Source</button>
   </div>
-  <div id="bsList"></div>
-  <div class="section-hdr mt16 mb12"><div class="section-title">City Ledger Transactions</div></div>
-  <div class="tbl-wrap"><table><thead><tr><th>Date</th><th>Res No</th><th>Guest</th><th>Source</th><th>Room</th><th>Amount</th><th>Status</th></tr></thead><tbody id="clTbody"></tbody></table></div>
+  <!-- Source cards -->
+  <div id="bsList" class="mb14"></div>
+  <!-- Filter bar like Image 3 -->
+  <div class="card mb12" style="padding:12px 14px">
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end">
+      <div class="fg"><div class="fl">Source</div>
+        <select class="inp" id="cl-source" style="width:160px" onchange="renderCL()">
+          <option value="">All Sources</option>
+        </select>
+      </div>
+      <div class="fg"><div class="fl">From</div><input type="date" class="inp" id="cl-from" style="width:135px" onchange="renderCL()"></div>
+      <div class="fg"><div class="fl">To</div><input type="date" class="inp" id="cl-to" style="width:135px" onchange="renderCL()"></div>
+      <button class="btn btn-outline btn-sm" onclick="window.print()">🖨 Print</button>
+    </div>
+  </div>
+  <!-- Summary strip like Image 3 -->
+  <div id="cl-summary" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:14px"></div>
+  <!-- Transactions table like Image 3 -->
+  <div class="card" style="padding:0">
+    <div class="tbl-wrap">
+      <table style="width:100%">
+        <thead><tr>
+          <th>Date</th><th>Description</th><th>Guest / Res No</th><th>Source</th>
+          <th style="text-align:right">Credit (DR)</th>
+          <th style="text-align:right">Debit (CR)</th>
+          <th style="text-align:right">Balance</th>
+          <th>Status</th>
+        </tr></thead>
+        <tbody id="clTbody"></tbody>
+        <tfoot id="clFoot"></tfoot>
+      </table>
+    </div>
+  </div>
 </div>
 
 <!-- ══════════════════════ REVENUE ANALYTICS ══════════════════════ -->
@@ -1204,36 +1238,53 @@ td{padding:9px 11px;vertical-align:middle}
       <button class="tab" onclick="rmTab('rmt-charges',this)">Charges</button>
       <button class="tab" onclick="rmTab('rmt-invoice',this)">Invoice</button>
     </div>
-    <!-- FOLIO -->
+
+    <!-- FOLIO TAB -->
     <div class="tc active" id="rmt-folio">
-      <div style="display:grid;grid-template-columns:1fr min(260px,35%);gap:14px">
+      <div style="display:grid;grid-template-columns:1fr min(280px,35%);gap:14px">
+        <!-- LEFT: Action bar + Folio ledger -->
         <div style="min-width:0">
-          <div class="grid2 mb12" id="rm-info"></div>
-          <div class="section-hdr"><div class="section-title text-sm">Payments</div><button class="btn btn-gold btn-xs" onclick="openPayModal()">＋ Payment</button></div>
-          <div class="tbl-wrap"><table><thead><tr><th>Date</th><th>Description</th><th>Amount</th><th>Mode</th><th></th></tr></thead><tbody id="rm-pays"></tbody></table></div>
-        </div>
-        <div class="bill-card">
-          <div class="bill-ttl">Folio</div>
-          <div id="rm-folio-summary"></div>
-          <div class="bill-sep mt8"></div>
-          <div style="display:flex;flex-direction:column;gap:6px;margin-top:8px">
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid var(--border)">
             <button class="btn btn-blue btn-sm" id="rm-ci-btn" onclick="doCheckin()" style="display:none">🛬 Check In</button>
             <button class="btn btn-success btn-sm" id="rm-co-btn" onclick="doCheckout()">✓ Check Out</button>
-            <button class="btn btn-gold btn-sm" onclick="rmTab('rmt-invoice',document.querySelectorAll('#rmModal .tab')[3]);buildInvoice()">🧾 Invoice</button>
-            <button class="btn btn-outline btn-sm" onclick="printGRC()">📄 Print GRC</button>
-            <button class="btn btn-outline btn-sm" onclick="editRes()">✏ Edit Booking</button>
-            <button class="btn btn-outline btn-sm" onclick="openSplitPay()">💳 Split Payment</button>
+            <button class="btn btn-gold btn-sm" onclick="openPayModal()">💳 Payment</button>
+            <button class="btn btn-outline btn-sm" onclick="addCharge()">➕ Charge</button>
             <button class="btn btn-outline btn-sm" onclick="openDiscount()">🏷 Discount</button>
+            <button class="btn btn-outline btn-sm" onclick="openSplitPay()">⇄ Split</button>
             <button class="btn btn-outline btn-sm" onclick="openRefund()">↩ Refund</button>
-            <button class="btn btn-outline btn-sm" onclick="openTransfer()">🔄 Room Transfer</button>
-            <button class="btn btn-outline btn-sm" onclick="openExtend()">📅 Extend Stay</button>
-            <button class="btn btn-outline btn-sm" id="rm-undo-btn" onclick="undoCheckout()" style="display:none">↩ Undo Checkout</button>
-            <button class="btn btn-danger btn-sm" id="rm-del-btn" onclick="deleteRes()">🗑 Delete Booking</button>
+            <button class="btn btn-outline btn-sm" onclick="openTransfer()">🔄 Transfer</button>
+            <button class="btn btn-outline btn-sm" onclick="openExtend()">📅 Extend</button>
+            <button class="btn btn-outline btn-sm" onclick="editRes()">✏ Edit</button>
+            <button class="btn btn-outline btn-sm" id="rm-undo-btn" onclick="undoCheckout()" style="display:none">↩ Undo C/O</button>
+            <button class="btn btn-danger btn-sm" id="rm-del-btn" onclick="deleteRes()">🗑</button>
           </div>
+          <div class="tbl-wrap">
+            <table style="width:100%">
+              <thead><tr>
+                <th>Date</th><th>Particulars</th><th>Description</th>
+                <th style="text-align:right">Charge (₹)</th>
+                <th style="text-align:right">Payment (₹)</th>
+                <th style="text-align:right">Balance (₹)</th>
+              </tr></thead>
+              <tbody id="rm-folio-ledger"></tbody>
+              <tfoot id="rm-folio-foot"></tfoot>
+            </table>
+          </div>
+        </div>
+        <!-- RIGHT: Summary card -->
+        <div class="bill-card">
+          <div class="bill-ttl">Folio Summary</div>
+          <div id="rm-info"></div>
+          <div class="bill-sep mt8"></div>
+          <div id="rm-folio-summary"></div>
+          <div class="bill-sep mt8"></div>
+          <button class="btn btn-gold btn-sm mt8" style="width:100%" onclick="rmTab('rmt-invoice',document.querySelectorAll('#rmModal .tab')[3]);buildInvoice()">🧾 View Invoice</button>
+          <button class="btn btn-outline btn-sm mt4" style="width:100%" onclick="printGRC()">📄 Print GRC</button>
         </div>
       </div>
     </div>
-    <!-- GUEST -->
+
+    <!-- GUEST TAB -->
     <div class="tc" id="rmt-guest">
       <div class="gp-layout">
         <div class="photo-box">
@@ -1270,24 +1321,46 @@ td{padding:9px 11px;vertical-align:middle}
         </div>
       </div>
     </div>
-    <!-- CHARGES -->
+
+    <!-- CHARGES TAB -->
     <div class="tc" id="rmt-charges">
-      <div class="section-hdr mb8"><div class="section-title text-sm">Charges</div><button class="btn btn-gold btn-xs" onclick="addCharge()">＋ Charge</button></div>
-      <div class="tbl-wrap"><table><thead><tr><th>Date</th><th>Description</th><th>Amount</th><th></th></tr></thead><tbody id="rm-charges-body"></tbody></table></div>
+      <div class="section-hdr mb8">
+        <div class="section-title text-sm">Room Charges — Night by Night</div>
+        <button class="btn btn-gold btn-xs" onclick="addCharge()">➕ Extra Charge</button>
+      </div>
+      <div class="tbl-wrap">
+        <table style="width:100%">
+          <thead><tr>
+            <th>Stay Date</th><th>Room</th><th>Rate Type</th><th style="text-align:center">Nights</th>
+            <th style="text-align:right">Charge</th><th style="text-align:right">Discount</th>
+            <th style="text-align:right">Tax</th><th style="text-align:right">Net Amount</th>
+          </tr></thead>
+          <tbody id="rm-charges-body"></tbody>
+          <tfoot id="rm-charges-foot"></tfoot>
+        </table>
+      </div>
+      <div class="section-hdr mt12 mb8"><div class="section-title text-sm">Extra Charges</div></div>
+      <div class="tbl-wrap">
+        <table style="width:100%">
+          <thead><tr><th>Date</th><th>Description</th><th style="text-align:right">Amount</th><th></th></tr></thead>
+          <tbody id="rm-extra-body"></tbody>
+        </table>
+      </div>
     </div>
-    <!-- INVOICE -->
+
+    <!-- INVOICE TAB -->
     <div class="tc" id="rmt-invoice">
       <div id="rm-invoice-wrap"></div>
       <div style="display:flex;gap:8px;margin-top:10px">
         <button class="btn btn-gold btn-sm" onclick="window.print()">🖨 Print</button>
-        <button class="btn btn-outline btn-sm" onclick="emailInvoice()">📧 Email Invoice</button>
+        <button class="btn btn-outline btn-sm" onclick="emailInvoice()">📧 Email</button>
       </div>
     </div>
+
   </div>
   <div class="mfoot" id="rm-footer">
     <button class="btn btn-outline" onclick="closeModal('rmModal')">Close</button>
   </div>
-</div>
 </div>
 
 <!-- ADD PAYMENT MODAL -->
@@ -1469,6 +1542,46 @@ td{padding:9px 11px;vertical-align:middle}
 </div>
 
 
+<div class="overlay" id="addChargeModal">
+<div class="modal modal-sm" style="max-width:420px">
+  <div class="mhdr"><div class="mtitle">➕ Add Extra Charge</div><button class="xbtn" onclick="closeModal('addChargeModal')">✕</button></div>
+  <div class="mbody">
+    <div class="fg mb10"><div class="fl">Date</div><input class="inp" type="date" id="ac-date"></div>
+    <div class="fg mb10"><div class="fl">Charge Type</div>
+      <select class="inp" id="ac-desc" onchange="if(this.value==='Other'){$('ac-custom-row').style.display='block'}else{$('ac-custom-row').style.display='none'}">
+        <option value="Restaurant">Restaurant / Food</option>
+        <option value="Laundry">Laundry</option>
+        <option value="Minibar">Minibar</option>
+        <option value="Room Service">Room Service</option>
+        <option value="Telephone">Telephone</option>
+        <option value="Parking">Parking</option>
+        <option value="Extra Bed">Extra Bed</option>
+        <option value="Early Check-in">Early Check-in</option>
+        <option value="Late Checkout">Late Checkout</option>
+        <option value="Damage">Damage / Loss</option>
+        <option value="Other">Other (Enter manually)</option>
+      </select>
+    </div>
+    <div class="fg mb10" id="ac-custom-row" style="display:none">
+      <div class="fl">Custom Description</div>
+      <input class="inp" id="ac-custom" placeholder="Enter charge name">
+    </div>
+    <div class="grid2 mb10">
+      <div class="fg"><div class="fl">Quantity</div><input class="inp" type="number" id="ac-qty" value="1" min="1" oninput="calcChargeTotal()"></div>
+      <div class="fg"><div class="fl">Rate / Amount (₹)</div><input class="inp" type="number" id="ac-rate" placeholder="0" oninput="calcChargeTotal()"></div>
+    </div>
+    <div style="background:var(--bg3);border-radius:8px;padding:12px;display:flex;justify-content:space-between;align-items:center">
+      <span class="text-dim text-sm">Total Amount</span>
+      <span class="mono bold text-gold" style="font-size:18px" id="ac-total">₹0</span>
+    </div>
+  </div>
+  <div class="mfoot">
+    <button class="btn btn-outline" onclick="closeModal('addChargeModal')">Cancel</button>
+    <button class="btn btn-gold" onclick="saveCharge()">➕ Add Charge</button>
+  </div>
+</div>
+</div>
+
 <div class="overlay" id="camModal">
 <div class="modal modal-sm" style="max-width:440px">
   <div class="mhdr"><div class="mtitle">📸 Capture Photo</div><button class="xbtn" onclick="stopCam()">✕</button></div>
@@ -1641,7 +1754,7 @@ const getStatus = r => {
   return 'vacant';
 };
 const getLabel = s => ({vacant:'Vacant',occupied:'Occupied',arrival:'Arrival',confirmed:'Confirmed',dueout:'Due Out',checkout:'Checked Out',dirty:'Dirty',cancelled:'Cancelled',noshow:'No Show'}[s]||s);
-const getPaid = r => DB.payments.filter(p=>p.resId===r.resId&&!p.isAuditPost).reduce((s,p)=>s+(p.amount||0),0);
+const getPaid = r => DB.payments.filter(p=>p.resId===r.resId&&!p.isAuditPost&&!p.deleted&&p.amount>0).reduce((s,p)=>s+(p.amount||0),0);
 const getBalance = r => (r.totalAmount||0) - getPaid(r);
 // Active reservation for room = covers TODAY including Due Out (checkout=today)
 // checkout >= today so that rooms due out today still show as occupied/dueout
@@ -1686,7 +1799,82 @@ function toast(msg, type='inf') {
 // ════════════════════ NAVIGATION ════════════════════
 const PAGE_TITLES = {dashboard:'Dashboard',roomview:'Room View',stayview:'Stay View',calendar90:'90-Day Calendar',reservations:'Reservations',guestsearch:'Guest Search',cashier:'Cashier Report',deposit:'Deposit Tracker',cityledger:'City Ledger',revenue:'Revenue Analytics',nightaudit:'Night Audit',invoice:'Invoice / Print',settings:'Settings',databackup:'Data & Backup','rpt-occupancy':'Occupancy Report','rpt-revenue':'Revenue Report','rpt-arrivals':'Arrivals / Departures','rpt-gst':'GST Register','rpt-monthly':'Monthly Summary',housekeeping:'Housekeeping',waitlist:'Waitlist',walkin:'Quick Walk-In',shift:'Shift Report',otaimport:'OTA Import'};
 
+// ════════════════════ PIN PROTECTION ════════════════════
+const PROTECTED_PAGES = ['settings','databackup'];
+const SETTINGS_PIN = '664422';
+let pinUnlocked = false; // stays unlocked for session once entered
+
+function showPinDialog(onSuccess){
+  const old=$('pinDialog');if(old) old.remove();
+  _pinEntry=''; // reset pin entry
+  const d=document.createElement('div');
+  d.id='pinDialog';
+  d._successCb=onSuccess; // store callback directly on element
+  d.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
+  d.innerHTML=`
+    <div style="background:#1a2030;border:2px solid var(--gold);border-radius:16px;padding:28px;max-width:320px;width:100%;text-align:center">
+      <div style="font-size:36px;margin-bottom:8px">🔒</div>
+      <div style="font-family:'Playfair Display',serif;font-size:18px;color:var(--gold);margin-bottom:6px">Admin Access</div>
+      <div style="font-size:12px;color:var(--text3);margin-bottom:20px">Enter PIN to access Settings & Backup</div>
+      <div id="pin-dots" style="display:flex;justify-content:center;gap:10px;margin-bottom:20px">
+        ${[0,1,2,3,4,5].map(i=>`<div id="pd-${i}" style="width:14px;height:14px;border-radius:50%;background:var(--border2);transition:background .15s"></div>`).join('')}
+      </div>
+      <div id="pin-keypad" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-width:220px;margin:0 auto 16px">
+        ${[1,2,3,4,5,6,7,8,9,'','0','⌫'].map(k=>`
+          <button onclick="pinKey('${k}')" style="padding:14px;background:var(--bg3);border:1px solid var(--border2);border-radius:10px;color:var(--text);font-size:18px;font-weight:600;cursor:pointer;font-family:'DM Mono',monospace;${k===''?'visibility:hidden':''}">${k}</button>
+        `).join('')}
+      </div>
+      <div id="pin-error" style="color:var(--red);font-size:12px;min-height:18px;margin-bottom:8px"></div>
+      <button onclick="document.getElementById('pinDialog')?.remove()" style="width:100%;padding:10px;background:transparent;color:var(--text3);border:1px solid var(--border);border-radius:8px;cursor:pointer;font-family:'DM Sans',sans-serif">Cancel</button>
+    </div>`;
+  document.body.appendChild(d);
+  // Do NOT close on backdrop click - user must use Cancel button
+}
+
+let _pinEntry='';
+function pinKey(k){
+  if(k==='') return;
+  if(k==='⌫'){
+    _pinEntry=_pinEntry.slice(0,-1);
+  } else if(_pinEntry.length<6){
+    _pinEntry+=k;
+  }
+  // Update dots
+  for(let i=0;i<6;i++){
+    const dot=$('pd-'+i);
+    if(dot) dot.style.background=i<_pinEntry.length?'var(--gold)':'var(--border2)';
+  }
+  // Check when 6 digits entered
+  if(_pinEntry.length===6){
+    if(_pinEntry===SETTINGS_PIN){
+      _pinEntry='';
+      const dlg=$('pinDialog');
+      const cb=dlg?._successCb;
+      dlg?.remove();
+      if(cb) cb();
+    } else {
+      const err=$('pin-error');
+      if(err) err.textContent='❌ Incorrect PIN. Try again.';
+      _pinEntry='';
+      for(let i=0;i<6;i++){const dot=$('pd-'+i);if(dot)dot.style.background='var(--red)';}
+      setTimeout(()=>{for(let i=0;i<6;i++){const dot=$('pd-'+i);if(dot)dot.style.background='var(--border2)';}},500);
+    }
+  }
+}
+
 function goPage(name) {
+  // PIN protection - ask EVERY time settings or backup is accessed
+  if(PROTECTED_PAGES.includes(name)){
+    window._pinCallback=()=>_goPageActual(name);
+    showPinDialog(()=>_goPageActual(name));
+    return;
+  }
+  _goPageActual(name);
+}
+
+function _goPageActual(name){
+  // Lock settings when leaving protected pages
+  if(!PROTECTED_PAGES.includes(name)) pinUnlocked=false;
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   $('page-'+name)?.classList.add('active');
@@ -1719,6 +1907,10 @@ function rmTab(id, btn) {
   document.querySelectorAll('#rmModal .tc').forEach(t=>t.classList.remove('active'));
   document.querySelectorAll('#rmModal .tab').forEach(b=>b.classList.remove('active'));
   $(id)?.classList.add('active'); btn?.classList.add('active');
+  // Re-render the tab content fresh when switching
+  if(id==='rmt-folio') renderFolio();
+  else if(id==='rmt-charges') renderCharges();
+  else if(id==='rmt-invoice') buildInvoice();
 }
 function openModal(id) { $(id).classList.add('open'); }
 function closeModal(id) { $(id).classList.remove('open'); }
@@ -2132,72 +2324,159 @@ function renderDeposit(){
 let editBSId=null;
 function clearBSForm(){$('bs-name').value='';$('bs-type').value='Travel Agent';$('bs-contact').value='';$('bs-ph').value='';$('bs-email').value='';$('bsModalTitle').textContent='Add Business Source';editBSId=null;}
 function renderCL(){
-  // Business source cards with outstanding balance per ledger
-  $('bsList').innerHTML=DB.businessSources.map(s=>{
-    // All reservations under this source
-    const srcRes=DB.reservations.filter(r=>r.bsource===s.id);
-    // All payments posted to city ledger for this source
-    const clPays=DB.payments.filter(p=>p.bsource===s.id&&p.mode==='City Ledger');
-    const totalBilled=srcRes.reduce((t,r)=>t+(r.totalAmount||0),0);
-    const totalCleared=DB.payments.filter(p=>p.bsource===s.id&&p.mode!=='City Ledger'&&p.description?.includes('Ledger Clear')).reduce((t,p)=>t+(p.amount||0),0);
-    // Outstanding = what's been billed to this ledger minus what's been cleared
-    const clBilled=clPays.reduce((t,p)=>t+(p.amount||0),0);
-    const outstanding=clBilled-totalCleared;
-    return `
-    <div class="bs-item" style="flex-wrap:wrap;gap:8px">
-      <div style="font-size:16px">🏢</div>
-      <div style="flex:1;min-width:150px">
-        <div class="bold">${s.name}</div>
-        <div class="text-xs text-dim">${s.type}${s.contact?' · '+s.contact:''}${s.phone?' · '+s.phone:''}</div>
-        <div style="display:flex;gap:12px;margin-top:4px;font-size:11.5px">
-          <span>Billed: <span class="mono text-gold">${fmtM(clBilled)}</span></span>
-          <span>Outstanding: <span class="mono ${outstanding>0?'text-red':'text-green'}">${fmtM(outstanding)}</span></span>
+  // Populate source filter dropdown
+  const clSrcSel=$('cl-source');
+  if(clSrcSel){
+    const cur=clSrcSel.value;
+    clSrcSel.innerHTML='<option value="">All Sources</option>'+DB.businessSources.map(s=>`<option value="${s.id}"${cur===s.id?' selected':''}>${s.name}</option>`).join('');
+  }
+
+  const srcFilter=$('cl-source')?.value||'';
+  const fromF=$('cl-from')?.value||'';
+  const toF=$('cl-to')?.value||'';
+
+  // Business source cards
+  $('bsList').innerHTML=DB.businessSources.length?`<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-bottom:14px">`+DB.businessSources.map(s=>{
+    const clPays=DB.payments.filter(p=>p.bsource===s.id&&p.mode==='City Ledger'&&!p.deleted);
+    const settlements=DB.payments.filter(p=>p.bsource===s.id&&p.description?.includes('Ledger Settled')&&!p.deleted);
+    const billed=clPays.reduce((t,p)=>t+(p.amount||0),0);
+    const settled=settlements.reduce((t,p)=>t+(p.amount||0),0);
+    const outstanding=billed-settled;
+    return `<div class="stat-card sc-gold" style="padding:14px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
+        <div><div class="bold">${s.name}</div><div class="text-xs text-dim">${s.type}</div></div>
+        <div style="display:flex;gap:4px">
+          ${outstanding>0?`<button class="btn btn-gold btn-xs" onclick="clearLedger('${s.id}','${s.name}',${outstanding})">💰 Settle</button>`:''}
+          <button class="ico-btn" onclick="editBS('${s.id}')">✏</button>
+          <button class="ico-btn" onclick="removeBS('${s.id}')">🗑</button>
         </div>
       </div>
-      <div style="display:flex;gap:4px;flex-wrap:wrap">
-        ${outstanding>0?`<button class="btn btn-gold btn-xs" onclick="clearLedger('${s.id}','${s.name}',${outstanding})">💰 Clear</button>`:'<span class="text-xs text-green">✓ Settled</span>'}
-        <button class="ico-btn" onclick="editBS('${s.id}')">✏</button>
-        <button class="ico-btn" onclick="removeBS('${s.id}')">🗑</button>
+      <div style="display:flex;gap:14px;font-size:12px">
+        <div><div class="text-dim text-xs">Billed</div><div class="mono text-gold">${fmtM(billed)}</div></div>
+        <div><div class="text-dim text-xs">Settled</div><div class="mono text-green">${fmtM(settled)}</div></div>
+        <div><div class="text-dim text-xs">Outstanding</div><div class="mono bold ${outstanding>0?'text-red':'text-green'}">${fmtM(outstanding)}</div></div>
       </div>
     </div>`;
-  }).join('')||'<div class="text-dim text-sm">No business sources. Add one above.</div>';
+  }).join('')+'</div>':'<div class="text-dim text-sm mb14">No business sources. Add one above.</div>';
 
   populateBSDropdowns();
 
-  // All city ledger transactions grouped by source
-  const clPays=DB.payments.filter(p=>p.mode==='City Ledger'||p.description?.includes('Ledger Clear'));
-  $('clTbody').innerHTML=clPays.length?clPays.map(p=>{
-    const r=DB.reservations.find(r=>r.resId===p.resId);
-    const bs=DB.businessSources.find(s=>s.id===(p.bsource||r?.bsource));
-    return `<tr>
-      <td>${fmtD(p.date)}</td>
-      <td class="mono">${r?.resNo||'-'}</td>
-      <td>${r?.guestName||p.description||'-'}</td>
-      <td>${bs?.name||'-'}</td>
-      <td class="mono">${r?.rooms?.join(', ')||'-'}</td>
-      <td class="mono ${p.description?.includes('Ledger Clear')?'text-green':'text-gold'}">${p.description?.includes('Ledger Clear')?'CR ':'DR '}${fmtM(p.amount)}</td>
-      <td><span class="sp sp-${p.description?.includes('Ledger Clear')?'occupied':'confirmed'}">${p.description?.includes('Ledger Clear')?'Cleared':'Posted'}</span></td>
+  // All city ledger transactions
+  let trans=DB.payments.filter(p=>{
+    const isCL=p.mode==='City Ledger'||p.description?.includes('Ledger Settled');
+    if(!isCL) return false;
+    if(srcFilter&&p.bsource!==srcFilter) return false;
+    if(fromF&&p.date<fromF) return false;
+    if(toF&&p.date>toF) return false;
+    return true;
+  }).sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+
+  // Running balance per source
+  let totalBilled=0,totalSettled=0;
+  let runBal=0;
+  const rows=trans.map(p=>{
+    const r=DB.reservations.find(x=>x.resId===p.resId);
+    const bs=DB.businessSources.find(s=>s.id===p.bsource);
+    const isSettlement=p.description?.includes('Ledger Settled');
+    const isVoid=p.deleted;
+    const credit=isSettlement?0:(p.amount||0);  // Amount owed (DR to source)
+    const debit=isSettlement?(p.amount||0):0;   // Payment received (CR from source)
+    if(!isVoid){runBal+=credit-debit;totalBilled+=credit;totalSettled+=debit;}
+    const stl=isVoid?'text-decoration:line-through;opacity:0.5;color:var(--red)':'';
+    return `<tr style="${isVoid?'background:rgba(231,76,60,.04)':''}">
+      <td style="${stl};font-size:12px" class="mono">${fmtD(p.date)}</td>
+      <td style="${stl}">${p.description||'-'}${isVoid?' <span style="color:var(--red);font-size:10px">[VOID]</span>':''}</td>
+      <td style="${stl};font-size:12px">${r?`${r.resNo} · ${r.guestName}`:'-'}</td>
+      <td><span class="chip">${bs?.name||'-'}</span></td>
+      <td style="text-align:right;font-family:'DM Mono',monospace;color:${isVoid?'var(--text3)':'var(--orange)'}">${credit>0?fmtM(credit):''}</td>
+      <td style="text-align:right;font-family:'DM Mono',monospace;color:${isVoid?'var(--text3)':'var(--green)'}">${debit>0?fmtM(debit):''}</td>
+      <td style="text-align:right;font-family:'DM Mono',monospace;font-weight:600;color:${isVoid?'var(--text3)':runBal>0?'var(--red)':'var(--green)'}">${isVoid?'':fmtM(Math.abs(runBal))}</td>
+      <td><span class="sp ${isSettlement?'sp-occupied':isVoid?'sp-cancelled':'sp-confirmed'}">${isVoid?'Void':isSettlement?'Settled':'Posted'}</span></td>
     </tr>`;
-  }).join(''):`<tr><td colspan="7" style="text-align:center;color:var(--text3);padding:20px">No city ledger transactions</td></tr>`;
+  });
+
+  $('clTbody').innerHTML=rows.length?rows.join(''):`<tr><td colspan="8" style="text-align:center;color:var(--text3);padding:20px">No transactions found</td></tr>`;
+
+  const cf=$('clFoot');
+  if(cf) cf.innerHTML=`<tr style="font-weight:700;background:var(--bg3)">
+    <td colspan="4">Total</td>
+    <td style="text-align:right;font-family:'DM Mono',monospace;color:var(--orange)">${fmtM(totalBilled)}</td>
+    <td style="text-align:right;font-family:'DM Mono',monospace;color:var(--green)">${fmtM(totalSettled)}</td>
+    <td style="text-align:right;font-family:'DM Mono',monospace;font-weight:700;color:${runBal>0?'var(--red)':'var(--green)'}">${fmtM(Math.abs(runBal))}</td>
+    <td></td>
+  </tr>`;
+
+  // Summary strip
+  const cs=$('cl-summary');
+  if(cs) cs.innerHTML=`
+    <div class="stat-card sc-orange" style="padding:12px"><div class="stat-lbl">City Ledger Total</div><div class="stat-val text-orange" style="font-size:16px">${fmtM(totalBilled)}</div></div>
+    <div class="stat-card sc-red" style="padding:12px"><div class="stat-lbl">Unpaid / Outstanding</div><div class="stat-val text-red" style="font-size:16px">${fmtM(Math.max(0,totalBilled-totalSettled))}</div></div>
+    <div class="stat-card sc-gold" style="padding:12px"><div class="stat-lbl">Unassigned Payments</div><div class="stat-val text-gold" style="font-size:16px">${fmtM(0)}</div></div>
+    <div class="stat-card sc-green" style="padding:12px"><div class="stat-lbl">Settled</div><div class="stat-val text-green" style="font-size:16px">${fmtM(totalSettled)}</div></div>`;
 }
 
 function clearLedger(bsId, bsName, outstanding){
-  const amtStr=prompt(`Clear ledger for ${bsName}\nOutstanding: ${fmtM(outstanding)}\n\nEnter amount received:`);
-  const amt=parseFloat(amtStr);
-  if(isNaN(amt)||amt<=0) return;
-  const dateStr=prompt('Payment date (YYYY-MM-DD):',today());
+  // Remove existing dialog
+  const old=$('ledgerSettleDialog');if(old) old.remove();
+  const d=document.createElement('div');
+  d.id='ledgerSettleDialog';
+  d.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
+  d.innerHTML=`
+    <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:16px;padding:24px;max-width:400px;width:100%">
+      <div style="font-family:'Playfair Display',serif;font-size:17px;color:var(--gold);margin-bottom:4px">💰 Settle Ledger</div>
+      <div style="font-size:13px;color:var(--text2);margin-bottom:16px">${bsName}</div>
+      <div style="background:var(--bg3);border-radius:8px;padding:12px;margin-bottom:16px">
+        <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px">
+          <span class="text-dim">Outstanding Balance</span>
+          <span class="mono bold text-red">${fmtM(outstanding)}</span>
+        </div>
+      </div>
+      <div class="fg mb10"><div class="fl">Settlement Date</div>
+        <input class="inp" type="date" id="settle-date" value="${today()}">
+      </div>
+      <div class="fg mb10"><div class="fl">Amount Received (₹)</div>
+        <input class="inp" type="number" id="settle-amt" value="${outstanding}" placeholder="${outstanding}">
+      </div>
+      <div class="fg mb10"><div class="fl">Payment Mode</div>
+        <select class="inp" id="settle-mode">
+          <option>Cash</option><option>UPI</option><option>Card</option>
+          <option>Bank Transfer</option><option>Cheque</option>
+        </select>
+      </div>
+      <div class="fg mb16"><div class="fl">Reference / Cheque No.</div>
+        <input class="inp" id="settle-ref" placeholder="Optional reference">
+      </div>
+      <div style="display:flex;gap:8px">
+        <button onclick="document.getElementById('ledgerSettleDialog').remove()" style="flex:1;padding:10px;background:transparent;color:var(--text2);border:1px solid var(--border2);border-radius:8px;cursor:pointer;font-family:'DM Sans',sans-serif">Cancel</button>
+        <button onclick="confirmLedgerSettle('${bsId}','${bsName}')" style="flex:2;padding:10px;background:var(--gold);color:#000;border:none;border-radius:8px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif">✅ Confirm Settlement</button>
+      </div>
+    </div>`;
+  document.body.appendChild(d);
+  d.onclick=e=>{if(e.target===d) d.remove();};
+}
+
+function confirmLedgerSettle(bsId, bsName){
+  const amt=parseFloat($('settle-amt')?.value);
+  if(!amt||amt<=0){toast('Enter valid amount','err');return;}
+  const date=$('settle-date')?.value||today();
+  const mode=$('settle-mode')?.value||'Cash';
+  const ref=$('settle-ref')?.value||'';
   DB.payments.push({
     payId:'cl_'+Date.now(),
     resId:null,
-    date:dateStr||today(),
+    date,
     amount:amt,
-    mode:'Cash',
+    mode,
     bsource:bsId,
-    description:`Ledger Cleared — ${bsName}`,
+    description:`Ledger Settled — ${bsName}${ref?' [Ref: '+ref+']':''}`,
     time:new Date().toLocaleTimeString()
   });
-  save();renderCL();
-  toast(`✅ Ledger cleared: ${fmtM(amt)} received from ${bsName}`,'ok');
+  save();
+  $('ledgerSettleDialog')?.remove();
+  renderCL();
+  showConfirmDialog('✅ LEDGER SETTLED',
+    `Source: ${bsName}\nAmount: ${fmtM(amt)}\nMode: ${mode}\nDate: ${fmtD(date)}`,
+    '#2ecc71');
 }
 function editBS(id){
   const s=DB.businessSources.find(b=>b.id===id);
@@ -2508,11 +2787,12 @@ function importJSON(inp){
           };
         });
 
-        // Build payments with matching resIds
+        // Build payments from old totalPaid - only if actually paid
         const payments=[];
         data.reservations.forEach((r,i)=>{
           const paid=parseFloat(r.totalPaid)||0;
-          if(paid>0){
+          // Only create payment if it was actually paid and status is checked out
+          if(paid>0&&(r.status==='checkedout'||r.status==='checked-out')){
             const resId='res_'+baseTime+'_'+i;
             payments.push({
               payId:'pay_'+baseTime+'_'+i,
@@ -2520,7 +2800,7 @@ function importJSON(inp){
               date:r.departure?String(r.departure).substring(0,10):today(),
               amount:paid,
               mode:r.rfm||'Cash',
-              description:'Imported payment',
+              description:'Payment (imported from old HMS)',
               time:'12:00'
             });
           }
@@ -2934,6 +3214,12 @@ function autoUpdateStatuses(){
   if(changed) save();
 }
 let curRoom=null, curRes=null;
+
+// Always call this before rendering folio — keeps curRes in sync with DB
+function refreshCurRes(){
+  if(curRes?.resId) curRes=DB.reservations.find(r=>r.resId===curRes.resId)||curRes;
+}
+
 function openRmDetail(roomNum){
   if(!roomNum){return;}
   const room=DB.rooms.find(r=>r.num===roomNum);
@@ -2948,8 +3234,10 @@ function openRmDetail(roomNum){
   document.querySelectorAll('#rmModal .tab').forEach((b,i)=>{b.classList[i===0?'add':'remove']('active');});
   document.querySelectorAll('#rmModal .tc').forEach((c,i)=>{c.classList[i===0?'add':'remove']('active');});
   if(!res){
-    $('rm-info').innerHTML='<div class="text-dim">No reservation for this room.</div>';
-    $('rm-folio-summary').innerHTML='';$('rm-pays').innerHTML='';
+    const riEl=$('rm-info');if(riEl)riEl.innerHTML='<div class="text-dim">No reservation for this room.</div>';
+    const fsEl=$('rm-folio-summary');if(fsEl)fsEl.innerHTML='';
+    const fl=$('rm-folio-ledger');if(fl)fl.innerHTML='';
+    const ff=$('rm-folio-foot');if(ff)ff.innerHTML='';
     $('rm-footer').innerHTML=`<button class="btn btn-gold btn-sm" onclick="quickBook('${roomNum}')">＋ Book</button><button class="btn btn-outline" onclick="closeModal('rmModal')">Close</button>`;
     openModal('rmModal');return;
   }
@@ -2967,93 +3255,274 @@ function openRmDetail(roomNum){
   openModal('rmModal');
 }
 function renderFolio(){
+  refreshCurRes();
   const r=curRes;if(!r) return;
   const paid=getPaid(r),bal=getBalance(r),isDO=isDueOut(r);
   const dispSt=isDO?'Due Out':r.status;
-  $('rm-info').innerHTML=`
-    <div><div class="fl">Res No</div><div class="mono bold">${r.resNo}</div></div>
-    <div><div class="fl">Status</div><div><span class="sp sp-${isDO?'dueout':r.status?.toLowerCase().replace(/ /g,'-')}">${dispSt}</span>${r.invNo?`<span class="chip" style="margin-left:6px">${r.invNo}</span>`:''}</div></div>
-    <div><div class="fl">Check-in</div><div class="mono">${fmtD(r.checkin)} ${r.cinTime||''}</div></div>
-    <div><div class="fl">Check-out</div><div class="mono">${fmtD(r.checkout)} ${r.coutTime||''}</div></div>
-    <div><div class="fl">Nights</div><div class="mono bold">${r.nights}</div></div>
-    <div><div class="fl">Rate</div><div>${r.rateType}${r.complimentary?' (Comp)':''}</div></div>`;
+  const rmInfoEl=$('rm-info');
+  if(rmInfoEl) rmInfoEl.innerHTML=`
+    <div class="bill-row"><span class="text-dim">Res No</span><span class="mono bold">${r.resNo}</span></div>
+    <div class="bill-row"><span class="text-dim">Status</span><span class="sp sp-${isDO?'dueout':r.status?.toLowerCase().replace(/ /g,'-')}">${dispSt}</span></div>
+    <div class="bill-row"><span class="text-dim">Check-in</span><span class="mono">${fmtD(r.checkin)} ${r.cinTime||''}</span></div>
+    <div class="bill-row"><span class="text-dim">Check-out</span><span class="mono">${fmtD(r.checkout)} ${r.coutTime||''}</span></div>
+    <div class="bill-row"><span class="text-dim">Nights</span><span class="mono bold">${r.nights}</span></div>
+    <div class="bill-row"><span class="text-dim">Room</span><span class="mono bold">${r.rooms?.join(', ')}</span></div>
+    <div class="bill-row"><span class="text-dim">Rate Type</span><span>${r.rateType}${r.complimentary?' (Comp)':''}</span></div>`;
+
+  // Right panel: Billing summary
   const ratePerNight=r.nights>0?Math.round((r.charges||0)/r.nights):(r.charges||0);
-  const extraTotal=(r.extraCharges||[]).reduce((s,c)=>s+(c.amount>0?c.amount:0),0);
-  const discTotal=Math.abs((r.extraCharges||[]).filter(c=>c.amount<0).reduce((s,c)=>s+(c.amount||0),0));
-  const refunds=DB.payments.filter(p=>p.resId===r.resId&&p.amount<0).reduce((s,p)=>s+Math.abs(p.amount||0),0);
-  const cgst=Math.round((r.gst||0)/2), sgst=Math.round((r.gst||0)/2);
-  $('rm-folio-summary').innerHTML=`
-    <div class="bill-row"><span class="text-dim">Tariff/night</span><span class="mono">${fmtM(ratePerNight)}</span></div>
-    <div class="bill-row"><span class="text-dim">Nights</span><span class="mono">${r.nights}</span></div>
-    <div class="bill-row"><span class="text-dim">Base Rent</span><span class="mono">${fmtM(r.charges)}</span></div>
+  const extraTotal=(r.extraCharges||[]).filter(c=>!c.deleted&&c.amount>0).reduce((s,c)=>s+(c.amount||0),0);
+  const discTotal=Math.abs((r.extraCharges||[]).filter(c=>!c.deleted&&c.amount<0).reduce((s,c)=>s+(c.amount||0),0));
+  const refunds=DB.payments.filter(p=>p.resId===r.resId&&p.amount<0&&!p.deleted).reduce((s,p)=>s+Math.abs(p.amount||0),0);
+  const cgst=Math.round((r.gst||0)/2),sgst=Math.round((r.gst||0)/2);
+  const rmFolioSumEl=$('rm-folio-summary');
+  if(rmFolioSumEl) rmFolioSumEl.innerHTML=`
+    <div class="bill-row"><span class="text-dim">Rate/night</span><span class="mono">${fmtM(ratePerNight)}</span></div>
+    <div class="bill-row"><span class="text-dim">Room Charges</span><span class="mono">${fmtM(r.charges)}</span></div>
     ${extraTotal>0?`<div class="bill-row"><span class="text-dim">Extra Charges</span><span class="mono">${fmtM(extraTotal)}</span></div>`:''}
     ${discTotal>0?`<div class="bill-row"><span class="text-dim">Discount</span><span class="mono text-red">-${fmtM(discTotal)}</span></div>`:''}
-    <div class="bill-row"><span class="text-dim">Sub Total</span><span class="mono">${fmtM(r.charges+extraTotal-discTotal)}</span></div>
-    ${r.gst>0?`
-    <div class="bill-row"><span class="text-dim">SGST 2.5%</span><span class="mono">${fmtM(sgst)}</span></div>
-    <div class="bill-row"><span class="text-dim">CGST 2.5%</span><span class="mono">${fmtM(cgst)}</span></div>
-    `:''}
+    ${r.gst>0?`<div class="bill-row"><span class="text-dim">SGST 2.5%</span><span class="mono">${fmtM(sgst)}</span></div>
+    <div class="bill-row"><span class="text-dim">CGST 2.5%</span><span class="mono">${fmtM(cgst)}</span></div>`:''}
     <div class="bill-sep"></div>
-    <div class="bill-row bill-total"><span>Total Bill</span><span class="mono" style="color:var(--accent)">${fmtM(r.totalAmount)}</span></div>
-    <div class="bill-row"><span class="text-dim">Total Paid</span><span class="mono text-green">${fmtM(paid)}</span></div>
+    <div class="bill-row bill-total"><span>Total</span><span class="mono" style="color:var(--accent)">${fmtM(r.totalAmount)}</span></div>
+    <div class="bill-row"><span class="text-dim">Paid</span><span class="mono text-green">${fmtM(paid)}</span></div>
     ${refunds>0?`<div class="bill-row"><span class="text-dim">Refunds</span><span class="mono text-red">-${fmtM(refunds)}</span></div>`:''}
-    <div class="bill-row" style="margin-top:4px"><span class="bold">Balance</span><span class="mono bold ${bal>0?'bill-due':'text-green'}" style="font-size:15px">${fmtM(bal)}</span></div>
-    ${r.complimentary?'<div style="text-align:center;margin-top:6px;font-size:11px;color:var(--gold)">★ Complimentary Stay</div>':''}`;
+    <div class="bill-row" style="margin-top:4px"><span class="bold">Balance</span><span class="mono bold ${bal>0?'bill-due':'text-green'}" style="font-size:16px">${fmtM(bal)}</span></div>`;
 
-  const pays=DB.payments.filter(p=>p.resId===r.resId&&!p.isAuditPost);
-  $('rm-pays').innerHTML=pays.length?pays.map(p=>`
-    <tr>
-      <td>${fmtD(p.date)}</td>
-      <td>${p.description||'Payment'}</td>
-      <td class="mono text-green">${fmtM(p.amount)}</td>
-      <td><span class="chip">${p.mode}</span></td>
-      <td><button class="ico-btn" onclick="delPay('${p.payId}')">🗑</button></td>
-    </tr>`).join(''):`<tr><td colspan="5" style="text-align:center;color:var(--text3);padding:10px">No payments recorded</td></tr>`;
+  // Left panel: Folio ledger (chronological charges + payments like eZee Image 2)
+  const allEntries=[];
+  // Add room charge as single entry
+  allEntries.push({date:r.checkin,type:'charge',particulars:'Room Charges',desc:`${r.roomType||'Room'} (${r.nights} nights × ${fmtM(ratePerNight)}/night)`,charge:r.charges,payment:0,deleted:false});
+  // Add GST
+  if(r.gst>0) allEntries.push({date:r.checkin,type:'charge',particulars:'Tax',desc:`CGST 2.5% + SGST 2.5%`,charge:r.gst,payment:0,deleted:false});
+  // Add extra charges with index for edit/void
+  (r.extraCharges||[]).forEach((c,idx)=>{
+    if(c.amount>0) allEntries.push({date:c.date||r.checkin,type:'charge',particulars:c.desc,desc:'',charge:c.amount,payment:0,deleted:c.deleted||false,idx});
+    else allEntries.push({date:c.date||r.checkin,type:'discount',particulars:c.desc,desc:'',charge:0,payment:Math.abs(c.amount),deleted:c.deleted||false,idx});
+  });
+  // Add payments
+  DB.payments.filter(p=>p.resId===r.resId&&!p.isAuditPost).forEach(p=>{
+    if(p.amount>0) allEntries.push({date:p.date,type:'payment',particulars:p.mode,desc:p.description||'Cash Received',charge:0,payment:p.amount,deleted:p.deleted||false,payId:p.payId});
+    else allEntries.push({date:p.date,type:'refund',particulars:'Refund',desc:p.description||'',charge:Math.abs(p.amount),payment:0,deleted:p.deleted||false,payId:p.payId});
+  });
+  // Sort by date
+  allEntries.sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+  // Running balance
+  let running=0;
+  const ledgerRows=allEntries.map(e=>{
+    const isDeleted=e.deleted;
+    if(!isDeleted) running+=e.charge-e.payment;
+    const stl=isDeleted?'text-decoration:line-through;opacity:0.5;color:var(--red)':'';
+    const payColor='var(--green)';
+    // Action buttons per row type
+    let actions='';
+    if(!isDeleted){
+      if(e.type==='payment'&&e.payId)
+        actions=`<div style="display:flex;gap:3px"><button class="ico-btn" onclick="editPay('${e.payId}')" title="Edit" style="color:var(--gold);font-size:11px">✏</button><button class="ico-btn" onclick="delPay('${e.payId}')" title="Void" style="color:var(--red);font-size:11px">🗑</button></div>`;
+      else if(e.type==='charge'&&e.idx!==undefined)
+        actions=`<div style="display:flex;gap:3px"><button class="ico-btn" onclick="editCharge(${e.idx})" title="Edit" style="color:var(--gold);font-size:11px">✏</button><button class="ico-btn" onclick="delCharge(${e.idx})" title="Void" style="color:var(--red);font-size:11px">🗑</button></div>`;
+    } else {
+      actions='<span style="font-size:9px;color:var(--red)">VOID</span>';
+    }
+    return `<tr style="${isDeleted?'background:rgba(231,76,60,.04)':''}">
+      <td style="${stl};font-size:12px" class="mono">${fmtD(e.date)}</td>
+      <td style="${stl};font-weight:600">${e.particulars}</td>
+      <td style="${stl};font-size:11px;color:var(--text3)">${e.desc}</td>
+      <td style="${stl};text-align:right;font-family:'DM Mono',monospace;color:${e.charge>0?'var(--text)':'var(--text3)'}">${e.charge>0?fmtM(e.charge):''}</td>
+      <td style="${stl};text-align:right;font-family:'DM Mono',monospace;color:${payColor}">${e.payment>0?fmtM(e.payment):''}</td>
+      <td style="text-align:right;font-family:'DM Mono',monospace;color:${isDeleted?'var(--text3)':running>0?'var(--red)':'var(--green)'};font-size:11px">${isDeleted?'':fmtM(Math.abs(running))}</td>
+      <td style="text-align:center">${actions}</td>
+    </tr>`;
+  });
 
-  // Show/hide action buttons using static IDs — no dynamic injection
+  const ledger=$('rm-folio-ledger');
+  if(ledger) ledger.innerHTML=ledgerRows.join('')||'<tr><td colspan="6" style="text-align:center;color:var(--text3);padding:10px">No entries</td></tr>';
+
+  // Update folio table header to include Balance column
+  const folioTable=ledger?.closest('table');
+  if(folioTable){
+    const th=folioTable.querySelector('thead tr');
+    if(th) th.innerHTML='<th>Date</th><th>Particulars</th><th>Description</th><th style="text-align:right">Charge (₹)</th><th style="text-align:right">Payment (₹)</th><th style="text-align:right">Balance (₹)</th><th></th>';
+  }
+
+  const folioFoot=$('rm-folio-foot');
+  if(folioFoot) folioFoot.innerHTML=`<tr style="font-weight:700;background:var(--bg3)">
+    <td colspan="3">Total</td>
+    <td style="text-align:right;font-family:'DM Mono',monospace">${fmtM(r.totalAmount)}</td>
+    <td style="text-align:right;font-family:'DM Mono',monospace;color:var(--green)">${fmtM(paid)}</td>
+    <td style="text-align:right;font-family:'DM Mono',monospace;color:${bal>0?'var(--red)':'var(--green)'}">${fmtM(bal)}</td>
+  </tr>`;
+
+  // Show/hide action buttons
   const canCO=(r.status==='Occupied'||isDO);
   const canCI=(r.status==='Arrival'||r.status==='Confirmed');
   const isCoedOut=r.status==='Checked Out';
   $('rm-co-btn').style.display=canCO?'':'none';
   $('rm-ci-btn').style.display=canCI?'':'none';
   $('rm-undo-btn').style.display=isCoedOut?'':'none';
-  $('rm-del-btn').style.display='block'; // always visible
+  $('rm-del-btn').style.display='inline-block';
 }
+
 function renderCharges(){
+  refreshCurRes();
   const r=curRes;if(!r) return;
-  const rows=[
-    {date:r.checkin,desc:`Room (${r.nights}n × ${fmtM(r.charges/Math.max(r.nights,1)|0)})`,amount:r.charges},
-    {date:r.checkin,desc:'GST 5%',amount:r.gst},
-    ...(r.extraCharges||[])
-  ];
-  $('rm-charges-body').innerHTML=rows.map((c,i)=>`<tr><td>${fmtD(c.date)}</td><td>${c.desc}</td><td class="mono">${fmtM(c.amount)}</td><td>${i>1?`<button class="ico-btn" onclick="delCharge(${i-2})">🗑</button>`:''}</td></tr>`).join('');
+  // Per-night breakdown like eZee Image 1
+  const cin=new Date(r.checkin+'T00:00:00');
+  const ratePerNight=r.nights>0?Math.round((r.charges||0)/r.nights):(r.charges||0);
+  const taxPerNight=r.nights>0?Math.round((r.gst||0)/r.nights):0;
+  const rows=[];
+  for(let i=0;i<r.nights;i++){
+    const d=new Date(cin);d.setDate(d.getDate()+i);
+    const ds=d.toISOString().split('T')[0];
+    rows.push(`<tr>
+      <td class="mono">${fmtD(ds)}</td>
+      <td>${r.rooms?.join(', ')} (${r.roomType})</td>
+      <td><span class="chip">${r.rateType}</span></td>
+      <td class="mono" style="text-align:center">1</td>
+      <td class="mono" style="text-align:right">${fmtM(ratePerNight)}</td>
+      <td class="mono text-dim" style="text-align:right">—</td>
+      <td class="mono" style="text-align:right">${fmtM(taxPerNight)}</td>
+      <td class="mono bold" style="text-align:right">${fmtM(ratePerNight+taxPerNight)}</td>
+    </tr>`);
+  }
+  const cb=$('rm-charges-body');
+  if(cb) cb.innerHTML=rows.join('')||'<tr><td colspan="8" style="text-align:center;color:var(--text3);padding:10px">No room charges</td></tr>';
+  const cf=$('rm-charges-foot');
+  if(cf) cf.innerHTML=`<tr style="font-weight:700;background:var(--bg3)">
+    <td colspan="4">Total (${r.nights} nights)</td>
+    <td class="mono" style="text-align:right">${fmtM(r.charges)}</td>
+    <td class="mono" style="text-align:right">—</td>
+    <td class="mono" style="text-align:right">${fmtM(r.gst)}</td>
+    <td class="mono" style="text-align:right">${fmtM(r.charges+r.gst)}</td>
+  </tr>`;
+
+  // Extra charges table
+  const extras=r.extraCharges||[];
+  const eb=$('rm-extra-body');
+  if(eb) eb.innerHTML=extras.length?extras.map((c,i)=>{
+    const isVoid=c.deleted;
+    const stl=isVoid?'text-decoration:line-through;opacity:0.5;color:var(--red)':'';
+    return `<tr style="${isVoid?'background:rgba(231,76,60,.04)':''}">
+      <td style="${stl}" class="mono">${fmtD(c.date)}</td>
+      <td style="${stl}">${c.desc}${isVoid?' <span style="font-size:10px;color:var(--red)">[VOID]</span>':''}</td>
+      <td class="mono" style="text-align:right;${stl};color:${c.amount<0?'var(--red)':isVoid?'var(--red)':'var(--text)'}">${c.amount<0?'-'+fmtM(Math.abs(c.amount)):fmtM(c.amount)}</td>
+      <td>${isVoid?'<span style="font-size:10px;color:var(--text3)">Voided</span>':`<div style="display:flex;gap:4px"><button class="ico-btn" onclick="editCharge(${i})" title="Edit" style="color:var(--gold)">✏</button><button class="ico-btn" onclick="delCharge(${i})" title="Void" style="color:var(--red)">🗑</button></div>`}</td>
+    </tr>`;
+  }).join(''):'<tr><td colspan="4" style="text-align:center;color:var(--text3);padding:10px">No extra charges</td></tr>';
 }
 function addCharge(){
   if(!curRes){toast('No active reservation','err');return;}
-  // Use inline prompt with better UX
-  const desc=window.prompt('Charge description (e.g. Restaurant, Laundry, Minibar):');
-  if(!desc||!desc.trim()) return;
-  const amtStr=window.prompt(`Amount (₹) for "${desc}":`);
-  const amt=parseFloat(amtStr);
-  if(isNaN(amt)||amt<=0){toast('Enter a valid amount','err');return;}
-  const r=DB.reservations.find(r=>r.resId===curRes?.resId);if(!r) return;
-  if(!r.extraCharges) r.extraCharges=[];
-  r.extraCharges.push({date:today(),desc:desc.trim(),amount:amt});
-  r.totalAmount+=amt;
+  openModal('addChargeModal');
+  $('ac-date').value=today();
+  $('ac-desc').value='';$('ac-custom').value='';$('ac-qty').value=1;$('ac-rate').value='';
+  calcChargeTotal();
+}
+
+function calcChargeTotal(){
+  const qty=parseFloat($('ac-qty')?.value)||1;
+  const rate=parseFloat($('ac-rate')?.value)||0;
+  const total=qty*rate;
+  const el=$('ac-total');if(el) el.textContent=fmtM(total);
+}
+
+function editCharge(i){
+  const r=DB.reservations.find(x=>x.resId===curRes?.resId);if(!r) return;
+  const c=r.extraCharges[i];if(!c||c.deleted) return;
+  // Pre-fill addChargeModal
+  openModal('addChargeModal');
+  $('ac-date').value=c.date||today();
+  // Try to match desc to dropdown
+  const opts=['Restaurant','Laundry','Minibar','Room Service','Telephone','Parking','Extra Bed','Early Check-in','Late Checkout','Damage'];
+  const matched=opts.find(o=>c.desc.startsWith(o));
+  if(matched){$('ac-desc').value=matched;$('ac-custom-row').style.display='none';}
+  else{$('ac-desc').value='Other';$('ac-custom-row').style.display='block';$('ac-custom').value=c.desc;}
+  $('ac-qty').value=1;
+  $('ac-rate').value=c.amount;
+  calcChargeTotal();
+  // Store edit index
+  $('addChargeModal').dataset.editIdx=i;
+  $('addChargeModal').querySelector('.mtitle').textContent='Edit Charge';
+}
+
+function saveCharge(){
+  const r=DB.reservations.find(x=>x.resId===curRes?.resId);if(!r) return;
+  const sel=$('ac-desc').value;
+  const custom=$('ac-custom').value.trim();
+  const desc=custom||(sel==='Other'?'Other charge':sel);
+  if(!desc){toast('Enter charge description','err');return;}
+  const qty=parseFloat($('ac-qty').value)||1;
+  const rate=parseFloat($('ac-rate').value);
+  if(!rate||rate<=0){toast('Enter rate/amount','err');return;}
+  const amt=Math.round(qty*rate);
+  const date=$('ac-date').value||today();
+  const editIdx=parseInt($('addChargeModal').dataset.editIdx??'-1');
+
+  if(editIdx>=0){
+    // Edit existing charge
+    const old=r.extraCharges[editIdx];
+    r.totalAmount=Math.max(0,r.totalAmount-old.amount+amt);
+    r.extraCharges[editIdx]={date,desc:`${desc}${qty>1?' ×'+qty:''}`,amount:amt,deleted:false};
+    delete $('addChargeModal').dataset.editIdx;
+    $('addChargeModal').querySelector('.mtitle').textContent='Add Extra Charge';
+  } else {
+    // New charge
+    if(!r.extraCharges) r.extraCharges=[];
+    r.extraCharges.push({date,desc:`${desc}${qty>1?' ×'+qty:''}`,amount:amt,deleted:false});
+    r.totalAmount+=amt;
+  }
   curRes=r;
-  save();renderFolio();renderCharges();
-  toast(`✅ Charge added: ${desc} — ${fmtM(amt)}`,'ok');
+  save();
+  closeModal('addChargeModal');
+  setTimeout(()=>{
+    refreshCurRes();
+    renderFolio();renderCharges();
+    renderRooms();renderDash();
+    toast(`✅ ${desc} — ${fmtM(amt)} ${editIdx>=0?'updated':'added'}`,'ok');
+  },100);
 }
+
 function delCharge(i){
-  const r=DB.reservations.find(r=>r.resId===curRes?.resId);if(!r) return;
-  const c=r.extraCharges[i];if(!c) return;
-  r.totalAmount-=c.amount;r.extraCharges.splice(i,1);
-  save();renderFolio();renderCharges();toast('Charge removed','inf');
+  const r=DB.reservations.find(x=>x.resId===curRes?.resId);if(!r) return;
+  const c=r.extraCharges[i];if(!c||c.deleted) return;
+  if(!confirm(`Void charge?\n\n${c.desc}\nAmount: ${fmtM(c.amount)}\n\nIt will show as voided (kept for records).`)) return;
+  c.deleted=true;
+  r.totalAmount=Math.max(0,r.totalAmount-c.amount);
+  curRes=r;
+  save();
+  setTimeout(()=>{
+    refreshCurRes();
+    renderFolio();renderCharges();
+    renderRooms();renderDash();
+    toast(`Charge voided: ${c.desc}`,'inf');
+  },50);
 }
+
+function editPay(payId){
+  const p=DB.payments.find(x=>x.payId===payId);if(!p) return;
+  // Open pay modal pre-filled with this payment's data
+  $('pay-date').value=p.date||today();
+  $('pay-amt').value=p.amount||'';
+  $('pay-mode').value=p.mode||'Cash';
+  $('pay-rem').value=p.description||'';
+  populateBSDropdowns();
+  if($('pay-bs')) $('pay-bs').value=p.bsource||'';
+  // Mark as editing
+  $('payModal').dataset.editPayId=payId;
+  $('payModal').querySelector('.mtitle').textContent='Edit Payment';
+  openModal('payModal');
+}
+
 function delPay(payId){
-  if(!confirm('Remove this payment?')) return;
-  DB.payments=DB.payments.filter(p=>p.payId!==payId);
-  save();renderFolio();toast('Payment removed','inf');
+  const p=DB.payments.find(x=>x.payId===payId);if(!p) return;
+  if(!confirm(`Void this payment?\n\nAmount: ${fmtM(p.amount)}\nMode: ${p.mode}\nDate: ${fmtD(p.date)}\n\nIt will show as voided (kept for records).`)) return;
+  p.deleted=true;
+  save();
+  setTimeout(()=>{
+    refreshCurRes();
+    renderFolio();renderCharges();
+    renderRooms();renderDash();
+    toast(`Payment voided: ${fmtM(p.amount)}`,'inf');
+  },50);
 }
 function doCheckin(){
   const r=curRes;if(!r) return;
@@ -3157,31 +3626,43 @@ function savePay(){
   const amt=parseFloat($('pay-amt').value);
   if(!amt||amt<=0){toast('Enter a valid amount','err');return;}
   const mode=$('pay-mode').value;
-  // City Ledger must have a business source selected
   if(mode==='City Ledger'&&!$('pay-bs').value){
-    toast('⚠ Please select a Business Source / Ledger for City Ledger payment','err');
+    toast('⚠ Please select a Business Source for City Ledger payment','err');
     return;
   }
-  const pay={
-    payId:'pay_'+Date.now(),
-    resId:curRes.resId,
-    date:$('pay-date').value||today(),
-    amount:amt,
-    mode,
-    bsource:$('pay-bs').value,
-    description:$('pay-rem').value||('Payment — '+mode),
-    time:new Date().toLocaleTimeString()
-  };
-  DB.payments.push(pay);
+  const editId=$('payModal').dataset.editPayId||'';
+  if(editId){
+    // Edit existing payment
+    const p=DB.payments.find(x=>x.payId===editId);
+    if(p){
+      p.date=$('pay-date').value||today();
+      p.amount=amt; p.mode=mode;
+      p.bsource=$('pay-bs').value;
+      p.description=$('pay-rem').value||('Payment — '+mode);
+    }
+    delete $('payModal').dataset.editPayId;
+    $('payModal').querySelector('.mtitle').textContent='Add Payment';
+  } else {
+    // New payment
+    DB.payments.push({
+      payId:'pay_'+Date.now(),
+      resId:curRes.resId,
+      date:$('pay-date').value||today(),
+      amount:amt, mode,
+      bsource:$('pay-bs').value,
+      description:$('pay-rem').value||('Payment — '+mode),
+      time:new Date().toLocaleTimeString()
+    });
+  }
   save();
   closeModal('payModal');
-  const res=DB.reservations.find(r=>r.resId===curRes.resId);
-  curRes=res;
-  renderFolio();renderRooms();renderDash();updateTopbar();
-  const newBal=getBalance(curRes);
-  toast(`✅ Payment of ${fmtM(amt)} received via ${mode}. Balance: ${fmtM(Math.max(0,newBal))}`,'ok');
-  // Show receipt
-  setTimeout(()=>showReceiptModal(amt,mode,curRes.resId),300);
+  setTimeout(()=>{
+    refreshCurRes();
+    renderFolio();renderCharges();
+    renderRooms();renderDash();updateTopbar();
+    const newBal=getBalance(curRes);
+    toast(`✅ ${fmtM(amt)} ${editId?'updated':'received'} via ${mode}. Balance: ${fmtM(Math.max(0,newBal))}`,'ok');
+  },100);
 }
 function saveGuest(){
   const r=DB.reservations.find(x=>x.resId===curRes?.resId);if(!r) return;
@@ -3196,82 +3677,231 @@ function saveGuest(){
 }
 function buildInvoice(){
   const r=curRes;if(!r) return;
-  const paid=getPaid(r),bal=getBalance(r);
+  const paid=getPaid(r), bal=getBalance(r);
   const invNo=r.invNo||'DRAFT';
+  const isDraft=invNo==='DRAFT';
   const ratePerNight=Math.round((r.charges||0)/Math.max(r.nights,1));
-  const gstInfo=calcGST(ratePerNight,r.nights,false);
-  const gstPct=gstInfo.pct*100;
-  const cgst=gstInfo.cgst, sgst=gstInfo.sgst;
-  const extraTotal=(r.extraCharges||[]).reduce((s,c)=>s+(c.amount||0),0);
+  const taxableAmt=r.charges; // base before GST
+  const cgst=Math.round((r.gst||0)/2);
+  const sgst=Math.round((r.gst||0)/2);
+  const extraCharges=(r.extraCharges||[]).filter(c=>!c.deleted&&c.amount>0);
+  const extraTotal=extraCharges.reduce((s,c)=>s+(c.amount||0),0);
+  const discounts=(r.extraCharges||[]).filter(c=>!c.deleted&&c.amount<0);
+  const discTotal=Math.abs(discounts.reduce((s,c)=>s+(c.amount||0),0));
+  const totalCharges=r.charges+extraTotal;
+  const totalPayable=r.totalAmount;
+  const pays=DB.payments.filter(p=>p.resId===r.resId&&!p.isAuditPost&&!p.deleted&&p.amount>0);
+  const invDate=r.checkoutTime?new Date().toLocaleString('en-IN'):new Date().toLocaleString('en-IN');
+
+  // Number to words (simple)
+  function numWords(n){
+    const a=['','One','Two','Three','Four','Five','Six','Seven','Eight','Nine','Ten','Eleven','Twelve','Thirteen','Fourteen','Fifteen','Sixteen','Seventeen','Eighteen','Nineteen'];
+    const b=['','','Twenty','Thirty','Forty','Fifty','Sixty','Seventy','Eighty','Ninety'];
+    if(n===0) return 'Zero';
+    if(n<20) return a[n];
+    if(n<100) return b[Math.floor(n/10)]+(n%10?' '+a[n%10]:'');
+    if(n<1000) return a[Math.floor(n/100)]+' Hundred'+(n%100?' '+numWords(n%100):'');
+    if(n<100000) return numWords(Math.floor(n/1000))+' Thousand'+(n%1000?' '+numWords(n%1000):'');
+    if(n<10000000) return numWords(Math.floor(n/100000))+' Lakh'+(n%100000?' '+numWords(n%100000):'');
+    return numWords(Math.floor(n/10000000))+' Crore'+(n%10000000?' '+numWords(n%10000000):'');
+  }
+  const totalWords=numWords(Math.round(totalPayable))+' only';
 
   $('rm-invoice-wrap').innerHTML=`
-  <div class="inv-wrap" id="printable-invoice">
+  <div id="printable-invoice" style="background:#fff;color:#222;font-family:Arial,sans-serif;font-size:12px;padding:24px 28px;max-width:900px;margin:0 auto;border:1px solid #ddd">
+
     <!-- HEADER -->
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #c9a84c;padding-bottom:14px;margin-bottom:14px">
-      <div>
-        <div class="inv-logo">${DB.settings.propname||'Akshaya Comforts'}</div>
-        <div style="font-size:11px;color:#555;margin-top:3px">${DB.settings.loc||'Mysore, Karnataka'}</div>
-        ${DB.settings.phone?`<div style="font-size:11px;color:#555">📞 ${DB.settings.phone}</div>`:''}
-        ${DB.settings.gst?`<div style="font-size:11px;color:#555">GSTIN: ${DB.settings.gst}</div>`:''}
+    <div style="text-align:center;border-bottom:2px solid #333;padding-bottom:12px;margin-bottom:12px">
+      ${isDraft?'<div style="color:#e74c3c;font-size:11px;font-weight:700;margin-bottom:4px">★ ESTIMATED INVOICE ★</div>':''}
+      <div style="font-size:20px;font-weight:800;letter-spacing:1px">${DB.settings.propname||'AKSHAYA COMFORTS'}</div>
+      ${DB.settings.gst?`<div style="font-size:11px;color:#555">GSTIN No : ${DB.settings.gst}</div>`:''}
+      <div style="font-size:11px;color:#555;margin-top:2px">${DB.settings.loc||'Mysore, Karnataka'}, India</div>
+      ${DB.settings.phone?`<div style="font-size:11px;color:#555">Phone: ${DB.settings.phone}${DB.settings.email?'; E-mail: '+DB.settings.email:''}</div>`:''}
+    </div>
+
+    <!-- FOLIO/RES INFO + GUEST + STAY — 2 column layout -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;margin-bottom:10px;font-size:11.5px">
+      <div style="padding-right:16px;border-right:1px solid #eee">
+        <table style="width:100%;border-collapse:collapse">
+          <tr><td style="color:#555;padding:2px 0;width:40%">Folio No. / ResNo</td><td style="padding:2px 0"><b>${r.resNo}</b></td></tr>
+          <tr><td style="color:#555;padding:2px 0">Guest Name</td><td style="padding:2px 0"><b>${r.guestName}</b></td></tr>
+          <tr><td style="color:#555;padding:2px 0">Bill To</td><td style="padding:2px 0">${r.guestName}</td></tr>
+          ${r.address?`<tr><td style="color:#555;padding:2px 0;vertical-align:top">Bill To Address</td><td style="padding:2px 0">${r.address}${r.city?', '+r.city:''}${r.state?', '+r.state:''}</td></tr>`:''}
+          ${r.state?`<tr><td style="color:#555;padding:2px 0">State</td><td style="padding:2px 0">${r.state}</td></tr>`:''}
+          <tr><td style="color:#555;padding:2px 0">Source</td><td style="padding:2px 0">${r.source||'Direct'}</td></tr>
+          <tr><td style="color:#555;padding:2px 0">Source Of Supply</td><td style="padding:2px 0">${DB.settings.loc?.split(',')[0]||'Mysore'}</td></tr>
+        </table>
       </div>
-      <div style="text-align:right">
-        <div style="font-size:20px;font-weight:800;color:#222;letter-spacing:2px">INVOICE</div>
-        <div style="font-size:13px;color:#555;margin-top:4px">${invNo==='DRAFT'?'<span style="color:#e74c3c;font-style:italic">Preview — Generated on Checkout</span>':'No. <b>'+invNo+'</b>'}</div>
-        <div style="font-size:11px;color:#777">Date: ${fmtD(r.checkoutTime?r.checkout:today())}</div>
-        <div style="font-size:11px;color:#777">Res No: ${r.resNo}</div>
+      <div style="padding-left:16px">
+        <table style="width:100%;border-collapse:collapse">
+          <tr><td style="color:#555;padding:2px 0;width:45%">G.R. Card No</td><td style="padding:2px 0"><b>${invNo==='DRAFT'?'—':invNo}</b></td></tr>
+          <tr><td style="color:#555;padding:2px 0">Date of Invoice</td><td style="padding:2px 0">${invDate}</td></tr>
+          <tr><td style="color:#555;padding:2px 0">Room</td><td style="padding:2px 0"><b>${r.roomType} / ${r.rooms?.join(', ')}</b></td></tr>
+          <tr><td style="color:#555;padding:2px 0">No of Person</td><td style="padding:2px 0">1 (A) / 0 (C)</td></tr>
+          <tr><td style="color:#555;padding:2px 0">Rate Type</td><td style="padding:2px 0">${r.rateType}</td></tr>
+          <tr><td style="color:#555;padding:2px 0">No of Nights</td><td style="padding:2px 0"><b>${r.nights}</b></td></tr>
+          <tr><td style="color:#555;padding:2px 0">Date of Arrival</td><td style="padding:2px 0">${fmtD(r.checkin)} ${r.cinTime||''}</td></tr>
+          <tr><td style="color:#555;padding:2px 0">Date of Departure</td><td style="padding:2px 0">${fmtD(r.checkout)} ${r.coutTime||''}</td></tr>
+        </table>
       </div>
     </div>
-    <!-- GUEST & STAY -->
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;font-size:12px">
-      <div style="background:#f9f9f9;padding:10px;border-radius:6px">
-        <div style="font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#888;margin-bottom:6px">Guest Details</div>
-        <div style="font-size:13px;font-weight:700">${r.guestName}</div>
-        ${r.mobile?`<div style="color:#555">📱 ${r.mobile}</div>`:''}
-        ${r.email?`<div style="color:#555">✉ ${r.email}</div>`:''}
-        ${r.address?`<div style="color:#555">${r.address}${r.city?', '+r.city:''}${r.state?', '+r.state:''}</div>`:''}
-        ${r.idType&&r.idNum?`<div style="color:#555;margin-top:3px">${r.idType}: ${r.idNum}</div>`:''}
-      </div>
-      <div style="background:#f9f9f9;padding:10px;border-radius:6px">
-        <div style="font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#888;margin-bottom:6px">Stay Details</div>
-        <div><span style="color:#888">Room:</span> <b>${r.rooms?.join(', ')}</b> (${r.roomType})</div>
-        <div><span style="color:#888">Check-in:</span> ${fmtD(r.checkin)} ${r.cinTime||'12:00'}</div>
-        <div><span style="color:#888">Check-out:</span> ${fmtD(r.checkout)} ${r.coutTime||'12:00'}</div>
-        <div><span style="color:#888">Nights:</span> <b>${r.nights}</b> | Rate: ${r.rateType}</div>
-        ${r.source?`<div><span style="color:#888">Source:</span> ${r.source}</div>`:''}
-      </div>
-    </div>
-    <!-- CHARGES TABLE -->
-    <table class="inv-tbl">
-      <thead><tr><th style="width:45%">Description</th><th style="width:15%">Nights</th><th style="width:20%">Rate/Night</th><th style="width:20%">Amount</th></tr></thead>
+
+    <!-- CHARGES TABLE exactly like PDF -->
+    <table style="width:100%;border-collapse:collapse;margin-bottom:10px;font-size:11px">
+      <thead>
+        <tr style="background:#333;color:#fff">
+          <th style="padding:5px 6px;text-align:center;border:1px solid #555">Sr No</th>
+          <th style="padding:5px 6px;text-align:left;border:1px solid #555">Particular</th>
+          <th style="padding:5px 6px;text-align:center;border:1px solid #555">HSN/SAC</th>
+          <th style="padding:5px 6px;text-align:center;border:1px solid #555">Qty</th>
+          <th style="padding:5px 6px;text-align:right;border:1px solid #555">Rate</th>
+          <th style="padding:5px 6px;text-align:right;border:1px solid #555">Total</th>
+          <th style="padding:5px 6px;text-align:right;border:1px solid #555">Discount</th>
+          <th style="padding:5px 6px;text-align:right;border:1px solid #555">Taxable</th>
+          <th style="padding:5px 6px;text-align:center;border:1px solid #555" colspan="2">SGST</th>
+          <th style="padding:5px 6px;text-align:center;border:1px solid #555" colspan="2">CGST</th>
+          <th style="padding:5px 6px;text-align:center;border:1px solid #555" colspan="2">IGST</th>
+          <th style="padding:5px 6px;text-align:right;border:1px solid #555">CESS</th>
+        </tr>
+        <tr style="background:#555;color:#fff;font-size:9px">
+          <th style="border:1px solid #666" colspan="8"></th>
+          <th style="padding:2px 4px;border:1px solid #666">Amt</th><th style="padding:2px 4px;border:1px solid #666">%</th>
+          <th style="padding:2px 4px;border:1px solid #666">Amt</th><th style="padding:2px 4px;border:1px solid #666">%</th>
+          <th style="padding:2px 4px;border:1px solid #666">Amt</th><th style="padding:2px 4px;border:1px solid #666">%</th>
+          <th style="border:1px solid #666"></th>
+        </tr>
+      </thead>
       <tbody>
-        <tr><td>Room Charges — ${r.roomType} (${r.rateType})${r.complimentary?' [Complimentary]':''}</td><td>${r.nights}</td><td>${fmtM(ratePerNight)}</td><td>${fmtM(r.charges)}</td></tr>
-        ${(r.extraCharges||[]).map(c=>`<tr><td>${c.desc} <span style="font-size:10px;color:#888">${fmtD(c.date)}</span></td><td></td><td></td><td>${fmtM(c.amount)}</td></tr>`).join('')}
+        <tr>
+          <td style="padding:5px 6px;text-align:center;border:1px solid #ddd">1</td>
+          <td style="padding:5px 6px;border:1px solid #ddd">Room Charges${r.complimentary?' (Complimentary)':''}</td>
+          <td style="padding:5px 6px;text-align:center;border:1px solid #ddd">996311</td>
+          <td style="padding:5px 6px;text-align:center;border:1px solid #ddd">${r.nights}</td>
+          <td style="padding:5px 6px;text-align:right;border:1px solid #ddd">${ratePerNight.toFixed(2)}</td>
+          <td style="padding:5px 6px;text-align:right;border:1px solid #ddd">${taxableAmt.toFixed(2)}</td>
+          <td style="padding:5px 6px;text-align:right;border:1px solid #ddd">${discTotal.toFixed(2)}</td>
+          <td style="padding:5px 6px;text-align:right;border:1px solid #ddd">${(taxableAmt-discTotal).toFixed(2)}</td>
+          <td style="padding:5px 6px;text-align:right;border:1px solid #ddd">${sgst.toFixed(2)}</td>
+          <td style="padding:5px 6px;text-align:center;border:1px solid #ddd;font-size:9px">2.50%</td>
+          <td style="padding:5px 6px;text-align:right;border:1px solid #ddd">${cgst.toFixed(2)}</td>
+          <td style="padding:5px 6px;text-align:center;border:1px solid #ddd;font-size:9px">2.50%</td>
+          <td style="padding:5px 6px;text-align:right;border:1px solid #ddd">0.00</td>
+          <td style="padding:5px 6px;text-align:center;border:1px solid #ddd;font-size:9px">0.00%</td>
+          <td style="padding:5px 6px;text-align:right;border:1px solid #ddd">0.00</td>
+        </tr>
+        ${extraCharges.map((c,i)=>`<tr>
+          <td style="padding:5px 6px;text-align:center;border:1px solid #ddd">${i+2}</td>
+          <td style="padding:5px 6px;border:1px solid #ddd">${c.desc}</td>
+          <td style="padding:5px 6px;text-align:center;border:1px solid #ddd">996311</td>
+          <td style="padding:5px 6px;text-align:center;border:1px solid #ddd">1</td>
+          <td style="padding:5px 6px;text-align:right;border:1px solid #ddd">${(c.amount).toFixed(2)}</td>
+          <td style="padding:5px 6px;text-align:right;border:1px solid #ddd">${(c.amount).toFixed(2)}</td>
+          <td style="padding:5px 6px;text-align:right;border:1px solid #ddd">0.00</td>
+          <td style="padding:5px 6px;text-align:right;border:1px solid #ddd">${(c.amount).toFixed(2)}</td>
+          <td colspan="6" style="border:1px solid #ddd"></td>
+          <td style="padding:5px 6px;text-align:right;border:1px solid #ddd">0.00</td>
+        </tr>`).join('')}
       </tbody>
       <tfoot>
-        <tr><td colspan="3" style="text-align:right;color:#555">Sub Total</td><td>${fmtM(r.charges+extraTotal)}</td></tr>
-        ${r.gst>0?`
-        <tr><td colspan="3" style="text-align:right;color:#555">CGST @ 2.5%</td><td>${fmtM(cgst)}</td></tr>
-        <tr><td colspan="3" style="text-align:right;color:#555">SGST @ 2.5%</td><td>${fmtM(sgst)}</td></tr>
-        `:'<tr><td colspan="3" style="text-align:right;color:#888;font-size:11px">GST Exempt</td><td>₹0</td></tr>'}
-        <tr class="inv-foot"><td colspan="3" style="text-align:right"><b>Total Amount</b></td><td><b>${fmtM(r.totalAmount)}</b></td></tr>
-        <tr><td colspan="3" style="text-align:right;color:green">Amount Paid</td><td style="color:green">${fmtM(paid)}</td></tr>
-        ${paid<r.totalAmount?`<tr><td colspan="3" style="text-align:right;color:red;font-weight:700">Balance Due</td><td style="color:red;font-weight:700">${fmtM(bal)}</td></tr>`:'<tr><td colspan="4" style="text-align:center;color:green;font-weight:700">✓ FULLY PAID</td></tr>'}
+        <tr style="font-weight:700;background:#f5f5f5">
+          <td colspan="5" style="padding:5px 6px;text-align:right;border:1px solid #ddd">Total</td>
+          <td style="padding:5px 6px;text-align:right;border:1px solid #ddd">${taxableAmt.toFixed(2)}</td>
+          <td style="padding:5px 6px;text-align:right;border:1px solid #ddd">${discTotal.toFixed(2)}</td>
+          <td style="padding:5px 6px;text-align:right;border:1px solid #ddd">${(taxableAmt-discTotal).toFixed(2)}</td>
+          <td style="padding:5px 6px;text-align:right;border:1px solid #ddd">${sgst.toFixed(2)}</td>
+          <td style="border:1px solid #ddd"></td>
+          <td style="padding:5px 6px;text-align:right;border:1px solid #ddd">${cgst.toFixed(2)}</td>
+          <td style="border:1px solid #ddd"></td>
+          <td style="padding:5px 6px;text-align:right;border:1px solid #ddd">0.00</td>
+          <td style="border:1px solid #ddd"></td>
+          <td style="padding:5px 6px;text-align:right;border:1px solid #ddd">0.00</td>
+        </tr>
       </tfoot>
     </table>
-    <!-- PAYMENT HISTORY -->
-    ${paid>0?`<div style="margin-top:10px;font-size:11px">
-      <div style="font-weight:700;color:#555;margin-bottom:4px;text-transform:uppercase;letter-spacing:1px">Payment History</div>
-      ${DB.payments.filter(p=>p.resId===r.resId&&!p.isAuditPost).map(p=>`<div style="display:flex;justify-content:space-between;padding:2px 0;border-bottom:1px solid #eee"><span>${fmtD(p.date)} — ${p.mode}</span><span style="color:green">${fmtM(p.amount)}</span></div>`).join('')}
-    </div>`:''}
-    <!-- FOOTER -->
-    <div style="margin-top:16px;padding-top:10px;border-top:1px solid #eee;display:flex;justify-content:space-between;align-items:flex-end">
-      <div style="font-size:10px;color:#aaa;max-width:60%">${DB.settings.invnotice||'Computer generated invoice.'}</div>
-      <div style="text-align:right;font-size:11px;color:#555">
-        <div style="margin-bottom:20px">Authorized Signatory</div>
-        <div>________________</div>
-        <div>${DB.settings.propname||'Akshaya Comforts'}</div>
+
+    <!-- BOTTOM SECTION: Total words + Payment + Tax Summary + Totals -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:10px;font-size:11px">
+      <!-- LEFT: Total in words + Payments -->
+      <div>
+        <div style="border:1px solid #ddd;border-radius:4px;padding:8px;margin-bottom:8px">
+          <div style="font-weight:700;margin-bottom:4px">Total Payable Amount</div>
+          <div style="font-style:italic;color:#555">${totalWords}</div>
+        </div>
+        ${pays.length?`
+        <table style="width:100%;border-collapse:collapse;font-size:11px">
+          <thead><tr style="background:#f0f0f0">
+            <th style="padding:4px 6px;text-align:left;border:1px solid #ddd">Payment Date</th>
+            <th style="padding:4px 6px;text-align:left;border:1px solid #ddd">Description</th>
+            <th style="padding:4px 6px;text-align:right;border:1px solid #ddd">Amount</th>
+          </tr></thead>
+          <tbody>
+            ${pays.map(p=>`<tr>
+              <td style="padding:4px 6px;border:1px solid #ddd">${fmtD(p.date)}</td>
+              <td style="padding:4px 6px;border:1px solid #ddd">${p.mode} - ${p.description||'Cash Received'}</td>
+              <td style="padding:4px 6px;text-align:right;border:1px solid #ddd">${(p.amount||0).toFixed(2)}</td>
+            </tr>`).join('')}
+          </tbody>
+          <tfoot><tr style="font-weight:700;background:#f5f5f5">
+            <td colspan="2" style="padding:4px 6px;border:1px solid #ddd">Total</td>
+            <td style="padding:4px 6px;text-align:right;border:1px solid #ddd">${paid.toFixed(2)}</td>
+          </tfoot>
+        </table>`:'<div style="color:#aaa;font-size:11px;padding:8px;border:1px solid #eee;border-radius:4px">No payments recorded</div>'}
+
+        <!-- Tax Details -->
+        <table style="width:100%;border-collapse:collapse;margin-top:8px;font-size:11px">
+          <thead><tr style="background:#f0f0f0">
+            <th style="padding:4px 6px;border:1px solid #ddd;text-align:left">Tax Details</th>
+            <th style="padding:4px 6px;border:1px solid #ddd;text-align:right">Taxable Amount</th>
+            <th style="padding:4px 6px;border:1px solid #ddd;text-align:right">Tax Amount</th>
+          </tr></thead>
+          <tbody>
+            <tr><td style="padding:4px 6px;border:1px solid #ddd">CGST @ 2.50%</td><td style="padding:4px 6px;text-align:right;border:1px solid #ddd">${(taxableAmt-discTotal).toFixed(2)}</td><td style="padding:4px 6px;text-align:right;border:1px solid #ddd">${cgst.toFixed(2)}</td></tr>
+            <tr><td style="padding:4px 6px;border:1px solid #ddd">SGST @ 2.50%</td><td style="padding:4px 6px;text-align:right;border:1px solid #ddd">${(taxableAmt-discTotal).toFixed(2)}</td><td style="padding:4px 6px;text-align:right;border:1px solid #ddd">${sgst.toFixed(2)}</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- RIGHT: Summary totals like PDF right column -->
+      <div>
+        <table style="width:100%;border-collapse:collapse;font-size:11px">
+          <tr><td style="padding:3px 8px;color:#555">Total Charges(Rs)</td><td style="padding:3px 8px;text-align:right;font-weight:600">: ${totalCharges.toFixed(2)}</td></tr>
+          <tr><td style="padding:3px 8px;color:#555">Total Discount(Rs)</td><td style="padding:3px 8px;text-align:right">: ${discTotal.toFixed(2)}</td></tr>
+          <tr><td style="padding:3px 8px;color:#555">Total SGST(Rs)</td><td style="padding:3px 8px;text-align:right">: ${sgst.toFixed(2)}</td></tr>
+          <tr><td style="padding:3px 8px;color:#555">Total CGST(Rs)</td><td style="padding:3px 8px;text-align:right">: ${cgst.toFixed(2)}</td></tr>
+          <tr><td style="padding:3px 8px;color:#555">Total IGST(Rs)</td><td style="padding:3px 8px;text-align:right">: 0.00</td></tr>
+          <tr><td style="padding:3px 8px;color:#555">Total Other Tax(Rs)</td><td style="padding:3px 8px;text-align:right">: 0.00</td></tr>
+          <tr><td style="padding:3px 8px;color:#555">Total Balance Transfer(Rs)</td><td style="padding:3px 8px;text-align:right">: 0.00</td></tr>
+          <tr style="border-top:1px solid #ddd"><td style="padding:3px 8px;font-weight:700">Total(Rs)</td><td style="padding:3px 8px;text-align:right;font-weight:700">: ${totalPayable.toFixed(2)}</td></tr>
+          <tr><td style="padding:3px 8px;color:#555">Flat Discount(Rs)</td><td style="padding:3px 8px;text-align:right">: 0.00</td></tr>
+          <tr><td style="padding:3px 8px;color:#555">Adjustment(Rs)</td><td style="padding:3px 8px;text-align:right">: 0.00</td></tr>
+          <tr style="border-top:1px solid #333"><td style="padding:4px 8px;font-weight:700">Total Payable(Rs)</td><td style="padding:4px 8px;text-align:right;font-weight:700">: ${totalPayable.toFixed(2)}</td></tr>
+          <tr><td style="padding:3px 8px;color:green;font-weight:600">Total Payment(Rs)</td><td style="padding:3px 8px;text-align:right;color:green;font-weight:600">: ${paid.toFixed(2)}</td></tr>
+          <tr style="border-top:2px solid #333"><td style="padding:4px 8px;font-weight:800;color:${bal>0?'red':'green'}">Balance(Rs)</td><td style="padding:4px 8px;text-align:right;font-weight:800;font-size:14px;color:${bal>0?'red':'green'}">: ${bal.toFixed(2)}</td></tr>
+        </table>
       </div>
     </div>
+
+    <!-- REMARK -->
+    <div style="margin-bottom:14px;font-size:11px">
+      <span style="color:#555">Remark : </span>${r.remarks||''}
+    </div>
+
+    <!-- FOOTER -->
+    <div style="border-top:1px solid #ddd;padding-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:14px;font-size:11px">
+      <div>
+        <div style="margin-bottom:3px">This Folio is in &nbsp;&nbsp;: Rs</div>
+        <div style="margin-bottom:3px">Reception (C/I) &nbsp;: ${DB.settings.propname||'Akshaya Comforts'}</div>
+        <div style="margin-bottom:3px">Cashier (C/O) &nbsp;&nbsp;:</div>
+        <div style="margin-bottom:3px">Date &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: ${invDate}</div>
+        <div style="margin-bottom:3px">Page &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: Page 1 of 1</div>
+        <div style="margin-top:30px;border-top:1px solid #333;width:200px;text-align:center;padding-top:4px">(Guest Signature)</div>
+      </div>
+      <div style="font-size:10px;color:#555">
+        <div style="margin-bottom:6px">If You Have any Question about this Invoice, Please Contact us. This is a computer-generated invoice and does not require a signature.</div>
+        <div>${DB.settings.invnotice||'ANY DISPUTES ARE SUBJECT TO MYSORE JURISDICTION ONLY.'}</div>
+      </div>
+    </div>
+
   </div>`;
 }
 function emailInvoice(){
@@ -4522,10 +5152,9 @@ function setSyncStatus(msg,ok){
   const icon=$('sync-icon');
   const timeEl=$('sync-time');
   if(icon) icon.textContent=ok?'☁✅':'☁⏳';
-  if(timeEl) timeEl.textContent=ok?('Synced '+new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})):'';
+  if(timeEl) timeEl.textContent=ok?'Synced '+new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'}):'Syncing...';
 }
 
-// Sync countdown timer — shows "Next sync in Xs"
 let nextSyncIn=60;
 let syncCountdownTimer=null;
 function startSyncCountdown(){
@@ -4533,18 +5162,18 @@ function startSyncCountdown(){
   nextSyncIn=60;
   syncCountdownTimer=setInterval(()=>{
     nextSyncIn--;
-    const timeEl=$('sync-time');
+    const cdEl=$('sync-countdown');
     const icon=$('sync-icon');
     if(nextSyncIn<=0){
       nextSyncIn=60;
       if(DB.settings.autoSync&&DB.settings.gasurl&&!document.hidden){
         if(icon) icon.textContent='☁⏳';
-        if(timeEl) timeEl.textContent='Syncing...';
-        pullFromCloud().then(()=>{if(timeEl) timeEl.textContent='';});
+        if(cdEl) cdEl.textContent='Syncing...';
+        pullFromCloud();
       }
     } else {
-      if(icon&&icon.textContent==='☁✅'){
-        if(timeEl) timeEl.textContent=`· Next: ${nextSyncIn}s`;
+      if(cdEl&&icon?.textContent==='☁✅'){
+        cdEl.textContent='Next: '+nextSyncIn+'s';
       }
     }
   },1000);
@@ -4590,7 +5219,7 @@ async function init(){
   if($('arr-date')) $('arr-date').value=today();
   if($('occ-from')){const m=today().substring(0,8)+'01';$('occ-from').value=m;$('occ-to').value=today();}
   if($('rev-from')){const m=today().substring(0,8)+'01';$('rev-from').value=m;$('rev-to').value=today();}
-  if($('gst-from')){const m=today().substring(0,8)+'01';$('gst-from').value=m;$('gst-to').value=today();}
+  if($('cl-from')){const m=today().substring(0,8)+'01';$('cl-from').value=m;$('cl-to').value=today();}
   if($('mth-month')) $('mth-month').value=today().substring(0,7);
   populateBSDropdowns();
   autoUpdateStatuses();
